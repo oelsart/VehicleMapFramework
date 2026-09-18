@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 	<ThingDef Name="VehicleEnterSpotBase" ParentName="BuildingBase" Abstract="True">
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<passability>Standable</passability>
 		<placeWorkers>
 			<li>VehicleMapFramework.PlaceWorker_ForceOnVehicleMapEdge</li>

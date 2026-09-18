@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>		
 	<ThingDef Name="VehicleSeatBase" ParentName="FurnitureBase" Abstract="True">
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<minifiedDef>MinifiedThing</minifiedDef>
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<altitudeLayer>Building</altitudeLayer>
@@ -179,7 +179,7 @@
 		<defName>VMF_CargoContainer</defName>
 		<label>cargo container</label>
 		<description>Storage for additional vehicle cargo capacity.\n\n&lt;color=#bb8f04&gt;Cargo capacity:&lt;/color&gt; +150 kg</description>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<rotatable>false</rotatable>
 		<pathCost>80</pathCost>
 		<fillPercent>0.55</fillPercent>
@@ -260,7 +260,7 @@
 		<defName>VMF_TurboCharger</defName>
 		<label>turbo charger</label>
 		<description>Engine components to enhance the vehicle's maximum payload.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +500 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +8 /day</description>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<pathCost>80</pathCost>
 		<fillPercent>0.2</fillPercent>
 		<graphicData>
@@ -325,7 +325,7 @@
 		<defName>VMF_LiftFan</defName>
 		<label>lift fan</label>
 		<description>A Lift fan to enhance the hover vehicle's maximum payload. Can only be installed on hover type vehicles.\n\n&lt;color=#bb8f04&gt;Maximum Payload:&lt;/color&gt; +250 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +4 /day</description>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/BuildableUpgrade/LiftFan</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
@@ -392,7 +392,7 @@
 		<defName>VMF_FuelTank</defName>
 		<label>fuel tank</label>
 		<description>Tank for increase fuel capacity of the vehicle.\n\n&lt;color=#bb8f04&gt;Fuel capacity:&lt;/color&gt; +300</description>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<rotatable>false</rotatable>
 		<passability>Impassable</passability>
 		<fillPercent>0.60</fillPercent>

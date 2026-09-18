@@ -7,7 +7,7 @@
 	<ThingDef Name="VMF_GravshipWheelBase" ParentName="GravshipComponentBase" Abstract="True" MayRequire="Ludeon.RimWorld.Odyssey">
 		<designatorDropdown>VMF_GravshipWheelGroup</designatorDropdown>
 		<thingClass>VehicleMapFramework.Building_GravshipWheel</thingClass>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<rotatable>true</rotatable>
 		<blockWind>true</blockWind>
 		<canOverlapZones>false</canOverlapZones>

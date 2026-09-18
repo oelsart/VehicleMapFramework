@@ -4,7 +4,7 @@
 		<defName>VMF_WirelessTransmitter</defName>
 		<label>wireless power transmitter</label>
 		<description>A device for transmitting power between a normal map and a vehicle map.</description>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<passability>PassThroughOnly</passability>
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<tickerType>Normal</tickerType>
@@ -60,7 +60,7 @@
 		<defName>VMF_Alternator</defName>
 		<label>alternator</label>
 		<description>Component that uses vehicle fuel to generate electricity.</description>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<fillPercent>0.60</fillPercent>
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/Alternator/Alternator</texPath>
@@ -130,7 +130,7 @@
 		<defName>VMF_PipeConnector</defName>
 		<label>pipe connector</label>
 		<description>Connection to pipe between the normal map and the vehicle map.\nPlaced on the normal map and the vehicle map, they are connected by aligning their positions.</description>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<passability>PassThroughOnly</passability>
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<tickerType>Normal</tickerType>
@@ -176,7 +176,7 @@
 		<label>zipline turret</label>
 		<description>A turret that sets up a zipline at the location where it pierces. Used for direct access between vehicles.</description>
 		<thingClass>VehicleMapFramework.Building_TurretGunForcedTargetOnly</thingClass>
-		<designationCategory>VF_Vehicles</designationCategory>
+		<designationCategory>VMF_VehicleMap</designationCategory>
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Base</texPath>
 			<drawSize>(1,1)</drawSize>
