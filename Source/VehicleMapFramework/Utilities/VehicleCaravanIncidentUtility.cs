@@ -11,7 +11,7 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class VehicleCaravanIncidentUtility
+public static class VehicleCaravanIncidentUtility
 {
   public static int CalculateIncidentMapSize(List<VehiclePawn> caravanVehicles, List<VehiclePawnWithMap> enemyVehicles)
   {
@@ -114,8 +114,10 @@ public class VehicleCaravanIncidentUtility
             {
               if (thingWithComps.TryGetComp<CompPowerBattery>(out var comp))
                 comp.SetStoredEnergyPct(1f);
-              if (thingWithComps.TryGetComp<CompDrawAdditionalGraphicsOpacity>(out var comp2))
-                comp2.Opacity = 0.5f;
+              if (thingWithComps.TryGetComp<CompPowerTrader>(out var comp2))
+                comp2.PowerOn = true;
+              if (thingWithComps.TryGetComp<CompDrawAdditionalGraphicsOpacity>(out var comp3))
+                comp3.Opacity = 0.5f;
             }
           });
         vehicle.Resize();

@@ -15,7 +15,7 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
   {
     LongEventHandler.ExecuteWhenFinished(() =>
     {
-      defaultMat = new Material(ShaderDatabase.CutoutComplexUI);
+      defaultMat = new Material(ShaderDatabase.Transparent);
     });
   }
   
@@ -26,8 +26,9 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
       return (0, 0);
 
     var size = vehicle.MapSize;
-    var maxCells = Mathf.Max(size.x, size.z);
-    return (maxCells * SizePerCell, maxCells * SizePerCell);
+    var texW = Mathf.Max(1, size.x * SizePerCell);
+    var texH = Mathf.Max(1, size.z * SizePerCell);
+    return request.rot.IsHorizontal ? (texH, texW) : (texW, texH);
   }
 
   IEnumerable<RenderData> IBlitTarget.GetRenderData(Rect rect, BlitRequest request)
@@ -37,31 +38,28 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
       (textureSize.width, textureSize.height));
     defaultMat.mainTexture = texture;
     var renderRect = GetRenderRect(rect, request);
+    
     yield return new RenderData(renderRect, texture, defaultMat, null, 0.1f, 0f);
   }
 
   public Rect GetRenderRect(Rect parentRect, BlitRequest request, bool fitToValidRect = false)
   {
     var vehicleRectSize = vehicle.VehicleDef.ScaleDrawRatio(parentRect.size);
-    var vehicleMaxUi = Mathf.Max(vehicleRectSize.x, vehicleRectSize.y);
-    var drawSizeMax = Mathf.Max(vehicle.VehicleDef.graphicData.drawSize.x, vehicle.VehicleDef.graphicData.drawSize.y);
-    var pixelsPerCell = vehicleMaxUi / drawSizeMax;
 
-    var mapSize = fitToValidRect ? vehicle.ValidMapRect.ExpandedBy(1).Size : vehicle.MapSize.ToIntVec2;
-    float maxMapCells = Mathf.Max(mapSize.x, mapSize.z);
-    var mapUiSize = new Vector2(maxMapCells * pixelsPerCell, maxMapCells * pixelsPerCell);
-
-    var elongated = request.rot.IsHorizontal || request.rot.IsDiagonal;
     var vehicleGraphicData = vehicle.VehicleDef.graphicData;
     var vehicleDrawSize = new Vector2(vehicleGraphicData.drawSize.x, vehicleGraphicData.drawSize.y);
-    if (elongated)
+    var horizontal = request.rot.IsHorizontal;
+    var mapSize = fitToValidRect ? vehicle.ValidMapRect.ExpandedBy(1).Size : vehicle.MapSize.ToIntVec2;
+    var scaleFactors = new Vector2(vehicleRectSize.x / vehicleDrawSize.x, vehicleRectSize.y / vehicleDrawSize.y);
+    var mapUiSize = new Vector2(mapSize.x * scaleFactors.x, mapSize.z * scaleFactors.y);
+    if (horizontal)
     {
-      (vehicleDrawSize.x, vehicleDrawSize.y) = (vehicleDrawSize.y, vehicleDrawSize.x);
+      (mapUiSize.x, mapUiSize.y) = (mapUiSize.y, mapUiSize.x);
+      (scaleFactors.x, scaleFactors.y) = (scaleFactors.y, scaleFactors.x);
     }
 
-    var scaleFactors = new Vector2(vehicleRectSize.x / vehicleDrawSize.x, vehicleRectSize.y / vehicleDrawSize.y);
     var drawOffset = vehicleGraphicData.DrawOffsetForRot(request.rot);
-    var baseOffset = new Vector2(drawOffset.x * scaleFactors.x, -drawOffset.z * scaleFactors.y);
+    var baseOffset = new Vector2(drawOffset.x * scaleFactors.x, drawOffset.z * scaleFactors.y);
 
     var displayOffset = vehicle.VehicleDef.drawProperties.DisplayOffsetForRot(request.rot);
     var vehicleUiCenter = new Vector2(
@@ -72,13 +70,12 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
     var rawOffset = VehicleMapUtility.OffsetFor(vehicle, request.rot);
     if (fitToValidRect)
     {
-      rawOffset +=
-        (vehicle.ValidMapRect.CenterVector3 - vehicle.MapRect.CenterVector3)
-        .RotatedBy(request.rot);
+      var mapRectOffset = vehicle.ValidMapRect.CenterVector3 - vehicle.MapRect.CenterVector3;
+      rawOffset += mapRectOffset.RotatedBy(request.rot);
     }
     var mapUiCenter = new Vector2(
-      vehicleUiCenter.x + (rawOffset.x * pixelsPerCell) + baseOffset.x,
-      vehicleUiCenter.y + (-rawOffset.z * pixelsPerCell) + baseOffset.y // UIはY軸下向き
+      vehicleUiCenter.x + (rawOffset.x * scaleFactors.x) + baseOffset.x,
+      vehicleUiCenter.y + (-rawOffset.z * scaleFactors.y) - baseOffset.y // UIはY軸下向き
     );
 
     return new Rect(Vector2.zero, mapUiSize) { center = mapUiCenter };

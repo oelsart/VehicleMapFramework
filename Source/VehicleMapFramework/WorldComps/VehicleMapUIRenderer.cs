@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using JetBrains.Annotations;
+using LudeonTK;
+using RimWorld;
 using SmashTools;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -24,7 +28,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
   /// <summary>
   /// Provides the current time. Can be overridden in tests to simulate time passage.
   /// </summary>
-  public static Func<float> TimeProvider = () => Time.time;
+  public static Func<float> TimeProvider = () => RealTime.LastRealTime;
 
   private readonly Dictionary<CacheKey, CachedMapTexture> cachedTextures = [];
   private readonly Game game = game;
@@ -106,15 +110,21 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     var mapSize = vehicle.MapSize.ToVector2();
     var mapOrigin = new Vector3(-mapSize.x / 2f, 0f, -mapSize.y / 2f).RotatedBy(rot);
     var proportions = drawSize ?? mapSize;
-    var offset = drawOffset ?? Vector3.zero;
-    var maxSize = Mathf.Max(proportions.x, proportions.y);
+    if (rot.IsHorizontal) proportions = proportions.Rotated();
+    if (drawOffset.HasValue) mapOrigin += drawOffset.Value;
+    var texAspect = (float)texSize.width / texSize.height;
+    var desiredWorldWidth = proportions.x;
+    var desiredWorldHeight = proportions.y;
+    var orthoSizeByHeight = desiredWorldHeight / 2f;
+    var orthoSizeByWidth = desiredWorldWidth / (2f * texAspect);
+    var orthoSize = Mathf.Max(orthoSizeByHeight, orthoSizeByWidth);
 
     camera.enabled = true;
-    camera.orthographicSize = maxSize / 2f;
-    camera.aspect = (float)texSize.width / texSize.height;
+    camera.orthographicSize = orthoSize;
+    camera.aspect = texAspect;
     camera.targetTexture = cache.RenderTexture;
     component.commandBuffer.Clear();
-    component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin + offset, rot);
+    component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin, rot);
     camera.Render();
     camera.targetTexture = null;
     camera.enabled = false;
@@ -154,7 +164,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
       graphic.MatAt(rot, vehicle));
 
     var overlayPos = VehicleMapUtility.OffsetFor(vehicle, rot) +
-                     vehicle.VehicleGraphic.DrawOffset(rot) -
+                     vehicle.VehicleGraphic.DrawOffset(rot) +
                      overlay.Graphic.DrawOffset(rot);
     var mapOrigin = new Vector3(-vehicle.MapSize.x / 2f, 0f, -vehicle.MapSize.z / 2f).RotatedBy(rot) +
                     overlayPos;
@@ -202,7 +212,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     void DrawLayerNow(SectionLayer layer)
     {
       if (layer == null) return;
-
+      
       for (var i = 0; i < layer.subMeshes.Count; i++)
       {
         var subMesh = layer.subMeshes[i];
@@ -329,5 +339,33 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     public bool Expired => DurationType == DurationType.Ticks
       ? GenTicks.TicksGame - LastUseTick > CacheDurationTicks
       : TimeProvider() - LastUseTime > CacheDurationTime;
+  }
+
+  [DebugOutput(VehicleMapFramework.CategoryName, true, name = "Write vehicle map textures")]
+  private static void WriteRenderTexturesToFile()
+  {
+    var component = Current.Game.GetComponent<VehicleMapUIRenderer>();
+    var active = RenderTexture.active;
+    var fileNameBuilder = new StringBuilder();
+    foreach (var (key, cachedMapTexture) in component.cachedTextures)
+    {
+      var renderTexture = cachedMapTexture.RenderTexture;
+      var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
+
+      RenderTexture.active = renderTexture;
+      texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+      texture.Apply();
+
+      var bytes = texture.EncodeToPNG();
+      fileNameBuilder.Append(key.vehicle.ThingID);
+      if (key.overlay is not null) fileNameBuilder.Append($"_{key.overlay.Name}");
+      fileNameBuilder.Append($"_{key.rot.ToStringHuman()}.png");
+      var fullPath = Path.Combine(Application.persistentDataPath, fileNameBuilder.ToString());
+      File.WriteAllBytes(fullPath, bytes);
+      Messages.Message($"Saved render texture to {fullPath}", MessageTypeDefOf.NeutralEvent, false);
+      fileNameBuilder.Clear();
+      Object.Destroy(texture);
+    }
+    RenderTexture.active = active;
   }
 }

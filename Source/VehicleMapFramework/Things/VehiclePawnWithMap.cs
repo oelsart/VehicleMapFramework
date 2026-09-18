@@ -607,9 +607,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         mapParent.vehicle = this;
         mapParent.Tile = 0;
         mapParent.SetFaction(Faction);
-        var mapSize = new IntVec3(props.size.x, 1, props.size.z);
-        mapSize.x += 2;
-        mapSize.z += 2;
+        var mapSize = new IntVec3(props.size.x + 2, 1, props.size.z + 2);
         MapSize = mapSize;
         mapParent.sourceMap = sourceMap;
         interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef,
@@ -935,35 +933,32 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               thing.Destroy();
               continue;
             }
-
-            if (thing is Pawn pawn &&
+            
+            switch (thing)
+            {
+              case VehiclePawn vehicle when
+                cell.GetTerrain(map) is { IsWater: true } &&
+                !vehicle.Drivable(cell, map):
+              {
+                var allPawnAboard = vehicle.AllPawnsAboard;
+                for (var j = allPawnAboard.Count - 1; j >= 0; j--)
+                {
+                  var pawn2 = allPawnAboard[j];
+                  vehicle.RemovePawn(pawn2);
+                  FrameDelay.DelayOne(PlaceToBaseMap, ((Thing)pawn2, cell, map));
+                }
+                return;
+              }
+              case Pawn pawn when
                 (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
-                HealthHelper.AttemptToDrown(pawn))
-            {
-              flag = true;
-              stringBuilder.AppendLine(pawn.LabelCap);
-              continue;
+                HealthHelper.AttemptToDrown(pawn):
+                flag = true;
+                stringBuilder.AppendLine(pawn.LabelCap);
+                continue;
+              default:
+                FrameDelay.DelayOne(PlaceToBaseMap, (thing, cell, map));
+                break;
             }
-
-            FrameDelay.DelayOne(static state =>
-            {
-              if (!GenPlace.TryPlaceThing(state.thing, state.cell, state.map, ThingPlaceMode.Near))
-              {
-                CellFinder.TryFindRandomCellNear(state.cell, state.map, 50,
-                  c => GenPlace.TryPlaceThing(state.thing, c, state.map, ThingPlaceMode.Near), out _);
-              }
-
-              if (state.thing is Pawn { carryTracker.CarriedThing: not null } pawn)
-                pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out _);
-
-              if (state.thing is VehiclePawn vehicle &&
-                  vehicle.Position.GetTerrain(state.map) is { IsWater: true } &&
-                  !vehicle.DrivableRectOnCell(vehicle.Position))
-              {
-                vehicle.DisembarkAll();
-                vehicle.Destroy();
-              }
-            }, (thing, cell, map));
           }
         }
       }
@@ -980,6 +975,18 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     RemoveVehicleMap();
     if (VehicleDef.HasModExtension<VehicleMapProps_Unique>())
       UniqueVehicleUtility.ReleaseUniqueVehicleDef(VehicleDef);
+    return;
+
+    static void PlaceToBaseMap((Thing thing, IntVec3 cell, Map map) state)
+    {
+      if (!GenPlace.TryPlaceThing(state.thing, state.cell, state.map, ThingPlaceMode.Near))
+      {
+        CellFinder.TryFindRandomCellNear(state.cell, state.map, 50,
+          c => GenPlace.TryPlaceThing(state.thing, c, state.map, ThingPlaceMode.Near), out _);
+      }
+      if (state.thing is Pawn { carryTracker.CarriedThing: not null } pawn)
+        pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out _);
+    }
   }
 
   public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
@@ -1350,7 +1357,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   public override void PostMake()
   {
     base.PostMake();
-    if (VehicleMapProps is VehicleMapProps_Unique { baseDef: null })
+    // この時点でVehicleMapPropsをキャッシュしてはいけない
+    if (def.GetModExtension<VehicleMapProps>() is VehicleMapProps_Unique { baseDef: null })
     {
       def = UniqueVehicleUtility.ClaimUniqueVehicleDef(VehicleDef);
     }

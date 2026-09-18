@@ -97,10 +97,10 @@ public static class VehicleResizeUtility
         formationComp.CenteredDrawPositions();
       }
 
-      if (UnityData.IsInMainThread)
-        vehicle.VehicleMapGizmo.portrait.MarkDirty();
-      else
-        LongEventHandler.ExecuteWhenFinished(() => vehicle.VehicleMapGizmo.portrait.MarkDirty());
+      FrameDelay.DelayOne(_vehicle =>
+      {
+        _vehicle.VehicleMapGizmo.portrait.MarkDirty();
+      }, vehicle);
     }
   }
 
