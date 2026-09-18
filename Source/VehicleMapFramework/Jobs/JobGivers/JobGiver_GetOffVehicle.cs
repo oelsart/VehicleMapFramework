@@ -7,30 +7,31 @@ namespace VehicleMapFramework;
 
 public class JobGiver_GetOffVehicle : ThinkNode_JobGiver
 {
-    public override float GetPriority(Pawn pawn) => 0f;
+  public override float GetPriority(Pawn pawn) => 0f;
 
-    protected override Job TryGiveJob(Pawn pawn)
+  protected override Job TryGiveJob(Pawn pawn)
+  {
+    var pawnFaction = pawn.Faction;
+    var isPlayer = pawnFaction is { IsPlayer: true };
+    if (isPlayer && !VehicleMapFramework.settings.autoGetOffPlayer ||
+        !isPlayer && !VehicleMapFramework.settings.autoGetOffNonPlayer)
+      return null;
+
+    if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
     {
-        if (pawn.Faction?.IsPlayer ?? false)
-        {
-            if (!VehicleMapFramework.settings.autoGetOffPlayer) return null;
-        }
-        else if (!VehicleMapFramework.settings.autoGetOffNonPlayer) return null;
-        if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
-        {
-            var colonyAnimal = pawn.RaceProps.Animal && (pawn.Faction?.IsPlayer ?? false);
-            if (pawn.Faction == vehicle.Faction && !colonyAnimal) return null;
-             
-            var cells = vehicle.VehicleRect().ExpandedBy(1).EdgeCells;
+      if (!isPlayer && pawn.Faction == vehicle.Faction) return null;
 
-            var exitSpot = TargetInfo.Invalid;
-            if (cells.Any(c => pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn,
-                    vehicle.Map, out exitSpot, out _, out _)))
-            {
-                var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot);
-                return job;
-            }
-        }
-        return null;
+      var cells = vehicle.VehicleRect().ExpandedBy(1).EdgeCells;
+
+      var exitSpot = TargetInfo.Invalid;
+      if (cells.Any(c => pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn,
+            vehicle.Map, out exitSpot, out _, out _)))
+      {
+        var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot);
+        return job;
+      }
     }
+
+    return null;
+  }
 }
