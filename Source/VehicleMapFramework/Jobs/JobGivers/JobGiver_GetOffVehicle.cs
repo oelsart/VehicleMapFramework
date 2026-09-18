@@ -18,8 +18,9 @@ public class JobGiver_GetOffVehicle : ThinkNode_JobGiver
         else if (!VehicleMapFramework.settings.autoGetOffNonPlayer) return null;
         if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
         {
-            if (pawn.Faction == vehicle.Faction) return null;
-            
+            var colonyAnimal = pawn.RaceProps.Animal && pawn.Faction == Faction.OfPlayer;
+            if (pawn.Faction == vehicle.Faction && !colonyAnimal) return null;
+             
             var cells = vehicle.VehicleRect().ExpandedBy(1).EdgeCells;
 
             var exitSpot = TargetInfo.Invalid;
