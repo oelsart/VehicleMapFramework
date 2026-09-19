@@ -6,6 +6,7 @@
 	<VMF_ForbidOnVehicle>車両マップには置けません.</VMF_ForbidOnVehicle>
 	<VMF_ForbidOnHumanPoweredVehicle>人力タイプの車両マップには置けません.</VMF_ForbidOnHumanPoweredVehicle>
 	<VMF_ForceOnVehicleMapEdge>車両マップの端以外には置けません.</VMF_ForceOnVehicleMapEdge>
+  <VMF_ForceOnExpandableCell>拡張可能なセル以外には置けません.</VMF_ForceOnExpandableCell>
 	<VMF_ForceOnRelatedVehicle>この建物はこの車両には関連しません.</VMF_ForceOnRelatedVehicle>
 	<VMF_ForceOnRelatedBuilding>関連する建物の上にしか建てられません.</VMF_ForceOnRelatedBuilding>
 	<VMF_UniqueVehicleExceedsLimit>{0}の数が制限を超えています.</VMF_UniqueVehicleExceedsLimit>
@@ -31,5 +32,7 @@
 	<VMF_GravshipVehicleDestroyed>グラヴシップ車両は破壊されました.</VMF_GravshipVehicleDestroyed>
 	
 	<VMF_AreaDeselect>このマップはエリア {0} を持ちません.</VMF_AreaDeselect>
+  
+  <VMF_BeginToSink>{0} は沈み始めています.</VMF_BeginToSink>
 	
 </LanguageData>
