@@ -102,7 +102,7 @@ public static class Patch_Avatar_UpdateInput
 [PatchLevel(Level.Safe)]
 public static class Patch_Avatar_ProcessMovement
 {
-  private static CompZipline compZipline;
+  private static CompVehicleEnterSpot compVehicleEnterSpot;
 
   private static readonly AccessTools.FieldRef<PawnTweener, Vector3> tweenedPos =
     AccessTools.FieldRefAccess<PawnTweener, Vector3>("tweenedPos");
@@ -115,26 +115,26 @@ public static class Patch_Avatar_ProcessMovement
     }
 
     ___pawn.IsOnVehicleMapOf(out var vehicle);
-    if (compZipline is not null)
+    if (compVehicleEnterSpot is not null)
     {
-      if (compZipline.parent is { Spawned: false } ||
-          ___pawn.Position != compZipline.parent.Position ||
-          compZipline.Pair is not { Spawned: true })
+      if (compVehicleEnterSpot.parent is { Spawned: false } ||
+          ___pawn.Position != compVehicleEnterSpot.parent.Position ||
+          compVehicleEnterSpot is not { AvailableAccessSpot: { IsValid: true } accessSpot })
       {
-        compZipline = null;
+        compVehicleEnterSpot = null;
         return true;
       }
       if (___moveInput != Vector3.zero)
       {
         var drawPosA = ___pawn.DrawPos;
-        var drawPosB = compZipline.Pair.DrawPos;
-        var drawPosC = compZipline.parent.DrawPos;
+        var drawPosB = accessSpot.CenterVector3OnGroundMap;
+        var drawPosC = compVehicleEnterSpot.parent.DrawPos;
         var line = drawPosB - drawPosA;
         var pathLength = line.MagnitudeHorizontal();
         var totalLengthSquared = (drawPosC - drawPosB).MagnitudeHorizontalSquared();
         if (totalLengthSquared < pathLength * pathLength)
         {
-          compZipline = null;
+          compVehicleEnterSpot = null;
           return true;
         }
 
@@ -144,33 +144,38 @@ public static class Patch_Avatar_ProcessMovement
           normalized = normalized.RotatedBy(vehicle.FullAngle);
         }
 
-        const float distancePerTick = 0.075f;
         //ジップラインの先端から登る場合は遅くなるわな
         var back = Vector3.Dot(normalized, ___moveInput) < 0f;
-        var moveDistance = compZipline.IsZiplineEnd ^ back ? distancePerTick * 0.5f : distancePerTick;
+        var moveDistance = compVehicleEnterSpot.MovePerTick(___pawn);
         if (back) moveDistance *= -1f;
 
         ___physicsPosition += normalized * moveDistance;
         if ((drawPosC - drawPosA).MagnitudeHorizontalSquared() > totalLengthSquared)
         {
-          RespawnPawn(___pawn, compZipline.Pair.Position, compZipline.Pair.Map, out ___prevCell);
+          RespawnPawn(___pawn, accessSpot.Cell, accessSpot.Map, out ___prevCell);
           ___physicsPosition = ___physicsPosition.Value
-            .ToThingBaseMapCoord(compZipline.parent)
-            .ToNonFocusedThingMapCoord(compZipline.Pair);
+            .ToThingBaseMapCoord(compVehicleEnterSpot.parent);
+          if (accessSpot.Map.IsNonFocusedVehicleMapOf(out var vehicle2))
+            ___physicsPosition = ___physicsPosition.Value.ToVehicleMapCoord(vehicle2);
           tweenedPos(___pawn.Drawer.tweener) = ___physicsPosition.Value;
-          compZipline = null;
+          compVehicleEnterSpot = null;
         }
       }
       return false;
     }
-    var comp = ___pawn.Position.GetThingList(___pawn.Map).Select(t => t.TryGetComp<CompZipline>()).FirstOrDefault();
-    if (comp is { Pair.Spawned: true })
+
+    foreach (var thing in ___pawn.Position.GetThingList(___pawn.Map))
     {
-      if ((comp.Pair.DrawPos - ___pawn.DrawPos).MagnitudeHorizontalSquared() <
-          (comp.Pair.DrawPos - comp.parent.DrawPos).MagnitudeHorizontalSquared())
+      var comp = thing.TryGetComp<CompVehicleEnterSpot>();
+      if (comp is { AvailableAccessSpot: { IsValid: true } accessSpot2 })
       {
-        compZipline = comp;
-        return true;
+        var centerVector3 = accessSpot2.CenterVector3OnGroundMap;
+        if ((centerVector3 - ___pawn.DrawPos).MagnitudeHorizontalSquared() <
+            (centerVector3 - comp.parent.DrawPos).MagnitudeHorizontalSquared())
+        {
+          compVehicleEnterSpot = comp;
+          return true;
+        }
       }
     }
 
@@ -325,15 +330,29 @@ public static class Patch_Avatar_HandleLeftClickInt
   {
     if (!___pawn.Spawned) return;
     var mouseMapPosition = UI.MouseMapPosition();
-    var map = mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None)
+    var currentMap = Find.CurrentMap;
+    var map = mouseMapPosition.TryGetVehicleMap(currentMap, out var vehicle, VehicleMapFlag.ExpandableCells)
       ? vehicle.VehicleMap
-      : Find.CurrentMap;
+      : currentMap;
+
+    var mousePositionLocal = vehicle is not null ? mouseMapPosition.ToVehicleMapCoord(vehicle) : mouseMapPosition;
+    if (vehicle is not null)
+    {
+      var localPos = mousePositionLocal.ToIntVec3();
+      if (mousePositionLocal.InBounds(map) && vehicle.ImpassableCellGrid[localPos] &&
+          localPos.GetThingList(vehicle.VehicleMap).Empty())
+      {
+        vehicle = null;
+        map = currentMap;
+      }
+    }
+    
     if (___pawn.Map != map)
     {
       var pos = ___pawn.PositionOnBaseMap;
       if (vehicle is not null)
       {
-        if (!mouseMapPosition.ToVehicleMapCoord(vehicle).InBounds(vehicle.VehicleMap))
+        if (!mousePositionLocal.InBounds(vehicle.VehicleMap))
         {
           return; // 外のポーンから車両マップ外のクリック時エラーが出るのを防止
         }
@@ -413,4 +432,18 @@ public static class Patch_Avatar_HandleFiring
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
+}
+
+[HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
+[HarmonyPatch("PerspectiveShift.Avatar", "MouseOverJobTarget")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Avatar_MouseOverJobTarget
+{
+  public static void Prefix(Pawn ___pawn, ref Command_FocusVehicleMap.FocusVehicle? __state)
+  {
+    if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+      __state = new Command_FocusVehicleMap.FocusVehicle(vehicle);
+  }
+  
+  public static void Finalizer(Command_FocusVehicleMap.FocusVehicle? __state) => __state?.Dispose();
 }

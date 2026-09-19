@@ -735,6 +735,19 @@ public static class ModCompat
     }
   }
 
+  public class ResourceDeliveryHelper : CompatBase<ResourceDeliveryHelper>
+  {
+    public static Action<Thing, CellRect, Map, int> TryDisplayOverlay;
+
+    static ResourceDeliveryHelper()
+    {
+      Initialize("ferny.ResourceDeliveryHelper", () =>
+      {
+        TryDisplayOverlay = AccessTools.MethodDelegate<Action<Thing, CellRect, Map, int>>("ResourceDeliveryHelper.ThingOverlays_ThingOverlaysOnGUI_Patch:TryDisplayOverlay");
+      });
+    }
+  }
+
   public class Rimatomics : CompatBase<Rimatomics>
   {
     public static Type CompProperties_Pipe { get; private set;}

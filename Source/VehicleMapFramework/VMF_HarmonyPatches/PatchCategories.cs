@@ -124,6 +124,8 @@ internal static class PatchCategories
 
   public const string ReGrowth = "VMF_Patches_ReGrowth";
 
+  public const string ResourceDeliveryHelper = "VMF_Patches_ResourceDeliveryHelper";
+
   public const string Rimatomics = "VMF_Patches_Rimatomics";
 
   public const string RimWorldOfMagic = "VMF_Patches_RimWorldOfMagic";
