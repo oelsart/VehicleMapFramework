@@ -15,7 +15,7 @@ public class PlaceWorker_MapExpander : PlaceWorker
 
     if (!vehicle.ExpandableGrid[loc] ||
         GenAdj.OccupiedRect(loc, rot, checkingDef.Size).Any(c =>
-          (c + c.DirectionToInsideMap(vehicle).AsIntVec3).GetThingList(vehicle.VehicleMap)
+          (c + c.DirectionToInsideMap(vehicle).AsIntVec3).GetThingList(map)
           .Any(t => t.def.PlaceWorkers?.Any(p => p is PlaceWorker_ForceOnVehicleMapEdge) ?? false)))
     {
       return "VMF_ForceOnExpandableCell".Translate();
