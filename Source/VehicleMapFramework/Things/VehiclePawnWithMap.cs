@@ -44,6 +44,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   public bool enterPositionsDirty = true;
   private int cellDesignationsDirtyTick;
   private int vehicleCaravanOrStashedVehicleCachedTick;
+  private Vector3 lastRecachedDrawPos;
 
   internal bool resizeRequest;
 
@@ -773,7 +774,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     Resize();
     if (Spawned)
     {
-      RecacheDrawPos(DrawPos);
+      RecacheDrawPos(DrawPos + (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero));
       if (CompDelayedKill is { KillStarted: true })
       {
         CompDelayedKill.CompTick();
@@ -1077,9 +1078,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public void RecacheDrawPos(Vector3 drawLoc)
   {
-    if (!UnityData.IsInMainThread) return;
+    if (!UnityData.IsInMainThread || lastRecachedDrawPos == drawLoc) return;
 
-    var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
+    lastRecachedDrawPos = drawLoc;
+    var rot = FullRotation;
+    var transform = new TransformData(drawLoc + Transform.position, rot, Transform.rotation.FlipAngle(this));
     var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
     cachedDrawPos = result?.position ?? drawLoc;
     if (Spawned && Find.CurrentMap == CurrentLevel)
