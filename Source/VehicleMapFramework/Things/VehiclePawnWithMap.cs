@@ -410,7 +410,22 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public override IEnumerable<Gizmo> GetGizmos()
   {
-    foreach (var gizmo in base.GetGizmos()) yield return gizmo;
+    foreach (var gizmo in base.GetGizmos())
+    {
+      // VehicleRoleHandlerBuildableならば車両の周りがImpassableセルでも降りられるようにする
+      if (gizmo is Command_ActionPawnDrawer { Disabled: true } command &&
+          gizmo.disabledReason == "VF_DisembarkNoExit".Translate() &&
+          command.pawn?.ParentHolder is VehicleRoleHandlerBuildable
+          {
+            role: VehicleRoleBuildable { upgradeComp.parent: { } parent }
+          } &&
+          parent.OccupiedRect().ExpandedBy(1).EdgeCells.Any(c => c.Walkable(interiorMap)))
+      {
+        gizmo.Disabled = false;
+      }
+      yield return gizmo;
+    }
+    
     if (Faction != Faction.OfPlayer && !DebugSettings.ShowDevGizmos)
       yield break;
 
