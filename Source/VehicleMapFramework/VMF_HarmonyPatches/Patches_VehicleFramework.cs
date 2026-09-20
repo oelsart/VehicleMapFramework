@@ -1317,25 +1317,50 @@ public static class Patch_SectionDrawer_RecacheVehicleFilter
 [PatchLevel(Level.Sensitive)]
 public static class Patch_RenderHelper_DrawLinesBetweenTargets
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
   {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
-    codes.RemoveRange(pos, 4);
-    var g_Pawn_DrawPos = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos));
-    codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
-
     var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
-    var m_CenterVector3VehicleOffset = ((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset).Method;
-    foreach (var code in codes)
-    {
-      if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
-      {
-        yield return CodeInstruction.LoadArgument(0);
-        code.operand = m_CenterVector3VehicleOffset;
-      }
-      yield return code;
-    }
+    var match = CodeMatch.Calls(g_CenterVector3);
+    var local_i = original.GetMethodBody()?.LocalVariables
+      .FirstOrDefault(l => l.LocalType == typeof(int));
+    var i_index = local_i?.LocalIndex ?? 3;
+    var g_Item = AccessTools.Method(typeof(JobQueue), "get_Item");
+    
+    return new CodeMatcher(instructions)
+      // vehicle.Position.ToVector3Shifted().ToThingBaseMapCoord(vehicle);
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
+      .InsertAfterAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CachedMethodInfo.m_ToThingBaseMapCoord.CallInstruction)
+      
+      // vehicle.vehiclePather.Destination.CenterVector3VehicleOffsetPawn(vehicle);
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0))
+      .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetPawn).Method)
+      
+      // curJob.targetA.CenterVector3VehicleOffsetJob(curJob);
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(1))
+      .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method)
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(1))
+      .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method)
+      
+      // jobQueue[i].job.targetA.CenterVector3VehicleOffsetJob(jobQueue[i].job);
+      // targetQueueA[j].CenterVector3VehicleOffsetJob(jobQueue[i].job);
+      .MatchStartForward(match)
+      .Repeat(c => c
+        .InsertAndAdvance(
+          CodeInstruction.LoadArgument(2),
+          CodeInstruction.LoadLocal(i_index),
+          g_Item.CallvirtInstruction,
+          CodeInstruction.LoadField(typeof(QueuedJob), nameof(QueuedJob.job)))
+        .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method))
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
   }
 }
 

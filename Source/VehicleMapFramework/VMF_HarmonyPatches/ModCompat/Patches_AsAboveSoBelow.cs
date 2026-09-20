@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
+using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 using static VehicleMapFramework.ModCompat.AsAboveSoBelow;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -114,44 +116,62 @@ public static class Patch_ABBandView_SetBand
 
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
 [HarmonyPatch("AsAboveSoBelow.Patch_JobTracker_ABLocalizeJobLines", "Prefix")]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Patch_JobTracker_ABLocalizeJobLines_Prefix
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+  {
+    var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
+    var match = CodeMatch.Calls(g_CenterVector3);
+    var local_i = original.GetMethodBody()?.LocalVariables
+      .FirstOrDefault(l => l.LocalType == typeof(int));
+    var i_index = local_i?.LocalIndex ?? 13;
+    var g_Item = AccessTools.Method(typeof(JobQueue), "get_Item");
+    
+    return new CodeMatcher(instructions)
+      // pawn.pather.Destination.CenterVector3VehicleOffsetPawn(pawn);
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"))
+      .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetPawn).Method)
+      
+      // curJob.targetA.CenterVector3VehicleOffsetJob(curJob);
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.curJob)))
+      .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method)
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.curJob)))
+      .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method)
+      
+      // jobQueue[i].job.targetA.CenterVector3VehicleOffsetJob(jobQueue[i].job);
+      // targetQueueA[j].CenterVector3VehicleOffsetJob(jobQueue[i].job);
+      .MatchStartForward(match)
+      .Repeat(c => c
+        .InsertAndAdvance(
+          CodeInstruction.LoadArgument(0),
+          CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.jobQueue)),
+          CodeInstruction.LoadLocal(i_index),
+          g_Item.CallvirtInstruction,
+          CodeInstruction.LoadField(typeof(QueuedJob), nameof(QueuedJob.job)))
+        .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method))
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.ABUIGeometry", "LocalizeForPawn")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_ABUIGeometry_LocalizeForPawn
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
-      .MatchStartForward(CodeMatch.Calls(LocalizeForPawn.Method))
-      .SetOperandAndAdvance(((Delegate)LocalizeForPawnIfNotOnVehicleMap).Method)
-      .MatchStartForward(CodeMatch.Calls(LocalizeForPawn.Method))
-      .Repeat(c => c
-        .Advance(-1)
-        .RemoveInstruction()
-        .SetOperandAndAdvance(((Delegate)LocalizeForPawnTarget).Method))
-      .Reset()
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
-      .Repeat(c => c.Set(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing))
-      .InstructionEnumeration();
-  }
-
-  private static Vector3 LocalizeForPawnIfNotOnVehicleMap(Pawn pawn, Vector3 world)
-  {
-    return pawn.IsOnNonFocusedVehicleMap
-      ? world
-      : LocalizeForPawn(pawn, world);
-  }
-
-  private static Vector3 LocalizeForPawnTarget(Pawn pawn, ref LocalTargetInfo target)
-  {
-    if (target.Thing.IsOnNonFocusedVehicleMap ||
-        pawn.stances.curStance is Stance_Busy && pawn.TargetMap.IsNonFocusedVehicleMap ||
-        pawn.CurJob is { globalTarget.Map.IsNonFocusedVehicleMap: true } ||
-        pawn.CurJob?.GetCachedDriver(pawn) is JobDriverAcrossMaps { DestMap.IsNonFocusedVehicleMap: true } ||
-        pawn.IsOnNonFocusedVehicleMap && pawn.stances.curStance is not Stance_Busy { verb: Verb_Jump or Verb_CastAbilityJump })
-    {
-      return Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset(ref target, pawn);
-    }
-    return LocalizeForPawn(pawn, target.CenterVector3);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
   }
 }
 

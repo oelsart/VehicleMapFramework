@@ -37,11 +37,11 @@ public static class Patch_Pawn_JobTracker_StartJob
   }
 
   [PatchLevel(Level.Safe)]
-  public static void Prefix(Pawn_JobTracker __instance, Pawn ___pawn, int ___jobsGivenThisTick,
-    Job newJob, JobCondition lastJobEndCondition)
+  public static void Prefix(Pawn_JobTracker __instance, Pawn ___pawn, int ___jobsGivenThisTick, Job newJob)
   {
-    if ((lastJobEndCondition & (JobCondition.InterruptForced | JobCondition.InterruptOptional)) != JobCondition.None)
+    if (newJob is { globalTarget.IsValid: false } && ___pawn.TargetInfo is { IsValid: true } targetInfo)
     {
+      newJob.globalTarget = targetInfo;
       ___pawn.RemoveTargetInfo();
     }
     
@@ -60,6 +60,20 @@ public static class Patch_Pawn_JobTracker_StartJob
 
       if (VehicleMapFramework.settings.crossMapJobProtect)
         JobAcrossMapsUtility.DisabledCrossMapWorkGiverDefs.AddUnique(workGiverDef);
+    }
+  }
+}
+
+[HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.TryTakeOrderedJob))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Pawn_JobTracker_TryTakeOrderedJob
+{
+  public static void Prefix(Pawn ___pawn, Job job)
+  {
+    if (job is { globalTarget.IsValid: false } && ___pawn.TargetInfo is { IsValid: true } targetInfo)
+    {
+      job.globalTarget = targetInfo;
+      ___pawn.RemoveTargetInfo();
     }
   }
 }

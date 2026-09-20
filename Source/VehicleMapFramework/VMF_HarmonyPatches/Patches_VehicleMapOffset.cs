@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
@@ -266,29 +267,70 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
   {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
-    codes.RemoveRange(pos, 4);
-    codes.Insert(pos, AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos)).CallvirtInstruction);
-
     var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
-    var m_CenterVector3VehicleOffset = ((Delegate)CenterVector3VehicleOffset).Method;
-    foreach (var code in codes)
-    {
-      if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
-      {
-        yield return CodeInstruction.LoadArgument(0);
-        yield return CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn");
-        code.operand = m_CenterVector3VehicleOffset;
-      }
-
-      yield return code;
-    }
+    var match = CodeMatch.Calls(g_CenterVector3);
+    var local_i = original.GetMethodBody()?.LocalVariables
+      .FirstOrDefault(l => l.LocalType == typeof(int));
+    var i_index = local_i?.LocalIndex ?? 3;
+    var g_Item = AccessTools.Method(typeof(JobQueue), "get_Item");
+    
+    return new CodeMatcher(instructions)
+      // pawn.Position.ToVector3Shifted().ToThingBaseMapCoord(pawn);
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
+      .InsertAfterAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"),
+        CachedMethodInfo.m_ToThingBaseMapCoord.CallInstruction)
+      
+      // pawn.pather.Destination.CenterVector3VehicleOffsetPawn(pawn);
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"))
+      .SetOperandAndAdvance(((Delegate)CenterVector3VehicleOffsetPawn).Method)
+      
+      // curJob.targetA.CenterVector3VehicleOffsetJob(curJob);
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.curJob)))
+      .SetOperandAndAdvance(((Delegate)CenterVector3VehicleOffsetJob).Method)
+      .MatchStartForward(match)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.curJob)))
+      .SetOperandAndAdvance(((Delegate)CenterVector3VehicleOffsetJob).Method)
+      
+      // jobQueue[i].job.targetA.CenterVector3VehicleOffsetJob(jobQueue[i].job);
+      // targetQueueA[j].CenterVector3VehicleOffsetJob(jobQueue[i].job);
+      .MatchStartForward(match)
+      .Repeat(c => c
+        .InsertAndAdvance(
+          CodeInstruction.LoadArgument(0),
+          CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.jobQueue)),
+          CodeInstruction.LoadLocal(i_index),
+          g_Item.CallvirtInstruction,
+          CodeInstruction.LoadField(typeof(QueuedJob), nameof(QueuedJob.job)))
+        .SetOperandAndAdvance(((Delegate)CenterVector3VehicleOffsetJob).Method))
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
   }
 
-  public static Vector3 CenterVector3VehicleOffset(ref LocalTargetInfo targ, Pawn pawn)
+  public static Vector3 CenterVector3VehicleOffsetPawn(ref LocalTargetInfo targ, Pawn pawn)
+  {
+    var map = pawn.MapHeld ?? Find.CurrentMap;
+    return CenterVector3VehicleOffset(ref targ, map);
+  }
+
+  public static Vector3 CenterVector3VehicleOffsetJob(ref LocalTargetInfo targ, Job job)
+  {
+    var map = job?.globalTarget.Map ?? Find.CurrentMap;
+    return CenterVector3VehicleOffset(ref targ, map);
+  }
+  
+  public static Vector3 CenterVector3VehicleOffset(ref LocalTargetInfo targ, Map map)
   {
     if (targ.HasThing)
     {
@@ -299,36 +341,10 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
 
       return targ.Thing.SpawnedOrAnyParentSpawned
         ? targ.Thing.SpawnedParentOrMe.DrawPos
-        : targ.Thing.Position.ToVector3Shifted();
+        : targ.Thing.Position.ToVector3Shifted().ToBaseMapCoord(map);
     }
 
-    if (!targ.Cell.IsValid) return default;
-
-    if (pawn.TryGetTargetMap(out var map) && pawn.stances.curStance is Stance_Busy)
-    {
-      return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map);
-    }
-
-    if (pawn.CurJob?.globalTarget.Map is { } map2)
-    {
-      return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map2);
-    }
-
-    if (pawn.CurJob?.GetCachedDriver(pawn) is JobDriverAcrossMaps driver)
-    {
-      var destMap = driver.DestMap;
-      if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
-      {
-        return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
-      }
-    }
-    else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) &&
-             pawn.stances.curStance is not Stance_Busy { verb: Verb_Jump or Verb_CastAbilityJump })
-    {
-      return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
-    }
-
-    return targ.Cell.ToVector3Shifted();
+    return targ.Cell.IsValid ? targ.Cell.ToVector3Shifted().ToBaseMapCoord(map) : default;
   }
 }
 
