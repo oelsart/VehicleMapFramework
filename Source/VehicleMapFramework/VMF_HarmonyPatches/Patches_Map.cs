@@ -733,7 +733,7 @@ public static class Patch_Map_TileInfo
 {
   public static void Postfix(Map __instance, ref Tile __result)
   {
-    if (__instance.IsVehicleMapOf(out _) && Find.Maps.Contains(__instance) &&
+    if (__instance.IsVehicleMap && Find.Maps.Contains(__instance) &&
         __instance.Tile.Valid && Find.WorldGrid.InBounds(__instance.Tile))
     {
       __result = Find.WorldGrid[__instance.Tile];
@@ -1052,4 +1052,11 @@ public static class Patch_QuestNode_GetMap_IsAcceptableMap
   }
 
   private static bool IsPocketMap(Map map) => map is { IsPocketMap: true, IsVehicleMap: false };
+}
+
+// 車両がワールドマップにいる時エラーの可能性があった。
+[HarmonyPatch(typeof(WildAnimalSpawner), nameof(WildAnimalSpawner.WildAnimalSpawnerTick))]
+public static class Patch_WildAnimalSpawner_WildAnimalSpawnerTick
+{
+  public static bool Prefix(Map ___map) => !___map.IsVehicleMap;
 }
