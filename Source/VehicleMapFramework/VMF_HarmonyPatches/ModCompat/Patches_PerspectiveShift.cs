@@ -339,8 +339,10 @@ public static class Patch_Avatar_HandleLeftClickInt
     if (vehicle is not null)
     {
       var localPos = mousePositionLocal.ToIntVec3();
-      if (mousePositionLocal.InBounds(map) && vehicle.ImpassableCellGrid[localPos] &&
-          localPos.GetThingList(vehicle.VehicleMap).Empty())
+      if (!mousePositionLocal.InBounds(map) ||
+          vehicle.ImpassableCellGrid[localPos] &&
+          localPos.GetThingList(map).Empty() &&
+          localPos.GetZone(map) is null)
       {
         vehicle = null;
         map = currentMap;
@@ -358,32 +360,21 @@ public static class Patch_Avatar_HandleLeftClickInt
         }
         pos = pos.ToVehicleMapCoord(vehicle);
       }
-      ___pawn.DepartMap = map;
-      __state.Item1 = new VirtualTeleporter(___pawn, map, pos);
+      __state.Item1 = new VirtualTeleporter(___pawn, map, pos, true);
     }
 
     if (vehicle is not null)
     {
       __state.Item2 = new Command_FocusVehicleMap.FocusVehicle(vehicle);
+      GenUIOnVehicle.vehicleForSelector = vehicle;
     }
   }
 
   public static void Finalizer(Pawn ___pawn, (VirtualTeleporter?, Command_FocusVehicleMap.FocusVehicle?) __state)
   {
-    ___pawn.RemoveDepartMap();
     __state.Item1?.Dispose();
     __state.Item2?.Dispose();
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
-[HarmonyPatch("PerspectiveShift.Avatar", "TryHandleFloatMenu")]
-[PatchLevel(Level.Safe)]
-public static class Patch_Avatar_TryHandleFloatMenu
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_DepartMapOrPawnMap);
+    GenUIOnVehicle.vehicleForSelector = null;
   }
 }
 

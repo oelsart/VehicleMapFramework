@@ -44,9 +44,19 @@ public static class Patch_FloatMenuContext_Constructor
   public static void Prefix(List<Pawn> selectedPawns, ref Vector3 clickPosition, ref Map map)
   {
     if (selectedPawns.All(p => p is VehiclePawnWithMap) ||
-        !clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None) ||
+        !clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.ExpandableCells) ||
         // FloatMenuMap.StillValidからの呼び出しでは車両マップが意図せず取得されてしまう
-        clickPosition == vehicle.PositionHeld.ToVector3Shifted()) return;
+        clickPosition == vehicle.PositionHeld.ToVector3Shifted())
+      return;
+    
+    // 主に釣りフロートメニューのため
+    var clickPositionLocal = clickPosition.ToVehicleMapCoord(vehicle);
+    var localPos = clickPositionLocal.ToIntVec3();
+    if (!clickPositionLocal.InBounds(vehicle.VehicleMap) ||
+        vehicle.ImpassableCellGrid[localPos] &&
+        localPos.GetThingList(vehicle.VehicleMap).Empty() &&
+        localPos.GetZone(vehicle.VehicleMap) is null)
+      return;
     
     GenUIOnVehicle.vehicleForSelector = vehicle;
     clickPosition = clickPosition.ToVehicleMapCoord(vehicle);

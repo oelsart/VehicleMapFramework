@@ -642,7 +642,6 @@ public static class ModCompat
     public delegate bool GetBandRect(Map map, IntVec3 c, out CellRect band);
     public static GetBandRect TryBandRectOf;
     public static FastInvokeHandler TryResolveVisibleBelow;
-    public static Func<Pawn, Vector3, Vector3> LocalizeForPawn;
     private static Type SectionLayer_ABBelowV2;
     
     static AsAboveSoBelow()
@@ -668,7 +667,6 @@ public static class ModCompat
         RectOfBand = AccessTools.MethodDelegate<Func<Map, int, CellRect>>("AsAboveSoBelow.ABBands:RectOfBand");
         TryBandRectOf = AccessTools.MethodDelegate<GetBandRect>("AsAboveSoBelow.ABBandSafety:TryBandRectOf");
         TryResolveVisibleBelow = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBands:TryResolveVisibleBelow"));
-        LocalizeForPawn = AccessTools.MethodDelegate<Func<Pawn, Vector3, Vector3>>("AsAboveSoBelow.ABUIGeometry:LocalizeForPawn");
         SectionLayer_ABBelowV2 = GenTypes.GetTypeInAnyAssembly("AsAboveSoBelow.SectionLayer_ABBelowV2", "AsAboveSoBelow");
         VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ABBelowV2);
       });
