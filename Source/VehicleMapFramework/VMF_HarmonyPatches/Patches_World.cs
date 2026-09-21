@@ -83,6 +83,7 @@ public static class Patch_Selector_SelectorOnGUI_BeforeMainTabs
             Find.WorldCamera.transform.Translate(ScreenOffset());
             Find.WorldSelector.ClearSelection();
             Find.WorldSelector.Select(caravan, false);
+            caravan.EnsureWorldGridInitialized();
             Find.WorldSelector.WorldSelectorOnGUI();
             Event.current.Use();
         }
