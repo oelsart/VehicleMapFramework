@@ -96,8 +96,7 @@ public static class Patch_JobDriver_Map
   public static void Postfix(JobDriver __instance, ref Map __result)
   {
     if (__instance is JobDriver_Wait) return;
-    var map = __instance.job.globalTarget.Map ?? __instance.pawn.TargetMap;
-    if (map is not null)
+    if (__instance.job.globalTarget.Map is { } map)
     {
       __result = map;
     }
