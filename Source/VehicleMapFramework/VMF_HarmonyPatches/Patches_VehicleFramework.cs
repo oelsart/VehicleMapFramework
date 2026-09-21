@@ -54,8 +54,8 @@ public static class Patch_VehiclePawn_HasEnoughOperators
   {
     if (__instance is VehiclePawnWithMap)
     {
-      if (VehicleMod.settings.debug.debugDraftAnyVehicle ||
-          (__instance.MovementPermissions & VehiclePermissions.Autonomous) != VehiclePermissions.None)
+      // マップ車両の場合MovementPermissions.Autonomousを使用しない
+      if (VehicleMod.settings.debug.debugDraftAnyVehicle)
       {
         __result = true;
         return false;
