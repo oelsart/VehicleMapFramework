@@ -1051,12 +1051,34 @@ public static class Patch_QuestNode_GetMap_IsAcceptableMap
       AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPocketMap)), ((Delegate)IsPocketMap).Method);
   }
 
-  private static bool IsPocketMap(Map map) => map is { IsPocketMap: true, IsVehicleMap: false };
+  private static bool IsPocketMap(Map map) => map is { IsPocketMap: true, IsVehicleMap: false, Tile.Valid: true } &&
+                                              Find.WorldPathGrid.Passable(map.Tile);
 }
 
 // 車両がワールドマップにいる時エラーの可能性があった。
 [HarmonyPatch(typeof(WildAnimalSpawner), nameof(WildAnimalSpawner.WildAnimalSpawnerTick))]
+[PatchLevel(Level.Safe)]
 public static class Patch_WildAnimalSpawner_WildAnimalSpawnerTick
 {
   public static bool Prefix(Map ___map) => !___map.IsVehicleMap;
+}
+
+[HarmonyPatch(typeof(QuestNode_GetWalkInSpot), "TryFindWalkInSpot")]
+[PatchLevel(Level.Safe)]
+public static class Patch_QuestNode_GetWalkInSpot_TryFindWalkInSpot
+{
+  public static void Postfix(Map map, ref IntVec3 spawnSpot, ref bool __result)
+  {
+    if (!__result || !map.IsVehicleMapOf(out var vehicle))
+      return;
+
+    if (VehicleMapCellFinder.TryFindRandomEdgeCellWith(c => vehicle.VehicleMap.reachability.CanReachColony(c),
+          vehicle, out spawnSpot))
+    {
+      __result = true;
+      return;
+    }
+
+    __result = VehicleMapCellFinder.TryFindRandomEdgeCellWith(null, vehicle, out spawnSpot);
+  }
 }
