@@ -4,6 +4,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 #if DEV
+using HarmonyLib;
 using SmashTools;
 #endif
 
@@ -42,19 +43,7 @@ public static class VehicleResizeUtility
       }
       
       UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
-      
-#if DEV
-      var calculator =
-        Activator.CreateInstance(GenTypes.GetTypeInAnyAssembly("Vehicles.PathGridCalculator", "Vehicles"));
-      foreach (var map in Find.Maps)
-      {
-        if (map.IsVehicleMap) continue;
-
-        var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-        UniqueVehicleUtility.GeneratePathData(component.PathData,
-          Params<(object, object, object)>.Get((calculator, vehicleDef, component.PathFinder)));
-      }
-#endif
+      UniqueVehicleUtility.GeneratePathData(vehicleDef);
 
       PostResize(vehicle);
 
