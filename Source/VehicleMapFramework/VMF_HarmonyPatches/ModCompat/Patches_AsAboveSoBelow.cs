@@ -140,10 +140,14 @@ public static class Patch_Patch_JobTracker_ABLocalizeJobLines_Prefix
       .MatchStartForward(match)
       .InsertAndAdvance(
         CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"),
+        CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.curJob)))
       .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method)
       .MatchStartForward(match)
       .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"),
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.curJob)))
       .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method)
@@ -153,6 +157,8 @@ public static class Patch_Patch_JobTracker_ABLocalizeJobLines_Prefix
       .MatchStartForward(match)
       .Repeat(c => c
         .InsertAndAdvance(
+          CodeInstruction.LoadArgument(0),
+          CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"),
           CodeInstruction.LoadArgument(0),
           CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.jobQueue)),
           CodeInstruction.LoadLocal(i_index),

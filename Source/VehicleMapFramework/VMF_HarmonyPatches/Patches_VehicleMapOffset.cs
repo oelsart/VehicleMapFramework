@@ -295,10 +295,14 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
       .MatchStartForward(match)
       .InsertAndAdvance(
         CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"),
+        CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.curJob)))
       .SetOperandAndAdvance(((Delegate)CenterVector3VehicleOffsetJob).Method)
       .MatchStartForward(match)
       .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"),
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.curJob)))
       .SetOperandAndAdvance(((Delegate)CenterVector3VehicleOffsetJob).Method)
@@ -308,6 +312,8 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
       .MatchStartForward(match)
       .Repeat(c => c
         .InsertAndAdvance(
+          CodeInstruction.LoadArgument(0),
+          CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn"),
           CodeInstruction.LoadArgument(0),
           CodeInstruction.LoadField(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.jobQueue)),
           CodeInstruction.LoadLocal(i_index),
@@ -324,9 +330,9 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
     return CenterVector3VehicleOffset(ref targ, map);
   }
 
-  public static Vector3 CenterVector3VehicleOffsetJob(ref LocalTargetInfo targ, Job job)
+  public static Vector3 CenterVector3VehicleOffsetJob(ref LocalTargetInfo targ, Pawn pawn, Job job)
   {
-    var map = job?.globalTarget.Map ?? Find.CurrentMap;
+    var map = job?.globalTarget.Map ?? pawn.MapHeld ?? Find.CurrentMap;
     return CenterVector3VehicleOffset(ref targ, map);
   }
   

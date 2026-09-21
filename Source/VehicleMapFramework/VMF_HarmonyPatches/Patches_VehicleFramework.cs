@@ -1342,10 +1342,12 @@ public static class Patch_RenderHelper_DrawLinesBetweenTargets
       // curJob.targetA.CenterVector3VehicleOffsetJob(curJob);
       .MatchStartForward(match)
       .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadArgument(1))
       .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method)
       .MatchStartForward(match)
       .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadArgument(1))
       .SetOperandAndAdvance(((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffsetJob).Method)
       
@@ -1354,6 +1356,7 @@ public static class Patch_RenderHelper_DrawLinesBetweenTargets
       .MatchStartForward(match)
       .Repeat(c => c
         .InsertAndAdvance(
+          CodeInstruction.LoadArgument(0),
           CodeInstruction.LoadArgument(2),
           CodeInstruction.LoadLocal(i_index),
           g_Item.CallvirtInstruction,
