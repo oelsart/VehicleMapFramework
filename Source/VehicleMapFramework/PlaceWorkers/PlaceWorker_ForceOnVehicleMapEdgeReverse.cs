@@ -3,7 +3,7 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class PlaceWorker_ForceOnVehicleMapEdgeReverse : PlaceWorker_ForceOnVehicleMapEdge
+public class PlaceWorker_ForceOnVehicleMapEdgeOpposite : PlaceWorker
 {
   public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map,
     Thing thingToIgnore = null, Thing thing = null)

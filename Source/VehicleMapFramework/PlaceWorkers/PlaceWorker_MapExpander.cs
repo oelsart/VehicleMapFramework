@@ -20,7 +20,8 @@ public class PlaceWorker_MapExpander : PlaceWorker
     {
       for (var i = 0; i < 4; i++)
       {
-        var c2 = c + GenAdj.AdjacentCells[i];
+        var rot2 = new Rot4(i);
+        var c2 = c + rot2.FacingCell;
         if (!c2.InBounds(map)) continue;
 
         foreach (var thing2 in c2.GetThingList(map))
@@ -28,7 +29,9 @@ public class PlaceWorker_MapExpander : PlaceWorker
           if (thing2.def.PlaceWorkers is not { } placeWorkers) continue;
           foreach (var placeWorker in placeWorkers)
           {
-            if (placeWorker is PlaceWorker_ForceOnVehicleMapEdge)
+            if (placeWorker is PlaceWorker_ForceOnVehicleMapEdge &&
+                thing2.Rotation == rot2 || placeWorker is PlaceWorker_ForceOnVehicleMapEdgeOpposite &&
+                thing2.Rotation.Opposite == rot2)
               return "VMF_ForceOnExpandableCell".Translate();
           }
         }
