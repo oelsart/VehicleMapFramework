@@ -587,19 +587,20 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
 {
   public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)
   {
+    if (pawn is null)
+      return true;
+    
     Map map;
-    if (job?.targetA.Thing?.Map != null && job.targetA.Thing.def.hasInteractionCell &&
-        job.targetA.Thing.InteractionCell == exactSittingPos)
-      map = job.targetA.Thing.Map;
+    if (job is { targetA.Thing: { Map: { } thingMap, def.hasInteractionCell: true } thing } &&
+        thing.InteractionCell == exactSittingPos)
+      map = thingMap;
     else
       map = job?.globalTarget.Map ?? pawn.TargetMap ?? pawn.Map;
 
     if (map is null)
-    {
       return true;
-    }
 
-    if (pawn.Map != map && pawn.GroundMap == map.GroundMap)
+    if (pawn.Map != map && pawn.BaseMapOrCaravan == map.BaseMapOrCaravan)
     {
       __state = pawn.Map;
       pawn.VirtualMapTransfer(map);

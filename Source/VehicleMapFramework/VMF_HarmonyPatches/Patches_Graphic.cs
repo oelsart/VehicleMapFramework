@@ -257,7 +257,7 @@ public static class Patch_PawnRenderer_GetBodyPos
     {
       if (___pawn.CurrentBed() is not null && !___pawn.RaceProps.Animal)
       {
-        __result = __result.ToBaseMapCoord(vehicle);
+        __result = __result.ToBaseMapCoord(vehicle) - Altitudes.AltIncVect;
         return;
       }
       if (posture is not PawnPosture.Standing)
@@ -360,9 +360,8 @@ public static class Patch_Graphic_Draw
 
       if (thing is not Building_Bookcase || thing.Graphic == __instance)
       {
-        if (def.size.x != def.size.z || thing is Building_SupportedDoor ||
-            ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) &&
-             !SameMaterialByRot()))
+        if (def.size.x != def.size.z || thing is Building_SupportedDoor || def.rotatable ||
+            def.graphicData is { drawRotated: true, Linked: false } && !SameMaterialByRot())
         {
           rot.AsInt += baseRotInt;
         }
@@ -421,8 +420,8 @@ public static class Patch_Graphic_DrawFromDef
       }
 
       if (def.size.x != def.size.z ||
-          ((((__instance.data?.drawRotated ?? false) && (!__instance.data?.Linked ?? true)) || def.rotatable) &&
-           !SameMaterialByRot()))
+          def.rotatable ||
+          __instance.data is { drawRotated: true, Linked: false } && !SameMaterialByRot())
       {
         rot.AsInt += baseRotInt;
       }
