@@ -250,18 +250,17 @@ public static class Patch_PawnRenderer_GetBodyPos
 {
   public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
   {
-    var corpse = ___pawn.Corpse;
-    if (corpse != null && corpse.IsOnNonFocusedVehicleMapOf(out _))
+    if (___pawn.Corpse is { } corpse && corpse.TryGetDrawPos(ref __result))
+      return;
+    
+    if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
     {
-      corpse.TryGetDrawPos(ref __result);
-    }
-    else if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
-    {
-      if (___pawn.CurrentBed() != null)
+      if (___pawn.CurrentBed() is not null && !___pawn.RaceProps.Animal)
       {
-        __result = __result.ToBaseMapCoord(vehicle).WithYOffset(-0.9615385f / VehicleMapUtility.YCompress);
+        __result = __result.ToBaseMapCoord(vehicle);
+        return;
       }
-      else if (posture != PawnPosture.Standing)
+      if (posture is not PawnPosture.Standing)
       {
         __result = __result.YOffsetFull(vehicle).WithYOffset(0.08f); // DBHの風呂にアジャスト
       }
