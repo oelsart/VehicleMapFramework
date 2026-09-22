@@ -124,12 +124,8 @@ public static class Patch_CameraJumper_TryJumpInternal
         if (vehicle.Spawned)
         {
           map = vehicle.Map;
-          cell = cell.ToBaseMapCoord(vehicle);
-          return;
         }
-
         cell = cell.ToBaseMapCoord(vehicle);
-        Patch_Map_MapUpdate.lastRenderedTick = -1;
       }
     }
   }
@@ -169,10 +165,6 @@ public static class Patch_Game_CurrentMap
       if (vehicle.Spawned)
       {
         value = vehicle.Map;
-      }
-      else if (VehicleMapFramework.settings.drawPlanet)
-      {
-        Patch_Map_MapUpdate.lastRenderedTick = -1;
       }
     }
   }

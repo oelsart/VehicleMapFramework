@@ -169,6 +169,23 @@ public static class VMF_Widgets
     return num;
   }
 
+  public static void SliderLabeled(this Listing_Standard listingStandard, string label,
+    ref float val, float min, float max, string symbol,
+    float labelPct = 0.5f, string tooltip = null, float roundTo = -1f)
+  {
+    var rect = listingStandard.GetRect(Text.CalcHeight(label, listingStandard.ColumnWidth * labelPct));
+    Widgets.Label(rect.LeftPart(labelPct), label);
+    var rightPart = rect.RightPart(1f - labelPct);
+    val = Widgets.HorizontalSlider(
+      rightPart,
+      val,
+      min,
+      max,
+      label: symbol,
+      roundTo: roundTo
+    );
+  }
+
   public static void DrawBoxRotated(Rect rect, int thickness = 1, Texture2D lineTexture = null, float rotation = 0f)
   {
     var center = rect.center;

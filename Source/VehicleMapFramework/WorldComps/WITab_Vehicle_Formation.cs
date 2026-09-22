@@ -5,7 +5,6 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.Rendering;
 using Verse;
@@ -61,7 +60,7 @@ public class WITab_Vehicle_Formation : WITab
     outRect.y -= Padding;
     zoom = Mathf.Min(outRect.width, outRect.height) / Mathf.Max(vehicleRect.Width, vehicleRect.Height) * 0.8f;
     scrollPosition = vehicleRect.CenterVector3.MirrorVertical().ToVector2() +
-                     Patch_Map_MapUpdate.MeshSize / 2f -
+                     VehicleMapView.MeshSize / 2f -
                      (ViewportSize / 2f - outRect.position / 2f) / zoom;
 
     portraits ??= [];
@@ -127,7 +126,7 @@ public class WITab_Vehicle_Formation : WITab
       .CenteredOnXIn(new Rect(Vector2.zero, WinSize));
     outRect.y -= Padding;
     Widgets.DrawWindowBackground(outRect, new Color(0.4f, 0.8f, 0.4f));
-    var viewRect = new Rect(Vector2.zero, Patch_Map_MapUpdate.MeshSize);
+    var viewRect = new Rect(Vector2.zero, VehicleMapView.MeshSize);
 
     var groupID = DragAndDropWidget.NewGroup();
     dragAndDropGroup = groupID == -1 ? dragAndDropGroup : groupID;
@@ -135,7 +134,7 @@ public class WITab_Vehicle_Formation : WITab
       ignoreDragGroup: dragAndDropGroup);
     DragAndDropWidget.DropArea(dragAndDropGroup, outRect.ContractedBy(5f).AtZero(), OnDrop, null);
 
-    var center = Patch_Map_MapUpdate.MeshSize / 2f;
+    var center = VehicleMapView.MeshSize / 2f;
 
     foreach (var (vehicle, value) in drawPositions)
     {

@@ -15,6 +15,7 @@ internal class SettingsTab_Main : SettingsTabDrawer
   {
     base.ResetSettings();
     settings.drawPlanet = VehicleMapSettings.Default.drawPlanet;
+    settings.mapSizePerTile = VehicleMapSettings.Default.mapSizePerTile;
     settings.forceRotated = VehicleMapSettings.Default.forceRotated;
     settings.weightFactor = VehicleMapSettings.Default.weightFactor;
     settings.autoGetOffPlayer = VehicleMapSettings.Default.autoGetOffPlayer;
@@ -36,22 +37,14 @@ internal class SettingsTab_Main : SettingsTabDrawer
     listingStandard.CheckboxLabeled("VMF_Settings.DrawPlanet".Translate(), ref settings.drawPlanet);
     if (settings.drawPlanet)
     {
-      var label = "VMF_Settings.ForceRotated".Translate();
-      const float widthPct = 0.5f;
-      var rect = listingStandard.GetRect(Text.CalcHeight(label, listingStandard.ColumnWidth * widthPct));
-      Widgets.Label(rect.LeftPart(widthPct), label);
-      var val = settings.forceRotated;
-      const float min = (float)VehicleMapSettings.ForceRotated.None;
-      const float max = (float)VehicleMapSettings.ForceRotated.SouthWest;
-      var rightPart = rect.RightPart(widthPct);
-      settings.forceRotated = (VehicleMapSettings.ForceRotated)Widgets.HorizontalSlider(
-        rightPart,
-        (float)val,
-        min,
-        max,
-        label: Enum.GetName(typeof(VehicleMapSettings.ForceRotated), val),
-        roundTo: 1f
-      );
+      listingStandard.SliderLabeled("VMF_Settings.MapSizePerTile".Translate(),
+        ref settings.mapSizePerTile, 1f, 20f, settings.mapSizePerTile.ToString("F1"), roundTo: 0.1f);
+      
+      var val = (float)settings.forceRotated;
+      listingStandard.SliderLabeled("VMF_Settings.ForceRotated".Translate(),
+        ref val, (float)VehicleMapSettings.ForceRotated.None, (float)VehicleMapSettings.ForceRotated.SouthWest,
+        Enum.GetName(typeof(VehicleMapSettings.ForceRotated), settings.forceRotated), roundTo: 1f);
+      settings.forceRotated = (VehicleMapSettings.ForceRotated)val;
     }
 
     listingStandard.SliderLabeled("VMF_Settings.WeightFactor".Translate(), null, null, ref settings.weightFactor, 0f,

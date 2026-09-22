@@ -6,116 +6,121 @@ namespace VehicleMapFramework;
 
 public class VehicleMapSettings : ModSettings
 {
-    public bool drawPlanet = Default.drawPlanet;
+  public bool drawPlanet = Default.drawPlanet;
 
-    public ForceRotated forceRotated = Default.forceRotated;
+  public float mapSizePerTile = Default.mapSizePerTile;
 
-    public float weightFactor = Default.weightFactor;
+  public ForceRotated forceRotated = Default.forceRotated;
 
-    public bool autoGetOffPlayer = Default.autoGetOffPlayer;
+  public float weightFactor = Default.weightFactor;
 
-    public bool autoGetOffNonPlayer = Default.autoGetOffNonPlayer;
-    
-    public bool crossMapJobProtect = Default.crossMapJobProtect;
+  public bool autoGetOffPlayer = Default.autoGetOffPlayer;
 
-    public bool drawVehicleMapGrid = Default.drawVehicleMapGrid;
-    
-    public bool includeMapThings = Default.includeMapThings;
-    
-    public bool legacyCanReach = Default.legacyCanReach;
+  public bool autoGetOffNonPlayer = Default.autoGetOffNonPlayer;
 
-    public bool joyPatches = Default.joyPatches;
+  public bool crossMapJobProtect = Default.crossMapJobProtect;
 
-    public bool treatAsPlayerHome = Default.treatAsPlayerHome;
+  public bool drawVehicleMapGrid = Default.drawVehicleMapGrid;
 
-    public ShowVehiclesOnColonistBar colonistBarMode = Default.colonistBarMode;
+  public bool includeMapThings = Default.includeMapThings;
 
-    public bool roofedPatch = Default.roofedPatch;
+  public bool legacyCanReach = Default.legacyCanReach;
 
-    public bool debugToolPatches = Default.debugToolPatches;
+  public bool joyPatches = Default.joyPatches;
 
-    public bool dynamicPatchEnabled = Default.dynamicPatchEnabled;
+  public bool treatAsPlayerHome = Default.treatAsPlayerHome;
 
-    public bool dynamicUnpatchEnabled = Default.dynamicUnpatchEnabled;
+  public ShowVehiclesOnColonistBar colonistBarMode = Default.colonistBarMode;
 
-    public Level dynamicPatchLevel = Default.dynamicPatchLevel;
+  public bool roofedPatch = Default.roofedPatch;
 
-    public override void ExposeData()
-    {
-        Scribe_Values.Look(ref drawPlanet, nameof(drawPlanet), Default.drawPlanet);
-        Scribe_Values.Look(ref forceRotated, nameof(forceRotated), Default.forceRotated);
-        Scribe_Values.Look(ref weightFactor, nameof(weightFactor), Default.weightFactor);
-        Scribe_Values.Look(ref autoGetOffPlayer, nameof(autoGetOffPlayer), Default.autoGetOffPlayer);
-        Scribe_Values.Look(ref autoGetOffNonPlayer, nameof(autoGetOffNonPlayer), Default.autoGetOffNonPlayer);
-        Scribe_Values.Look(ref crossMapJobProtect, nameof(crossMapJobProtect), Default.crossMapJobProtect);
-        Scribe_Values.Look(ref drawVehicleMapGrid, nameof(drawVehicleMapGrid), Default.drawVehicleMapGrid);
-        Scribe_Values.Look(ref includeMapThings, nameof(includeMapThings), Default.includeMapThings);
-        Scribe_Values.Look(ref legacyCanReach, nameof(legacyCanReach), Default.legacyCanReach);
-        Scribe_Values.Look(ref joyPatches, nameof(joyPatches), Default.joyPatches);
-        Scribe_Values.Look(ref treatAsPlayerHome, nameof(treatAsPlayerHome), Default.treatAsPlayerHome);
-        Scribe_Values.Look(ref colonistBarMode, nameof(colonistBarMode), Default.colonistBarMode);
-        Scribe_Values.Look(ref roofedPatch, nameof(roofedPatch), Default.roofedPatch);
-        Scribe_Values.Look(ref debugToolPatches, nameof(debugToolPatches), Default.debugToolPatches);
-        Scribe_Values.Look(ref dynamicPatchEnabled, nameof(dynamicPatchEnabled), Default.dynamicPatchEnabled);
-        Scribe_Values.Look(ref dynamicUnpatchEnabled, nameof(dynamicUnpatchEnabled), Default.dynamicUnpatchEnabled);
-        Scribe_Values.Look(ref dynamicPatchLevel, nameof(dynamicPatchLevel), Default.dynamicPatchLevel);
-    }
+  public bool debugToolPatches = Default.debugToolPatches;
 
-    internal static class Default
-    {
-        public const bool drawPlanet = true;
+  public bool dynamicPatchEnabled = Default.dynamicPatchEnabled;
 
-        public const ForceRotated forceRotated = ForceRotated.None;
+  public bool dynamicUnpatchEnabled = Default.dynamicUnpatchEnabled;
 
-        public const float weightFactor = 1f;
+  public Level dynamicPatchLevel = Default.dynamicPatchLevel;
 
-        public const bool autoGetOffPlayer = false;
+  public override void ExposeData()
+  {
+    Scribe_Values.Look(ref drawPlanet, nameof(drawPlanet), Default.drawPlanet);
+    Scribe_Values.Look(ref mapSizePerTile, nameof(mapSizePerTile), Default.mapSizePerTile);
+    Scribe_Values.Look(ref forceRotated, nameof(forceRotated), Default.forceRotated);
+    Scribe_Values.Look(ref weightFactor, nameof(weightFactor), Default.weightFactor);
+    Scribe_Values.Look(ref autoGetOffPlayer, nameof(autoGetOffPlayer), Default.autoGetOffPlayer);
+    Scribe_Values.Look(ref autoGetOffNonPlayer, nameof(autoGetOffNonPlayer), Default.autoGetOffNonPlayer);
+    Scribe_Values.Look(ref crossMapJobProtect, nameof(crossMapJobProtect), Default.crossMapJobProtect);
+    Scribe_Values.Look(ref drawVehicleMapGrid, nameof(drawVehicleMapGrid), Default.drawVehicleMapGrid);
+    Scribe_Values.Look(ref includeMapThings, nameof(includeMapThings), Default.includeMapThings);
+    Scribe_Values.Look(ref legacyCanReach, nameof(legacyCanReach), Default.legacyCanReach);
+    Scribe_Values.Look(ref joyPatches, nameof(joyPatches), Default.joyPatches);
+    Scribe_Values.Look(ref treatAsPlayerHome, nameof(treatAsPlayerHome), Default.treatAsPlayerHome);
+    Scribe_Values.Look(ref colonistBarMode, nameof(colonistBarMode), Default.colonistBarMode);
+    Scribe_Values.Look(ref roofedPatch, nameof(roofedPatch), Default.roofedPatch);
+    Scribe_Values.Look(ref debugToolPatches, nameof(debugToolPatches), Default.debugToolPatches);
+    Scribe_Values.Look(ref dynamicPatchEnabled, nameof(dynamicPatchEnabled), Default.dynamicPatchEnabled);
+    Scribe_Values.Look(ref dynamicUnpatchEnabled, nameof(dynamicUnpatchEnabled), Default.dynamicUnpatchEnabled);
+    Scribe_Values.Look(ref dynamicPatchLevel, nameof(dynamicPatchLevel), Default.dynamicPatchLevel);
+  }
 
-        public const bool autoGetOffNonPlayer = true;
-        
-        public const bool crossMapJobProtect = true;
+  internal static class Default
+  {
+    public const bool drawPlanet = true;
 
-        public const bool drawVehicleMapGrid = false;
-        
-        public const bool includeMapThings = true;
-        
-        public const bool legacyCanReach = false;
+    public const float mapSizePerTile = 5f;
 
-        public const bool joyPatches = false;
+    public const ForceRotated forceRotated = ForceRotated.None;
 
-        public const bool treatAsPlayerHome = false;
-        
-        public const ShowVehiclesOnColonistBar colonistBarMode = ShowVehiclesOnColonistBar.MouseIsOver;
+    public const float weightFactor = 1f;
 
-        public const bool roofedPatch = false;
+    public const bool autoGetOffPlayer = false;
 
-        public const bool debugToolPatches = false;
+    public const bool autoGetOffNonPlayer = true;
 
-        public const bool dynamicPatchEnabled = false;
+    public const bool crossMapJobProtect = true;
 
-        public const bool dynamicUnpatchEnabled = false;
+    public const bool drawVehicleMapGrid = false;
 
-        public const Level dynamicPatchLevel = Level.Safe;
-    }
+    public const bool includeMapThings = true;
 
-    public enum ShowVehiclesOnColonistBar
-    {
-      DontShow,
-      MouseIsOver,
-      Always
-    }
+    public const bool legacyCanReach = false;
 
-    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-    public enum ForceRotated
-    {
-      None = -1,
-      North,
-      East,
-      South,
-      West,
-      NorthEast,
-      NorthWest,
-      SouthEast,
-      SouthWest
-    }
+    public const bool joyPatches = false;
+
+    public const bool treatAsPlayerHome = false;
+
+    public const ShowVehiclesOnColonistBar colonistBarMode = ShowVehiclesOnColonistBar.MouseIsOver;
+
+    public const bool roofedPatch = false;
+
+    public const bool debugToolPatches = false;
+
+    public const bool dynamicPatchEnabled = false;
+
+    public const bool dynamicUnpatchEnabled = false;
+
+    public const Level dynamicPatchLevel = Level.Safe;
+  }
+
+  public enum ShowVehiclesOnColonistBar
+  {
+    DontShow,
+    MouseIsOver,
+    Always
+  }
+
+  [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+  public enum ForceRotated
+  {
+    None = -1,
+    North,
+    East,
+    South,
+    West,
+    NorthEast,
+    NorthWest,
+    SouthEast,
+    SouthWest
+  }
 }

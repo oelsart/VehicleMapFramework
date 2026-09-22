@@ -10,7 +10,6 @@ using RimWorld.Planet;
 using RimWorld.QuestGen;
 using SmashTools;
 using UnityEngine;
-using Vehicles.World;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
@@ -232,204 +231,18 @@ public static class Patch_ResourceCounter_UpdateResourceCounts
   }
 }
 
-[StaticConstructorOnStartup]
 [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
 public static class Patch_Map_MapUpdate
 {
-  private static RenderTexture tmpRenderTex;
-  public const float Altitude = 140f;
-  public const int TextureSize = 2048;
-  public const float MeshSizeX = 200f;
-  public static readonly Vector2 MeshSize = new(MeshSizeX, MeshSizeX);
-  private static Mesh mesh200;
-  private static Material mat;
-  private static Material skyMat;
-
-  public static int lastRenderedTick = -1;
-
-  private static readonly AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude =
-    AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
-
-  static Patch_Map_MapUpdate()
-  {
-    if (UnitTestDetector.IsTestingContext) return;
-    LongEventHandler.ExecuteWhenFinished(() =>
-    {
-      mesh200 = MeshPool.GridPlane(MeshSize);
-      skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
-      skyMat.renderQueue = 3100;
-    });
-  }
-
-  public static void JumpTo(Vector3 pos, float altitude)
-  {
-    Find.WorldCameraDriver.JumpTo(pos);
-    Find.WorldCameraDriver.altitude = altitude;
-    desiredAltitude(Find.WorldCameraDriver) = altitude;
-    Find.WorldCameraDriver.Update();
-  }
-
   [PatchLevel(Level.Safe)]
   public static void Postfix(Map __instance)
   {
     var focused = Find.CurrentMap == __instance;
     if (focused && __instance.IsVehicleMapOf(out var vehicle) && VehicleMapFramework.settings.drawPlanet &&
-        WorldRendererUtility.DrawingMap && !Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
+        WorldRendererUtility.DrawingMap)
     {
-      var forceRotation = VehicleMapFramework.settings.forceRotated;
-      var forceRotated = forceRotation != VehicleMapSettings.ForceRotated.None;
-      var angle = forceRotated ? new Rot8((byte)forceRotation).AsAngle : vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
-      var vehicleCaravanOrStashedVehicle = vehicle.VehicleCaravanOrStashedVehicle;
-      if ((GenTicks.TicksGame != lastRenderedTick || Find.TickManager.Paused) && Time.frameCount % 2 == 0 ||
-          mat && !tmpRenderTex)
-      {
-        var worldObject = vehicleCaravanOrStashedVehicle ?? GetWorldObject(vehicle);
-        if (worldObject is null) return;
-        lastRenderedTick = GenTicks.TicksGame;
-        Find.World.renderer.wantedMode = WorldRenderMode.Planet;
-        JumpTo(worldObject.DrawPos, Altitude);
-        WorldRendererUtility.UpdateGlobalShadersParams();
-        ExpandableWorldObjectsUtility.ExpandableWorldObjectsUpdate();
-        foreach (var layer in Find.World.renderer.AllVisibleDrawLayers.Where(l =>
-                   l is not WorldDrawLayer_SingleTile && l is not WorldDrawLayer_Satellites))
-        {
-          layer.Render();
-        }
-
-        Find.World.dynamicDrawManager.DrawDynamicWorldObjects();
-        if (worldObject is VehicleCaravan vehicleCaravan)
-        {
-          vehicleCaravan.gotoMote.RenderMote();
-          vehicleCaravan.vehiclePather?.curPath?.DrawPath(vehicleCaravan);
-        }
-
-        if (tmpRenderTex)
-        {
-          RenderTexture.ReleaseTemporary(tmpRenderTex);
-        }
-
-        tmpRenderTex = RenderTexture.GetTemporary(TextureSize, TextureSize);
-        var targetTexture = Find.WorldCamera.targetTexture;
-        Find.WorldCamera.targetTexture = tmpRenderTex;
-        Find.WorldCamera.orthographic = true;
-        Find.WorldCamera.Render();
-        Find.WorldCamera.targetTexture = targetTexture;
-        Find.WorldCamera.orthographic = false;
-        Find.World.renderer.wantedMode = WorldRenderMode.None;
-        Find.CameraDriver.Update();
-        if (!mat)
-        {
-          mat = MaterialPool.MatFrom(new MaterialRequest(tmpRenderTex));
-        }
-        else
-        {
-          mat.mainTexture = tmpRenderTex;
-        }
-
-        var planetLayer = __instance.Tile.Layer;
-
-        float AngleOnPlanetSurface(Vector3 root, Vector3 to)
-        {
-          if (planetLayer == null || (to - root).magnitude <= Mathf.Epsilon)
-          {
-            return 0f;
-          }
-
-          var normal = root - planetLayer.Origin;
-          var planeFrom = Vector3.ProjectOnPlane(planetLayer.NorthPolePos, normal);
-          var planeTo = Vector3.ProjectOnPlane(to, normal);
-          var signedAngle = Vector3.SignedAngle(planeFrom, planeTo, normal);
-          return Mathf.Repeat(signedAngle + 180f, 360f);
-        }
-
-        if (!vehicle.Spawned)
-        {
-          if (forceRotated)
-          {
-            vehicle.FullRotation = new Rot8((byte)forceRotation);
-          }
-          else
-          {
-            angle =
-              worldObject switch
-              {
-                VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(
-                  Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid
-                    ? vehicleCaravan2.vehiclePather.NextTile
-                    : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
-                Caravan caravan => AngleOnPlanetSurface(
-                  Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile),
-                  Find.WorldGrid.GetTileCenter(caravan.Tile)),
-                AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
-                _ => 0f
-              };
-            var rot = Rot4.FromAngleFlat(angle);
-            if (vehicleCaravanOrStashedVehicle is not null)
-            {
-              foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
-              {
-                vehicle2.FullRotation = rot;
-              }
-            }
-            else vehicle.FullRotation = rot;
-          }
-        }
-      }
-
-      var center = new Vector3(MeshSize.x / 2f, 0f, MeshSize.y / 2f);
-      // 背景
-      Graphics.DrawMesh(mesh200, center, Quaternion.identity,
-        mat ? mat : SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
-
-      // 空の暗さ
-      skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
-      Graphics.DrawMesh(mesh200, center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat,
-        0);
-
-      //　車両本体
-      if (vehicleCaravanOrStashedVehicle?.GetComponent<VehicleFormationComp>() is { } comp)
-      {
-        var drawPositions = comp.DrawPositions;
-
-        foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
-        {
-          if (!drawPositions.ContainsKey(vehicle2))
-          {
-            comp.FindVehiclePosition(vehicle2);
-            comp.CenteredDrawPositions();
-          }
-
-          var drawPos2 = center + (drawPositions[vehicle2].position).RotatedBy(angle);
-          vehicle2.DrawAt(in drawPos2, vehicle2.FullRotation, angle - vehicle2.FullRotation.AsAngle);
-        }
-      }
-      else
-      {
-        var drawPos = center.WithY(AltitudeLayer.LayingPawn.AltitudeFor());
-        vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
-      }
-    }
-    else if (tmpRenderTex && focused)
-    {
-      RenderTexture.ReleaseTemporary(tmpRenderTex);
-      tmpRenderTex = null;
-    }
-
-    return;
-
-    static WorldObject GetWorldObject(IThingHolder holder)
-    {
-      while (holder != null)
-      {
-        if (holder is WorldObject worldObject)
-        {
-          return worldObject;
-        }
-
-        holder = holder.ParentHolder;
-      }
-
-      return null;
+      if (VehicleMapView.Available)
+        VehicleMapView.Draw(vehicle);
     }
   }
 

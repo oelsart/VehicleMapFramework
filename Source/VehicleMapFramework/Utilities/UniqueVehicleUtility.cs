@@ -13,7 +13,6 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 [StaticConstructorOnStartup]
 public static class UniqueVehicleUtility
 {

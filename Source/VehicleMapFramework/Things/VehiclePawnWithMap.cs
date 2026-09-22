@@ -630,7 +630,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           mapParent.ExtraGenStepDefs, isPocketMap: true);
         if (VehicleMapFramework.settings.drawPlanet)
         {
-          var size = Patch_Map_MapUpdate.MeshSize;
+          var size = VehicleMapView.MeshSize;
           interiorMap.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
         }
 
@@ -1282,7 +1282,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         VehicleMapFramework.settings.drawPlanet)
     {
       var material = MapEdgeClipDrawer.ClipMat;
-      var size = Patch_Map_MapUpdate.MeshSize;
+      var size = VehicleMapView.MeshSize;
       Vector3 s = new(500f, 1f, size.y);
       Matrix4x4 matrix = default;
       matrix.SetTRS(new Vector3(-250f, 0f, size.y / 2f), Quaternion.identity, s);
