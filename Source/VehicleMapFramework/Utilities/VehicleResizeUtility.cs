@@ -14,82 +14,96 @@ public static class VehicleResizeUtility
 {
   public static void ResizeNow(this VehiclePawnWithMap vehicle, bool reposition = true)
   {
-    var vehicleDef = vehicle.VehicleDef;
-    var curSize = vehicleDef.Size;
-    var mapRect = vehicle.MapRect;
-    var newRect = vehicle.ValidMapRect;
-    var newSize = newRect.Size;
-    if (curSize != newSize)
+    try
     {
-      PreResize(vehicle);
-      VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
-      vehicleDef.size = newSize;
-
-      var offset = mapRect.CenterVector3 - newRect.CenterVector3;
-      var drawOffsetComp = vehicle.CompVehicleDrawOffset;
-      var prevOffset = drawOffsetComp?.drawOffset ?? Vector3.zero;
-      if (drawOffsetComp is not null)
+      var vehicleDef = vehicle.VehicleDef;
+      var curSize = vehicleDef.Size;
+      var mapRect = vehicle.MapRect;
+      var newRect = vehicle.ValidMapRect;
+      var newSize = newRect.Size;
+      if (curSize != newSize)
       {
-        drawOffsetComp.drawOffset = offset;
-        drawOffsetComp.drawOffsetNorth = offset;
-        drawOffsetComp.drawOffsetEast = offset.RotatedBy(Rot4.East);
-        drawOffsetComp.drawOffsetSouth = offset.RotatedBy(Rot4.South);
-        drawOffsetComp.drawOffsetWest = offset.RotatedBy(Rot4.West);
-      }
+        PreResize(vehicle);
+        VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
+        vehicleDef.size = newSize;
 
-      if (vehicle.VehicleMapProps is VehicleMapProps_Unique { baseDef: { } baseDef })
-      {
-        vehicleDef.uiIconScale = Mathf.Max(baseDef.size.x, baseDef.size.z) / (Mathf.Max(newSize.x, newSize.z) + 1f);
-      }
-      
-      UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
-      UniqueVehicleUtility.GeneratePathData(vehicleDef);
-
-      PostResize(vehicle);
-
-      if (vehicle.Spawned)
-      {
-        var pos = vehicle.Position;
-        if (reposition)
-          Reposition(ref pos, vehicle, prevOffset - offset);
-        
-        Respawn(vehicle, pos);
-      }
-      else if (vehicle.VehicleCaravanOrStashedVehicle?.GetComponent<VehicleFormationComp>() is { } formationComp &&
-               formationComp.DrawPositions.TryGetValue(vehicle, out var drawData))
-      {
-        var pos = drawData.cellRect.CenterCell;
-        var delta = prevOffset - offset;
-        pos += new IntVec3((int)MathF.Truncate(delta.x), 0, (int)MathF.Truncate(delta.z));
-        if ((delta.x < 0f) == (vehicle.VehicleDef.Size.x % 2 == 1))
+        var offset = mapRect.CenterVector3 - newRect.CenterVector3;
+        var drawOffsetComp = vehicle.CompVehicleDrawOffset;
+        var prevOffset = drawOffsetComp?.drawOffset ?? Vector3.zero;
+        if (drawOffsetComp is not null)
         {
-          pos += IntVec3.East * (int)(delta.x % 1f * 2f);
+          drawOffsetComp.drawOffset = offset;
+          drawOffsetComp.drawOffsetNorth = offset;
+          drawOffsetComp.drawOffsetEast = offset.RotatedBy(Rot4.East);
+          drawOffsetComp.drawOffsetSouth = offset.RotatedBy(Rot4.South);
+          drawOffsetComp.drawOffsetWest = offset.RotatedBy(Rot4.West);
         }
-        if ((delta.z < 0f) == (vehicle.VehicleDef.Size.z % 2 == 1))
-        {
-          pos += IntVec3.North * (int)(delta.z % 1f * 2f);
-        }
-        drawData.cellRect = CellRect.CenteredOn(pos, newSize);
-        formationComp.DrawPositions[vehicle] = drawData;
 
-        foreach (var (vehicle2, drawData2) in formationComp.DrawPositions.ToArray())
+        if (vehicle.VehicleMapProps is VehicleMapProps_Unique { baseDef: { } baseDef })
         {
-          if (vehicle == vehicle2) continue;
-          if (drawData.cellRect.Overlaps(drawData2.cellRect))
+          vehicleDef.uiIconScale = Mathf.Max(baseDef.size.x, baseDef.size.z) / (Mathf.Max(newSize.x, newSize.z) + 1f);
+        }
+
+        UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
+        UniqueVehicleUtility.GeneratePathData(vehicleDef);
+
+        PostResize(vehicle);
+
+        if (vehicle.Spawned)
+        {
+          var pos = vehicle.Position;
+          if (reposition)
+            Reposition(ref pos, vehicle, prevOffset - offset);
+
+          foreach (var c in vehicle.VehicleRect())
           {
-            formationComp.DrawPositions.Remove(vehicle);
-            formationComp.FindVehiclePosition(vehicle);
-            break;
+            if (!c.InBounds(vehicle.Map))
+            {
+              VMF_Log.Error("The vehicle in resizing is out of bounds of the map.");
+              return;
+            }
           }
+          Respawn(vehicle, pos);
         }
-        
-        formationComp.CenteredDrawPositions();
-      }
+        else if (vehicle.VehicleCaravanOrStashedVehicle?.GetComponent<VehicleFormationComp>() is { } formationComp &&
+                 formationComp.DrawPositions.TryGetValue(vehicle, out var drawData))
+        {
+          var pos = drawData.cellRect.CenterCell;
+          var delta = prevOffset - offset;
+          pos += new IntVec3((int)MathF.Truncate(delta.x), 0, (int)MathF.Truncate(delta.z));
+          if ((delta.x < 0f) == (vehicle.VehicleDef.Size.x % 2 == 1))
+          {
+            pos += IntVec3.East * (int)(delta.x % 1f * 2f);
+          }
 
-      FrameDelay.DelayOne(_vehicle =>
-      {
-        _vehicle.VehicleMapGizmo.portrait.MarkDirty();
-      }, vehicle);
+          if ((delta.z < 0f) == (vehicle.VehicleDef.Size.z % 2 == 1))
+          {
+            pos += IntVec3.North * (int)(delta.z % 1f * 2f);
+          }
+
+          drawData.cellRect = CellRect.CenteredOn(pos, newSize);
+          formationComp.DrawPositions[vehicle] = drawData;
+
+          foreach (var (vehicle2, drawData2) in formationComp.DrawPositions.ToArray())
+          {
+            if (vehicle == vehicle2) continue;
+            if (drawData.cellRect.Overlaps(drawData2.cellRect))
+            {
+              formationComp.DrawPositions.Remove(vehicle);
+              formationComp.FindVehiclePosition(vehicle);
+              break;
+            }
+          }
+
+          formationComp.CenteredDrawPositions();
+        }
+
+        FrameDelay.DelayOne(_vehicle => { _vehicle.VehicleMapGizmo.portrait.MarkDirty(); }, vehicle);
+      }
+    }
+    catch (Exception ex)
+    {
+      VMF_Log.Error($"Error while resizing {vehicle.LabelCap}: {ex}");
     }
   }
 
