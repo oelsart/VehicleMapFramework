@@ -42,6 +42,8 @@ public static class VehicleResizeUtility
         if (vehicle.VehicleMapProps is VehicleMapProps_Unique { baseDef: { } baseDef })
         {
           vehicleDef.uiIconScale = Mathf.Max(baseDef.size.x, baseDef.size.z) / (Mathf.Max(newSize.x, newSize.z) + 1f);
+          vehicleDef.properties.visibilityWeight = baseDef.properties.visibilityWeight *
+            (vehicleDef.size.x + vehicleDef.size.z) / (baseDef.size.x + baseDef.size.z);
         }
 
         UniqueVehicleUtility.ReinitializeComponents(vehicleDef);

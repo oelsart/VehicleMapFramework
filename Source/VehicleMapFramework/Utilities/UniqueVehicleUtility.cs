@@ -82,7 +82,7 @@ public static class UniqueVehicleUtility
     def.defName = GetDefName(parentDef, index);
     def.graphicData = new GraphicDataRGB();
     def.graphicData.CopyFrom(parentDef.graphicData);
-    def.drawProperties = Gen.MemberwiseClone(def.drawProperties);
+    def.properties = Gen.MemberwiseClone(def.properties);
     if (parentDef.components is not null)
     {
       def.components = [];
