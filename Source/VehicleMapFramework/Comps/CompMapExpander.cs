@@ -123,7 +123,7 @@ public class CompMapExpander : ThingComp
 
   private bool ValidCell(IntVec3 c)
   {
-    return c.InBounds(parent.Map) && c.GetTerrain(parent.Map) != VMF_DefOf.VMF_ImpassableFloor;
+    return c.InBounds(parent.Map) && c.GetTerrain(parent.Map) is { passability: < Traversability.Impassable };
   }
 
   public override void PostSpawnSetup(bool respawningAfterLoad)
