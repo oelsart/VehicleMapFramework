@@ -15,6 +15,9 @@ public class MapParent_Vehicle : PocketMapParent
 
     public override Material Material => BaseContent.ClearMat;
 
+    public override bool CanReformFoggedEnemies =>
+      Map.GroundMap?.Parent is not { } parent || parent == this || parent.CanReformFoggedEnemies;
+
     public override IEnumerable<FloatMenuOption> GetFloatMenuOptions(Caravan caravan)
     {
         return caravan.PawnsListForReading.Any(p => p is VehiclePawnWithMap) ? [] : base.GetFloatMenuOptions(caravan);
