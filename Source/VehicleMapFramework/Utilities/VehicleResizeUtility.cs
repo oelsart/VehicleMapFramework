@@ -3,10 +3,7 @@ using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
-#if DEV
-using HarmonyLib;
 using SmashTools;
-#endif
 
 namespace VehicleMapFramework;
 
@@ -25,6 +22,7 @@ public static class VehicleResizeUtility
       {
         PreResize(vehicle);
         VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
+        var prevSize = vehicleDef.size;
         vehicleDef.size = newSize;
 
         var offset = mapRect.CenterVector3 - newRect.CenterVector3;
@@ -57,15 +55,7 @@ public static class VehicleResizeUtility
           if (reposition)
             Reposition(ref pos, vehicle, prevOffset - offset);
 
-          foreach (var c in vehicle.VehicleRect())
-          {
-            if (!c.InBounds(vehicle.Map))
-            {
-              VMF_Log.Error("The vehicle in resizing is out of bounds of the map.");
-              return;
-            }
-          }
-          Respawn(vehicle, pos);
+          Respawn(vehicle, pos, prevSize);
         }
         else if (vehicle.VehicleCaravanOrStashedVehicle?.GetComponent<VehicleFormationComp>() is { } formationComp &&
                  formationComp.DrawPositions.TryGetValue(vehicle, out var drawData))
@@ -160,12 +150,10 @@ public static class VehicleResizeUtility
     }
   }
 
-  public static void Respawn(VehiclePawnWithMap vehicle, IntVec3 pos)
+  public static void Respawn(VehiclePawnWithMap vehicle, IntVec3 pos, IntVec2 prevSize)
   {
     var rot = vehicle.Rotation;
     var map = vehicle.Map;
-    var selected = Find.Selector.IsSelected(vehicle);
-    vehicle.DeSpawnWithoutJobClearVehicle(DestroyMode.WillReplace);
 
     var opp = rot.AsInt > 1;
     if (vehicle.VehicleDef.Size.x % 2 == 0 && opp)
@@ -178,8 +166,78 @@ public static class VehicleResizeUtility
       pos.z += rot == Rot4.West ? -1 : 1;
     }
 
+    if (!TryFindSpawnCell(vehicle, map, rot, ref pos))
+    {
+      VMF_Log.Error("No cells to respawn were found during resizing. The respawn process will be skipped.");
+      return;
+    }
+    
+    var selected = Find.Selector.IsSelected(vehicle);
+    var newSize = vehicle.VehicleDef.size;
+    vehicle.VehicleDef.size = prevSize;
+    vehicle.DeSpawnWithoutJobClearVehicle(DestroyMode.WillReplace);
+    vehicle.VehicleDef.size = newSize;
     GenSpawn.Spawn(vehicle, pos, map, rot);
     if (selected)
       Find.Selector.Select(vehicle, false, false);
+  }
+
+  private static bool TryFindSpawnCell(VehiclePawn vehicle, Map map, Rot4 rot, ref IntVec3 loc)
+  {
+    // Validate current position
+    var positionManager = map.GetDetachedMapComponent<VehiclePositionManager>();
+    var standable = true;
+    foreach (var cell in vehicle.PawnOccupiedCells(loc, rot))
+    {
+      if (VehicleCanNotSpawnAt(vehicle, positionManager, map, cell))
+      {
+        standable = false;
+        break;
+      }
+    }
+
+    if (standable)
+      return true; // If location is still valid, skip to spawning
+    
+    const int CloseRadialCheck = 30;
+    const int FarRadialCheck = 100;
+    if (!CellFinderExtended.TryRadialSearchForCell(loc, map, CloseRadialCheck, cell =>
+        {
+          foreach (var occupiedCell in vehicle.PawnOccupiedCells(cell, rot))
+          {
+            if (VehicleCanNotSpawnAt(vehicle, positionManager, map, occupiedCell))
+              return false;
+          }
+          return true;
+        }, out var newLoc))
+    {
+      // Just get the vehicle spawned in, user will need to dev-mode teleport them once loaded.
+      // This is easier to handle than lost vehicles needing to be recovered from world pawns.
+      Log.Error(
+        $"Unable to find location to spawn {vehicle.LabelShort}. Performing wider search.");
+      if (!CellFinderExtended.TryRadialSearchForCell(loc, map, FarRadialCheck, cell =>
+          {
+            foreach (var occupiedCell in vehicle.PawnOccupiedCells(cell, rot))
+            {
+              if (!occupiedCell.InBounds(map))
+                return false;
+            }
+
+            return true;
+          }, out newLoc))
+      {
+        Log.Error($"Unable to find location to spawn {vehicle.LabelShort}. Aborting spawn.");
+        return false;
+      }
+    }
+
+    loc = newLoc;
+    return true;
+  }
+  
+  private static bool VehicleCanNotSpawnAt(VehiclePawn vehicle, VehiclePositionManager positionManager, Map map, in IntVec3 cell)
+  {
+    return !cell.InBounds(map) || !cell.Walkable(vehicle.VehicleDef, map) ||
+           positionManager.ClaimedBy(cell) is { } claimantVehicle && claimantVehicle != vehicle;
   }
 }
