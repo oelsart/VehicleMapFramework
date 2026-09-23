@@ -3,7 +3,7 @@
 	<Operation Class="PatchOperationConditional">
 		<xpath>Defs/ThingDef[defName="MinesAutomated_ThingDef_Mine"]/placeWorkers</xpath>
 		<match Class="PatchOperationAdd">
-			<xpath>Defs/ThingDef[defName="DankPyon_MiningSpot"]/placeWorkers</xpath>
+			<xpath>Defs/ThingDef[defName="MinesAutomated_ThingDef_Mine"]/placeWorkers</xpath>
 			<value>
 				<li>VehicleMapFramework.PlaceWorker_ForbidOnVehicle</li>
 			</value>
