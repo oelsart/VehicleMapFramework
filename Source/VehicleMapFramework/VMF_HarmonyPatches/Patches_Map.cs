@@ -864,8 +864,14 @@ public static class Patch_QuestNode_GetMap_IsAcceptableMap
       AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPocketMap)), ((Delegate)IsPocketMap).Method);
   }
 
-  private static bool IsPocketMap(Map map) => map is { IsPocketMap: true, IsVehicleMap: false, Tile.Valid: true } &&
-                                              Find.WorldPathGrid.Passable(map.Tile);
+  private static bool IsPocketMap(Map map)
+  {
+    if (map is { IsPocketMap: true } and { IsVehicleMap: false })
+      return true;
+
+    var tile = map.Tile;
+    return !tile.Valid || !Find.WorldPathGrid.Passable(tile);
+  }
 }
 
 // 車両がワールドマップにいる時エラーの可能性があった。
@@ -880,7 +886,7 @@ public static class Patch_WildAnimalSpawner_WildAnimalSpawnerTick
 [PatchLevel(Level.Safe)]
 public static class Patch_QuestNode_GetWalkInSpot_TryFindWalkInSpot
 {
-  public static void Postfix(Map map, ref IntVec3 spawnSpot, ref bool __result)
+  public static void Postfix(ref Map map, ref IntVec3 spawnSpot, ref bool __result)
   {
     if (!__result || !map.IsVehicleMapOf(out var vehicle))
       return;
