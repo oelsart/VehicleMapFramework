@@ -1580,3 +1580,21 @@ public static class Patch_RitualStage_GetPawnPosition
     __state?.Dispose();
   }
 }
+
+[HarmonyPatch(typeof(SocialInteractionUtility), nameof(SocialInteractionUtility.BestInteractableCell))]
+[PatchLevel(Level.Safe)]
+public static class Patch_SocialInteractionUtility_BestInteractableCell
+{
+  public static void Prefix(Pawn actor, Pawn targetPawn, ref VirtualTeleporter? __state)
+  {
+    if (actor.Map != targetPawn.Map)
+    {
+      __state = new VirtualTeleporter(actor, targetPawn.Map, actor.PositionOnAnotherThingMap(targetPawn), true);
+    }
+  }
+
+  public static void Finalizer(ref VirtualTeleporter? __state)
+  {
+    __state?.Dispose();
+  }
+}
