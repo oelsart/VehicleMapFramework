@@ -33,6 +33,7 @@ internal static class VMF_Log
   }
 
   [Conditional("DEBUG")]
+  [Conditional("DEV")]
   public static void DebugMessage(string message)
   {
     Log.Message(message);

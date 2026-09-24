@@ -581,22 +581,6 @@ public static class Patch_AreaSource_DataForArea
     AccessTools.FieldRefAccess<PathFinderMapData, AreaSource>("areas");
 }
 
-[HarmonyPatch(typeof(StorytellerUtility), nameof(StorytellerUtility.DefaultThreatPointsNow))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_StorytellerUtility_DefaultThreatPointsNow
-{
-  public static bool Prefix(IIncidentTarget target, ref float __result)
-  {
-    if (target is Map { IsVehicleMap: true } || target.PlayerPawnsForStoryteller.Any(p => p is VehiclePawnWithMap))
-    {
-      __result = VehicleMapUtility.DefaultThreatPointsNowForMapVehicles(target);
-      return false;
-    }
-
-    return true;
-  }
-}
-
 [HarmonyPatch(typeof(QuestGen_TransportShip), nameof(QuestGen_TransportShip.AddShipJob_Arrive))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_QuestGen_TransportShip_AddShipJob_Arrive
