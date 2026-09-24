@@ -850,11 +850,14 @@ public static class Patch_QuestNode_GetMap_IsAcceptableMap
 
   private static bool IsPocketMap(Map map)
   {
-    if (map is { IsPocketMap: true } and { IsVehicleMap: false })
+    if (map is not { IsPocketMap: true })
+      return false;
+    
+    if (!map.IsVehicleMapOf(out var vehicle))
       return true;
-
-    var tile = map.Tile;
-    return !tile.Valid || !Find.WorldPathGrid.Passable(tile);
+    
+    // 車両がプレイヤーホームにスポーンしている時車両マップでクエストは起きない
+    return vehicle.Spawned && vehicle.Map.IsPlayerHome;
   }
 }
 
