@@ -731,11 +731,18 @@ public static class Patch_CastPositionFinder_TryFindCastPosition
 [PatchLevel(Level.Safe)]
 public static class Patch_Pawn_ThreatDisabled
 {
-  public static void Postfix(Pawn __instance, ref bool __result)
+  public static void Postfix(Pawn __instance, IAttackTargetSearcher disabledFor, ref bool __result)
   {
     if (__result && __instance is VehiclePawnWithMap vehicle)
     {
-      __result = vehicle.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(vehicle.Faction).Empty();
+      foreach (var pawn in vehicle.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(vehicle.Faction))
+      {
+        if (!pawn.ThreatDisabled(disabledFor))
+        {
+          __result = false;
+          return;
+        }
+      }
     }
   }
 }
