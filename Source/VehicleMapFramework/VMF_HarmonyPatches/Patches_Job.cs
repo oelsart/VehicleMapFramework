@@ -917,19 +917,24 @@ public static class Patch_ReservationManager_CanReserve
 }
 
 [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserveStack))]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_CanReserveStack
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static bool Prefix(Map ___map, Pawn claimant, LocalTargetInfo target, int maxPawns,
+    ReservationLayerDef layer, bool ignoreOtherReservations, ref int __result)
   {
-    var codes = instructions.ToList();
+    if (Patch_ReservationManager_Reserve.ShouldReplace(___map, claimant, target, true, out var map))
+    {
+      __result = claimant.CanReserveStack(target, maxPawns, layer, ignoreOtherReservations, map);
+      return false;
+    }
+    if (claimant.Map != ___map)
+    {
+      __result = claimant.CanReserveStack(target, maxPawns, layer, ignoreOtherReservations, ___map);
+      return false;
+    }
 
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-    codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
-
-    var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-    codes.Insert(pos2, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map));
-    return codes;
+    return true;
   }
 }
 
