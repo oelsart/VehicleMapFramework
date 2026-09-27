@@ -33,7 +33,8 @@ public static class Patch_Building_Radar_DrawAt
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out _, 0.1f)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .AddAltitudeFor(vehicle, 0.1f)
       .InstructionEnumeration();
   }
 }
@@ -128,9 +129,9 @@ public static class Patch_Verb_RimatomicsVerb_TryCastShot
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_PPC_DrawAt
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return Patch_Building_Battery_DrawAt.Transpiler(instructions);
+    return Patch_Building_Battery_DrawAt.Transpiler(instructions, generator);
   }
 }
 

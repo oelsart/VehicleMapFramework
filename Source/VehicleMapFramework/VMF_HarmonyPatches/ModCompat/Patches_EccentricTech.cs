@@ -67,9 +67,8 @@ public static class Patch_CompProjectorOverlay_PostDraw
   {
     var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out var vehicle,
-        Altitudes.AltInc * 3f,
-        getInstance: [CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent))])
+      .NonFocusedMapVehicleForThingComp(out var vehicle)
+      .AddAltitudeFor(vehicle, Altitudes.AltInc * 3f)
       .Advance()
       .MatchStartForward(CodeMatch.StoresField(f_Vector3_y))
       .Repeat(matcher => matcher

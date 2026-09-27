@@ -97,20 +97,14 @@ public static class PatchHelper
           new CodeInstruction(OpCodes.Pop));
     }
     
-    public CodeMatcher AddAltitudeFor(out LocalBuilder vehicle,
-      float offset = 0f, CodeMatch[] matches = null, CodeInstruction[] getInstance = null)
+    public CodeMatcher AddAltitudeFor(LocalBuilder vehicle, float offset = 0f, CodeMatch[] matches = null)
     {
       matches ??= [CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor)];
-      getInstance ??= [CodeInstruction.LoadArgument(0)];
       codeMatcher
-        .MatchStartForward(matches)
-        .Advance()
+        .MatchStartForward(matches).Advance()
         .CreateLabel(out var label)
-        .DeclareLocal(typeof(VehiclePawnWithMap), out vehicle)
-        .InsertAndAdvance(getInstance)
         .InsertAndAdvance(
-          new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-          CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
           new CodeInstruction(OpCodes.Brfalse_S, label),
           new CodeInstruction(OpCodes.Ldloc_S, vehicle),
           CachedMethodInfo.m_YOffsetFull.CallInstruction);
@@ -125,6 +119,18 @@ public static class PatchHelper
       return codeMatcher;
     }
 
+    public CodeMatcher AddExtraAngle(LocalBuilder vehicle)
+    {
+      return codeMatcher
+        .CreateLabel(out var label)
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          new CodeInstruction(OpCodes.Brfalse_S, label),
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          CachedMethodInfo.m_ExtraAngle.CallInstruction,
+          new CodeInstruction(OpCodes.Add));
+    }
+
     public CodeMatcher MultiplyExtraAngleQuat(LocalBuilder vehicle)
     {
       return codeMatcher
@@ -137,6 +143,32 @@ public static class PatchHelper
           CachedMethodInfo.g_Vector3_up.CallInstruction,
           CachedMethodInfo.m_Quaternion_AngleAxis.CallInstruction,
           CachedMethodInfo.o_Quaternion_Multiply.CallInstruction);
+    }
+
+    public CodeMatcher FocusVehicleAroundMethod(LocalBuilder vehicle, MethodInfo method)
+    {
+      return codeMatcher
+        .MatchStartForward(CodeMatch.Calls(method))
+        .DeclareLocal(typeof(Command_FocusVehicleMap.FocusVehicleScope), out var scope)
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          CachedMethodInfo.m_FocusVehicle.CallInstruction,
+          new CodeInstruction(OpCodes.Stloc_S, scope))
+        .InsertAfterAndAdvance(
+          new CodeInstruction(OpCodes.Ldloca_S, scope),
+          CachedMethodInfo.m_FocusVehicleScope_Dispose.CallInstruction);
+    }
+
+    public CodeMatcher RotatedByVehicleExtraAngle(LocalBuilder vehicle)
+    {
+      return codeMatcher
+        .CreateLabel(out var label)
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          new CodeInstruction(OpCodes.Brfalse_S, label),
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          CachedMethodInfo.m_ExtraAngle.CallInstruction,
+          CachedMethodInfo.m_RotatedBy.CallInstruction);
     }
   }
 

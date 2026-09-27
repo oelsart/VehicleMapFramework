@@ -362,8 +362,8 @@ public static class Patch_PawnPath_DrawPath
     ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out var vehicle,
-        getInstance: [CodeInstruction.LoadArgument(1)])
+      .NonFocusedMapVehicle(out var vehicle, CodeInstruction.LoadArgument(1))
+      .AddAltitudeFor(vehicle)
       .MatchEndForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted), CodeMatch.IsStloc())
       .Repeat(c => c
         .CreateLabel(out var label2)

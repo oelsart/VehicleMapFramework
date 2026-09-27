@@ -176,14 +176,11 @@ public static class Patch_CMCTurretTop_DrawTurret
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out _,
-        getInstance:
-        [
-          CodeInstruction.LoadArgument(0),
-          CodeInstruction.LoadField(
-            GenTypes.GetTypeInAnyAssembly("CeleTech.Base.CMCTurretTop", "CeleTech.Base"),
-            "parentTurret")
-        ])
+      .NonFocusedMapVehicle(out var vehicle,
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(
+          GenTypes.GetTypeInAnyAssembly("CeleTech.Base.CMCTurretTop", "CeleTech.Base"), "parentTurret"))
+      .AddAltitudeFor(vehicle)
       .InstructionEnumeration();
   }
 }
@@ -218,8 +215,8 @@ public static class Patch_Comp_FCradar_PostDraw
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out _,
-        getInstance: [CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent))])
+      .NonFocusedMapVehicleForThingComp(out var vehicle)
+      .AddAltitudeFor(vehicle)
       .InstructionEnumeration();
   }
 }

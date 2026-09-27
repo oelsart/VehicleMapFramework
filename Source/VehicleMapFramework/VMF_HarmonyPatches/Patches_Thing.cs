@@ -118,27 +118,12 @@ public static class Patch_Building_SupportedDoor_DrawAt
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompPowerPlantSolar_PostDraw
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-    ILGenerator generator)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var codes = instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
-      (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate));
-
-    var label = generator.DefineLabel();
-    var label2 = generator.DefineLabel();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_Rot8_Rotate)) - 1;
-    codes[pos].labels.Add(label);
-    codes[pos + 2].labels.Add(label2);
-    codes.InsertRange(pos,
-    [
-      new CodeInstruction(OpCodes.Dup),
-      AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.IsHorizontal)).CallInstruction,
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Pop),
-      new CodeInstruction(OpCodes.Br_S, label2)
-    ]);
-    return codes;
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .NonFocusedMapVehicleForThingComp(out var vehicle)
+      .FocusVehicleAroundMethod(vehicle, CachedMethodInfo.m_GenDraw_DrawFillableBar)
+      .InstructionEnumeration();
   }
 }
 
@@ -146,15 +131,24 @@ public static class Patch_CompPowerPlantSolar_PostDraw
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompPowerPlantWind_PostDraw
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
-      (CachedMethodInfo.g_Rot4_FacingCell, CachedMethodInfo.g_Rot8_FacingCell),
-      (CachedMethodInfo.g_Rot4_RighthandCell, CachedMethodInfo.m_Rot8Utility_RighthandCell),
-      (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate),
-      (CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef),
-      (CachedMethodInfo.m_IntVec3_ToVector3, CachedMethodInfo.m_Rot8Utility_ToFundVector3));
+    var callsMultiply = CodeMatch.Calls(
+      AccessTools.Method(typeof(Vector3), "op_Multiply", [typeof(Vector3), typeof(float)]));
+    var callsAsQuat = CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat);
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .NonFocusedMapVehicleForThingComp(out var vehicle)
+      .FocusVehicleAroundMethod(vehicle, CachedMethodInfo.m_GenDraw_DrawFillableBar)
+      .MatchStartForward(callsMultiply).Advance()
+      .RotatedByVehicleExtraAngle(vehicle)
+      .MatchStartForward(callsMultiply).Advance()
+      .RotatedByVehicleExtraAngle(vehicle)
+      .MatchStartForward(callsAsQuat).Advance()
+      .MultiplyExtraAngleQuat(vehicle)
+      .MatchStartForward(callsAsQuat).Advance()
+      .MultiplyExtraAngleQuat(vehicle)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
   }
 }
 
@@ -200,14 +194,26 @@ public static class Patch_CompPowerPlantWind_RecalculateBlockages
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_Battery_DrawAt
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var codes = instructions.ToList();
-    var ldcr4 = codes.Find(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(0.1f));
-    ldcr4?.operand = 0.75f;
-    return codes.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
-      (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate));
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .FocusVehicleAroundMethod(vehicle, CachedMethodInfo.m_GenDraw_DrawFillableBar)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
+  }
+}
+
+[HarmonyPatch(typeof(Building_FermentingBarrel), "DrawAt")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Building_FermentingBarrel_DrawAt
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .FocusVehicleAroundMethod(vehicle, CachedMethodInfo.m_GenDraw_DrawFillableBar)
+      .InstructionEnumeration();
   }
 }
 
@@ -232,14 +238,12 @@ public static class Patch_PlaceWorker_WindTurbine_DrawGhost
 }
 
 [HarmonyPatch(typeof(CompRefuelable), nameof(CompRefuelable.PostDraw))]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CompRefuelable_PostDraw
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
-      (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate));
+    return Patch_Building_Battery_DrawAt.Transpiler(instructions, generator);
   }
 }
 
@@ -283,36 +287,43 @@ public static class Patch_TravellingTransporters_Tick
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_MechCharger_DrawAt
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-    ILGenerator generator)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var codes = instructions.ToList();
-    var rot = generator.DeclareLocal(typeof(Rot4));
-    var f_rotation = AccessTools.Field(typeof(GenDraw.FillableBarRequest), nameof(GenDraw.FillableBarRequest.rotation));
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Stfld && c.OperandIs(f_rotation));
-    //一度Rot4に格納しないとエラー出したので
-    codes.InsertRange(pos,
-    [
-      new CodeInstruction(OpCodes.Stloc_S, rot),
-      new CodeInstruction(OpCodes.Ldloc_S, rot),
-    ]);
+    return Patch_Building_Battery_DrawAt.Transpiler(instructions, generator);
+  }
+}
 
-    var pos2 =
-      codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3Shifted)) + 1;
-    var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-    var label = generator.DefineLabel();
+[HarmonyPatch(typeof(Building_MechGestator), "Tick")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Building_MechGestator_Tick
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
+  }
+}
 
-    codes[pos2].labels.Add(label);
-    codes.InsertRange(pos2,
-    [
-      CodeInstruction.LoadArgument(0),
-      new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-      CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-      CachedMethodInfo.m_ToBaseMapCoord2.CallInstruction
-    ]);
-    return codes.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing);
+[HarmonyPatch(typeof(Building_MechGestator), "DrawAt")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Building_MechGestator_DrawAt
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .FocusVehicleAroundMethod(vehicle, CachedMethodInfo.m_GenDraw_DrawFillableBar)
+      .AddAltitudeFor(vehicle) // AltitudeLayer.BuildingBelowTop.AltitudeFor()
+      .AddAltitudeFor(vehicle, 0.01f) // AltitudeLayer.BuildingOnTop.AltitudeFor()
+      .Reset()
+      // Mathf.PingPong(...) => Mathf.PingPong(...).RotatedBy(vehicle.ExtraAngle)
+      .MatchStartForward(CodeMatch.Calls(((Delegate)Mathf.PingPong).Method)).Advance()
+      .AddExtraAngle(vehicle)
+      // 0f => vehicle.ExtraAngle
+      .MatchEndForward(
+        CodeMatch.LoadsConstant(0f), CodeMatch.Calls(AccessTools.Method(typeof(Graphic), nameof(Graphic.Draw))))
+      .Repeat(c => c.AddExtraAngle(vehicle))
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
   }
 }
 

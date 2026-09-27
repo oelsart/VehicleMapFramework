@@ -198,6 +198,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo o_Quaternion_Multiply = AccessTools.Method(typeof(Quaternion), "op_Multiply", [typeof(Quaternion), typeof(Quaternion)]);
 
+    public readonly MethodInfo m_GenDraw_DrawFillableBar = ((Delegate)GenDraw.DrawFillableBar).Method;
+
     public readonly MethodInfo m_GenDraw_DrawFieldEdges1 = ((Action<List<IntVec3>, int>)GenDraw.DrawFieldEdges).Method;
     
     public readonly MethodInfo m_GenDraw_DrawFieldEdges2 = ((Action<List<IntVec3>, Color, float?, HashSet<IntVec3>, int>)GenDraw.DrawFieldEdges).Method;

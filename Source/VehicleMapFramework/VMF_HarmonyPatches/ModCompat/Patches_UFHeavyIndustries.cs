@@ -43,7 +43,8 @@ public static class Patch_Building_TurretGunHasSpeed_DrawAt
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out _)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .AddAltitudeFor(vehicle)
       .InstructionEnumeration();
   }
 }

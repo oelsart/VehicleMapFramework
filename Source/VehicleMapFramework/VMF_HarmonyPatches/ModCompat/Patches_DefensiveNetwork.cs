@@ -27,7 +27,8 @@ public static class Patch_Building_HunterKillerSupportSystem_DrawSupportOverlay
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out _, 0.1f)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .AddAltitudeFor(vehicle, 0.1f)
       .InstructionEnumeration();
   }
 }
@@ -87,7 +88,8 @@ public static class Patch_Building_GhoulBomberBay_DrawAt
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out var vehicle)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .AddAltitudeFor(vehicle)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
       .Advance()
       .MultiplyExtraAngleQuat(vehicle)

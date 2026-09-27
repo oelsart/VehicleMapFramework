@@ -464,8 +464,8 @@ public static class Patch_Graphic_Shadow_DrawWorker
     ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .AddAltitudeFor(out var vehicle, // AASB2の下階terrainを下回らない程度
-        getInstance: [CodeInstruction.LoadArgument(4)])
+      .NonFocusedMapVehicle(out var vehicle, CodeInstruction.LoadArgument(4))
+      .AddAltitudeFor(vehicle)
       .InsertAndAdvance(
         CodeInstruction.LoadArgument(4),
         ((Delegate)AASB2ShadowAltitude).Method.CallInstruction)
@@ -519,34 +519,42 @@ public static class Patch_Frame_DrawAt
 [PatchLevel(Level.Safe)]
 public static class Patch_GenDraw_DrawFillableBar
 {
-  public static bool Prefix(GenDraw.FillableBarRequest r)
+  public static bool Prefix(ref GenDraw.FillableBarRequest r)
   {
-    VehiclePawnWithMap vehicle = null;
-    if (r.rotation.AsInt >= 4 || Find.CurrentMap.IsNonFocusedVehicleMapOf(out vehicle))
+    var extraAngle = 0f;
+    if (r.rotation.AsInt >= 4)
     {
-      var extraRotation = vehicle?.Transform.rotation ?? 0f;
       var rot = new Rot8(r.rotation.AsInt);
-      var fullAngle = rot.Opposite.AsAngle + extraRotation;
-      var vector = r.preRotationOffset.RotatedBy(fullAngle);
+      r.rotation = rot.RotForVehicleDraw();
+      extraAngle = -rot.AsRotationAngle;
+    }
+    if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
+    {
+      extraAngle = vehicle.ExtraAngle;
+    }
+
+    if (extraAngle != 0f)
+    {
+      var vector = r.preRotationOffset.RotatedBy(extraAngle);
       r.center += new Vector3(vector.x, 0f, vector.y);
-      Vector3 s = new(r.size.x + r.margin, 1f, r.size.y + r.margin);
-      Matrix4x4 matrix = default;
-      var quat = rot.AsQuat() * Quaternion.AngleAxis(extraRotation, Vector3.up);
-      matrix.SetTRS(r.center, quat, s);
+      Vector3 size = new(r.size.x + r.margin, 1f, r.size.y + r.margin);
+      var quat = r.rotation.AsQuat * Quaternion.AngleAxis(extraAngle, Vector3.up);
+      var matrix = Matrix4x4.TRS(r.center, quat, size);
       Graphics.DrawMesh(MeshPool.plane10, matrix, r.unfilledMat, 0);
       if (r.fillPercent > 0.001f)
       {
-        s = new Vector3(r.size.x * r.fillPercent, 1f, r.size.y);
-        matrix = default;
+        size = new Vector3(r.size.x * r.fillPercent, 1f, r.size.y);
         var pos = r.center + (Vector3.up * 0.01f);
-        pos += new Vector3((-r.size.x * 0.5f) + (0.5f * r.size.x * r.fillPercent), 0f, 0f).RotatedBy(fullAngle);
-        matrix.SetTRS(pos, quat, s);
+        var offset = !r.rotation.IsHorizontal
+          ? new Vector3(-r.size.x * 0.5f + 0.5f * r.size.x * r.fillPercent, 0f, 0f)
+          : new Vector3(0f, 0f, -r.size.x * 0.5f + 0.5f * r.size.x * r.fillPercent);
+        pos += offset.RotatedBy(extraAngle);
+        matrix.SetTRS(pos, quat, size);
         Graphics.DrawMesh(MeshPool.plane10, matrix, r.filledMat, 0);
       }
 
       return false;
     }
-
     return true;
   }
 }

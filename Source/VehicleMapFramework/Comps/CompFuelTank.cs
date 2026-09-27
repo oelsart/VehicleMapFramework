@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using RimWorld;
-using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -59,15 +58,16 @@ public class CompFuelTank : CompRefuelable
       }
       GenDraw.FillableBarRequest r = new()
       {
-        center = parent.DrawPos + DrawOffset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation) + Vector3.down * 0.015f,
+        center = parent.DrawPos + DrawOffset.RotatedBy(vehicle.ExtraAngle) + Vector3.down * 0.015f,
         size = BarSize,
         fillPercent = vehicle.CompFueledTravel.FuelPercent,
         filledMat = FilledMat,
         unfilledMat = UnfilledMat,
         margin = 0.03f,
-        rotation = Rot8.FromAngle(Mathf.Repeat(-vehicle.Angle, 360f)).AsRot4Force()
+        rotation = parent.Rotation
       };
-      Rot8Utility.Rotate(ref r.rotation, RotationDirection.Clockwise);
+      r.rotation.Rotate(RotationDirection.Clockwise);
+      using var scope = Command_FocusVehicleMap.FocusVehicle(vehicle);
       GenDraw.DrawFillableBar(r);
     }
   }
