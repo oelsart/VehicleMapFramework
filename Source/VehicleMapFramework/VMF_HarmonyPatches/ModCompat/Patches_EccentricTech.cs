@@ -83,7 +83,7 @@ public static class Patch_CompProjectorOverlay_PostDraw
           new CodeInstruction(OpCodes.Add)).Advance())
       .Reset()
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity)).Advance()
-      .AddExtraAngle(vehicle)
+      .MultiplyExtraAngleQuat(vehicle)
       .InstructionEnumeration();
   }
 }

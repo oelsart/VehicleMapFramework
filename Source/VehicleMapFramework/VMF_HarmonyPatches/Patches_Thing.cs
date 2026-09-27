@@ -67,9 +67,10 @@ public static class Patch_Building_Door_DrawMovers
     var asQuatMatch = CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat);
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(asQuatMatch).Advance()
-      .AddExtraAngle(out var vehicle)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .MultiplyExtraAngleQuat(vehicle)
       .MatchStartForward(asQuatMatch).Advance()
-      .AddExtraAngle(vehicle)
+      .MultiplyExtraAngleQuat(vehicle)
       .InstructionEnumeration()
       .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
   }

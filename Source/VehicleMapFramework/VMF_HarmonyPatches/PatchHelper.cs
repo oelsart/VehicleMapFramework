@@ -69,9 +69,34 @@ public static class PatchHelper
 
   private static readonly FieldInfo f_allBuildingsColonist =
     AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
-
+  
   extension(CodeMatcher codeMatcher)
   {
+    public CodeMatcher NonFocusedMapVehicleForThing(out LocalBuilder vehicle)
+    {
+      return codeMatcher.NonFocusedMapVehicle(out vehicle, CodeInstruction.LoadArgument(0));
+    }
+    
+    public CodeMatcher NonFocusedMapVehicleForThingComp(out LocalBuilder vehicle)
+    {
+      return codeMatcher.NonFocusedMapVehicle(out vehicle,
+        CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)));
+    }
+    
+    public CodeMatcher NonFocusedMapVehicle(out LocalBuilder vehicle, params CodeInstruction[] getInstance)
+    {
+      if (codeMatcher.IsInvalid)
+        codeMatcher.Reset();
+      
+      return codeMatcher
+        .DeclareLocal(typeof(VehiclePawnWithMap), out vehicle)
+        .InsertAndAdvance(getInstance)
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+          CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
+          new CodeInstruction(OpCodes.Pop));
+    }
+    
     public CodeMatcher AddAltitudeFor(out LocalBuilder vehicle,
       float offset = 0f, CodeMatch[] matches = null, CodeInstruction[] getInstance = null)
     {
@@ -100,20 +125,7 @@ public static class PatchHelper
       return codeMatcher;
     }
 
-    public CodeMatcher AddExtraAngle(out LocalBuilder vehicle, CodeInstruction[] getInstance = null)
-    {
-      getInstance ??= [CodeInstruction.LoadArgument(0)];
-      return codeMatcher
-        .DeclareLocal(typeof(VehiclePawnWithMap), out vehicle)
-        .InsertAndAdvance(getInstance)
-        .InsertAndAdvance(
-          new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-          CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
-          new CodeInstruction(OpCodes.Pop))
-        .AddExtraAngle(vehicle);
-    }
-
-    public CodeMatcher AddExtraAngle(LocalBuilder vehicle)
+    public CodeMatcher MultiplyExtraAngleQuat(LocalBuilder vehicle)
     {
       return codeMatcher
         .CreateLabel(out var label)

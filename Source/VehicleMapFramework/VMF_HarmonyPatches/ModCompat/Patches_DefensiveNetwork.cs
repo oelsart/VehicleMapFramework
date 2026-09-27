@@ -90,7 +90,7 @@ public static class Patch_Building_GhoulBomberBay_DrawAt
       .AddAltitudeFor(out var vehicle)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
       .Advance()
-      .AddExtraAngle(vehicle)
+      .MultiplyExtraAngleQuat(vehicle)
       .InstructionEnumeration();
   }
 }

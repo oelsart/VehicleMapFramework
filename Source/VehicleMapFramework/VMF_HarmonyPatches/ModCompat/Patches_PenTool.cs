@@ -162,7 +162,7 @@ public static class Patch_PenSession_DrawBlueprintCell
         ((Delegate)RotateIndex).Method.CallInstruction)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
       .Advance()
-      .AddExtraAngle(vehicle)
+      .MultiplyExtraAngleQuat(vehicle)
       .InstructionEnumeration();
   }
 
