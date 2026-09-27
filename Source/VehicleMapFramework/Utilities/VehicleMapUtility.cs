@@ -935,6 +935,16 @@ public static class VehicleMapUtility
       return drawPos;
     }
 
+    public Vector3 ToVehicleMapCoord(Map map)
+    {
+      return map.IsVehicleMapOf(out var vehicle) ? original.ToVehicleMapCoord(vehicle) : original;
+    }
+
+    public Vector3 ToThingMapCoord(Thing thing)
+    {
+      return original.ToVehicleMapCoord(thing.Map);
+    }
+
     public Vector3 ToNonFocusedThingMapCoord(Thing thing)
     {
       return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ? original.ToVehicleMapCoord(vehicle) : original;

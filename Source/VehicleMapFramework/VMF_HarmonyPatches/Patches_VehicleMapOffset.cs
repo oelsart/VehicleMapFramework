@@ -155,6 +155,21 @@ public static class Patch_Mote_DrawPos
   }
 }
 
+[HarmonyPatch(typeof(MoteAttached), "TimeInterval")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_MoteAttached_TimeInterval
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_ToIntVec3))
+      .Insert(
+        CodeInstruction.LoadArgument(0),
+        CachedMethodInfo.m_ToThingMapCoord.CallInstruction)
+      .InstructionEnumeration();
+  }
+}
+
 [HarmonyPatch(typeof(VehicleSkyfaller), "RootPos", MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleSkyfaller_RootPos

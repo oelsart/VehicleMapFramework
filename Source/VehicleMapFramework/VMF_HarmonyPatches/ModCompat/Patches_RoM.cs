@@ -50,7 +50,7 @@ public static class Patch_TryFindShootLineFromTo_Base_Patch_Prefix
     codes.InsertAfter(
       CodeInstruction.LoadArgument(0),
       CodeInstruction.LoadField(typeof(Verb), nameof(Verb.caster)),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToThingMapCoord));
+      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToThingMapCoordCell));
     return codes.Instructions().MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
   }
 }

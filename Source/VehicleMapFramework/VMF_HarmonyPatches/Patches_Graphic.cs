@@ -456,6 +456,32 @@ public static class Patch_Graphic_DrawFromDef
   }
 }
 
+[HarmonyPatch(typeof(Graphic_Mote), nameof(Graphic_Mote.DrawMote),
+  typeof(GraphicData), typeof(Material), typeof(Color), typeof(Vector3), typeof(Rot4), typeof(ThingDef), typeof(Thing),
+  typeof(int), typeof(bool), typeof(MaterialPropertyBlock))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Graphic_Mote_DrawMote
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchEndForward(CodeMatch.Calls(CachedMethodInfo.g_Vector3_up))
+      .CreateLabel(out var label)
+      .Insert(
+        CodeInstruction.LoadLocal(0),
+        ((Delegate)ShouldRotateOnVehicle).Method.CallInstruction,
+        new CodeInstruction(OpCodes.Brfalse_S, label))
+      .NonFocusedMapVehicle(out var vehicle, CodeInstruction.LoadLocal(0))
+      .AddExtraAngle(vehicle)
+      .InstructionEnumeration();
+  }
+
+  private static bool ShouldRotateOnVehicle(Mote mote)
+  {
+    return mote is MoteAttached;
+  }
+}
+
 [HarmonyPatch(typeof(Graphic_Shadow), nameof(Graphic_Shadow.DrawWorker))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Graphic_Shadow_DrawWorker
