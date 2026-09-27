@@ -10,10 +10,9 @@ public class CompRemoveVehicleMap : ThingComp
     if (parent is VehiclePawnWithMap vehicle)
     {
       FrameDelay.DelayOne(v =>
-        {
-          if (v.IsWorldPawn() && v.ParentHolder is null) v.RemoveVehicleMap();
-        },
-        vehicle);
+      {
+        if (v.IsWorldPawn() && v.ParentHolder is null) v.RemoveVehicleMap();
+      }, vehicle);
     }
   }
 }

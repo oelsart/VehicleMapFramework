@@ -605,6 +605,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       VMF_Log.Error("Tried to generate vehicle map for destroyed vehicle.");
       return;
     }
+    
+    VMF_Log.DebugMessage($"Generate vehicle map for {ThingID}");
 
     generatingVehicleMap = true;
     if (MapGenerator.mapBeingGenerated is not null)
@@ -786,23 +788,26 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   protected override void Tick()
   {
-    Resize();
-    if (Spawned)
+    if (!this.IsWorldPawn() || ParentHolder is not null)
     {
-      RecacheDrawPos(DrawPos + (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero));
-      if (CompDelayedKill is { KillStarted: true })
+      Resize();
+      if (Spawned)
       {
-        CompDelayedKill.CompTick();
-        return;
+        RecacheDrawPos(DrawPos + (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero));
+        if (CompDelayedKill is { KillStarted: true })
+        {
+          CompDelayedKill.CompTick();
+          return;
+        }
+
+        mapFollower?.MapFollowerTick();
       }
-
-      mapFollower?.MapFollowerTick();
+      else if (this.IsHashIntervalTick(30))
+      {
+        SetTile();
+      }
     }
-    else if (this.IsHashIntervalTick(30))
-    {
-      SetTile();
-    }
-
+    
     base.Tick();
   }
 
