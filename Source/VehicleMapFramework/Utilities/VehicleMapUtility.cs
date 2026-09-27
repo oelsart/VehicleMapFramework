@@ -337,7 +337,7 @@ public static class VehicleMapUtility
   {
     return tDef.fillPercent > 0.25f ||
            tDef.Size != IntVec2.One ||
-           tDef.graphic is not Graphic_Single && tDef.graphic is not Graphic_Collection ||
+           tDef.graphic is not Graphic_Single and not Graphic_Collection ||
            tDef.hasInteractionCell ||
            tDef.drawerType == DrawerType.MapMeshOnly ||
            tDef.drawerType == DrawerType.MapMeshAndRealTime ||
