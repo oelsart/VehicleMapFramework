@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using HarmonyLib;
 using Verse;
 
@@ -21,8 +20,23 @@ public static class PatchHelper
     catch (Exception ex)
     {
       VMF_Log.Warning(
-        $"Autopatching to {method.FullDescription()} failed. It may be referencing outdated signatures. The patch will simply be skipped.\n{ex}");
+        $"Auto patching to {method.FullDescription()} failed. It may be referencing outdated signatures. The patch will simply be skipped.\n{ex}");
       return [];
+    }
+  }
+
+  extension(Harmony harmony)
+  {
+    public int GetPatchedMethodCount
+    {
+      get
+      {
+#if DEBUG || DEV
+        return Harmony.GetAllPatchedMethods().Count(m => Harmony.GetPatchInfo(m).Owners.Contains(harmony.Id));
+#else
+        return 0;
+#endif
+      }
     }
   }
   
@@ -141,16 +155,9 @@ public static class PatchHelper
       var list = instructions as List<CodeInstruction> ?? [.. instructions];
       var pairCount = pairs.Length;
       var listCount = list.Count;
-      if (listCount < 500)
+      for (var i = 0; i < listCount; i++)
       {
-        for (var i = 0; i < listCount; i++)
-        {
-          ProcessInstruction(list[i]);
-        }
-      }
-      else
-      {
-        Parallel.ForEach(list, ProcessInstruction);
+        ProcessInstruction(list[i]);
       }
 
       return list;

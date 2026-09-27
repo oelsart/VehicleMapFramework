@@ -24,7 +24,7 @@ public sealed class PatchLevelAttribute(Level level) : Attribute
   public readonly Level level = level;
 }
 
-public class VMF_Harmony
+public static class VMF_Harmony
 {
   internal static readonly Harmony Instance = new("OELS.VehicleMapFramework");
 
@@ -121,29 +121,29 @@ public class VMF_Harmony
     {
       PrevPatchLevel = CurrentPatchLevel;
       CurrentPatchLevel = patchLevel;
-      var patchCountBefore = Instance.GetPatchedMethods().Count();
+      var patchCountBefore = Instance.GetPatchedMethodCount;
       PatchAllUncategorized();
       foreach (var category in Categories)
       {
         PatchCategory(category);
       }
 
-      var patchCountAfter = Instance.GetPatchedMethods().Count();
-      VMF_Log.Message($"Dynamic patches applied: {(patchCountAfter - patchCountBefore).ToString()} Total: {patchCountAfter.ToString()}");
+      var patchCountAfter = Instance.GetPatchedMethodCount;
+      VMF_Log.DebugMessage($"Dynamic patches applied: {(patchCountAfter - patchCountBefore).ToString()} Total: {patchCountAfter.ToString()}");
     }
     else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
     {
       PrevPatchLevel = CurrentPatchLevel;
       CurrentPatchLevel = patchLevel;
-      var patchCountBefore = Instance.GetPatchedMethods().Count();
+      var patchCountBefore = Instance.GetPatchedMethodCount;
       UnpatchAllUncategorized();
       foreach (var category in Categories)
       {
         UnpatchCategory(category);
       }
 
-      var patchCountAfter = Instance.GetPatchedMethods().Count();
-      VMF_Log.Message($"Dynamic patches unapplied: {(patchCountBefore - patchCountAfter).ToString()} Total: {patchCountAfter.ToString()}");
+      var patchCountAfter = Instance.GetPatchedMethodCount;
+      VMF_Log.DebugMessage($"Dynamic patches unapplied: {(patchCountBefore - patchCountAfter).ToString()} Total: {patchCountAfter.ToString()}");
     }
   }
 
@@ -155,15 +155,15 @@ public class VMF_Harmony
       {
         PrevPatchLevel = CurrentPatchLevel;
         CurrentPatchLevel = patchLevel;
-        var patchCountBefore = Instance.GetPatchedMethods().Count();
+        var patchCountBefore = Instance.GetPatchedMethodCount;
         PatchAllUncategorized();
         foreach (var category in Categories)
         {
           PatchCategory(category);
         }
 
-        var patchCountAfter = Instance.GetPatchedMethods().Count();
-        VMF_Log.Message($"Dynamic patches applied: {(patchCountAfter - patchCountBefore).ToString()} Total: {patchCountAfter.ToString()}");
+        var patchCountAfter = Instance.GetPatchedMethodCount;
+        VMF_Log.DebugMessage($"Dynamic patches applied: {(patchCountAfter - patchCountBefore).ToString()} Total: {patchCountAfter.ToString()}");
       }, "VMF_ApplyingDynamicPatches", false, null, false);
     }
     else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
@@ -172,15 +172,15 @@ public class VMF_Harmony
       {
         PrevPatchLevel = CurrentPatchLevel;
         CurrentPatchLevel = patchLevel;
-        var patchCountBefore = Instance.GetPatchedMethods().Count();
+        var patchCountBefore = Instance.GetPatchedMethodCount;
         UnpatchAllUncategorized();
         foreach (var category in Categories)
         {
           UnpatchCategory(category);
         }
 
-        var patchCountAfter = Instance.GetPatchedMethods().Count();
-        VMF_Log.Message($"Dynamic patches unapplied: {(patchCountBefore - patchCountAfter).ToString()} Total: {patchCountAfter.ToString()}");
+        var patchCountAfter = Instance.GetPatchedMethodCount;
+        VMF_Log.DebugMessage($"Dynamic patches unapplied: {(patchCountBefore - patchCountAfter).ToString()} Total: {patchCountAfter.ToString()}");
       }, "VMF_UnpatchingDynamicPatches", false, null, false);
     }
   }
@@ -329,7 +329,7 @@ public static class LatePatchCore
         VMF_Log.Message(text);
       }
 
-      VMF_Log.Message($"{VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
+      VMF_Log.DebugMessage($"{VMF_Harmony.Instance.GetPatchedMethodCount} patches applied.");
     });
   }
 }
