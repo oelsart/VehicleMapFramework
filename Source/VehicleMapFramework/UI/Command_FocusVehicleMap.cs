@@ -42,11 +42,16 @@ public sealed class Command_FocusVehicleMap : Command
     }
   }
 
-  public readonly struct FocusVehicle : IDisposable
+  public static FocusVehicleScope FocusVehicle(VehiclePawnWithMap vehicle)
+  {
+    return new FocusVehicleScope(vehicle);
+  }
+
+  public readonly struct FocusVehicleScope : IDisposable
   {
     private readonly VehiclePawnWithMap tmpFocused;
 
-    public FocusVehicle(VehiclePawnWithMap vehicle)
+    public FocusVehicleScope(VehiclePawnWithMap vehicle)
     {
       tmpFocused = FocusedVehicle;
       FocusedVehicle = vehicle;

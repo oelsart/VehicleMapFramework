@@ -326,7 +326,7 @@ public static class Patch_Avatar_RotateTowardsMouse
 [PatchLevel(Level.Safe)]
 public static class Patch_Avatar_HandleLeftClickInt
 {
-  public static void Prefix(Pawn ___pawn, ref (VirtualTeleporter?, Command_FocusVehicleMap.FocusVehicle?) __state)
+  public static void Prefix(Pawn ___pawn, ref (VirtualTeleporter?, Command_FocusVehicleMap.FocusVehicleScope?) __state)
   {
     if (!___pawn.Spawned) return;
     var mouseMapPosition = UI.MouseMapPosition();
@@ -365,12 +365,12 @@ public static class Patch_Avatar_HandleLeftClickInt
 
     if (vehicle is not null)
     {
-      __state.Item2 = new Command_FocusVehicleMap.FocusVehicle(vehicle);
+      __state.Item2 = new Command_FocusVehicleMap.FocusVehicleScope(vehicle);
       GenUIOnVehicle.vehicleForSelector = vehicle;
     }
   }
 
-  public static void Finalizer(Pawn ___pawn, (VirtualTeleporter?, Command_FocusVehicleMap.FocusVehicle?) __state)
+  public static void Finalizer(Pawn ___pawn, (VirtualTeleporter?, Command_FocusVehicleMap.FocusVehicleScope?) __state)
   {
     __state.Item1?.Dispose();
     __state.Item2?.Dispose();
@@ -430,11 +430,11 @@ public static class Patch_Avatar_HandleFiring
 [PatchLevel(Level.Safe)]
 public static class Patch_Avatar_MouseOverJobTarget
 {
-  public static void Prefix(Pawn ___pawn, ref Command_FocusVehicleMap.FocusVehicle? __state)
+  public static void Prefix(Pawn ___pawn, ref Command_FocusVehicleMap.FocusVehicleScope? __state)
   {
     if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
-      __state = new Command_FocusVehicleMap.FocusVehicle(vehicle);
+      __state = new Command_FocusVehicleMap.FocusVehicleScope(vehicle);
   }
   
-  public static void Finalizer(Command_FocusVehicleMap.FocusVehicle? __state) => __state?.Dispose();
+  public static void Finalizer(Command_FocusVehicleMap.FocusVehicleScope? __state) => __state?.Dispose();
 }

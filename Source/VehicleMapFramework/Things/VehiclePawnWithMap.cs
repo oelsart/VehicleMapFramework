@@ -1157,7 +1157,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     map.temporaryThingDrawer.Draw();
     map.flecks.FleckManagerDraw();
 
-    using (new Command_FocusVehicleMap.FocusVehicle(this))
+    using (new Command_FocusVehicleMap.FocusVehicleScope(this))
     {
       map.roofGrid.RoofGridUpdate();
       map.mapTemperature.TemperatureUpdate();

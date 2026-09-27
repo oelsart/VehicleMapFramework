@@ -337,4 +337,8 @@ public class MethodInfoCache
     public readonly MethodInfo m_Quaternion_AngleAxis = ((Delegate)Quaternion.AngleAxis).Method;
 
     public readonly MethodInfo m_CurrentViewRect = AccessTools.PropertyGetter(typeof(CameraDriver), nameof(CameraDriver.CurrentViewRect));
+
+    public readonly MethodInfo m_FocusVehicle = ((Delegate)Command_FocusVehicleMap.FocusVehicle).Method;
+
+    public readonly MethodInfo m_FocusVehicleScope_Dispose = ((Delegate)default(Command_FocusVehicleMap.FocusVehicleScope).Dispose).Method;
 }
