@@ -116,7 +116,7 @@ public static class Patch_Reachability_CanReach
   [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .SetInstruction(CachedMethodInfo.m_BaseMapOrCaravan_Thing.CallInstruction)
       .MatchStartForward(new CodeMatch(OpCodes.Beq_S))
@@ -466,7 +466,7 @@ public static class Patch_Room_DrawFieldEdges
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges2))
       .InsertAndAdvance(
         CodeInstruction.LoadArgument(0),
@@ -587,7 +587,7 @@ public static class Patch_QuestGen_TransportShip_AddShipJob_Arrive
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(new CodeMatch(OpCodes.Isinst, typeof(PocketMapParent)));
     codes.MatchStartForward(new CodeMatch(OpCodes.Brfalse_S));
     var label = codes.Operand;

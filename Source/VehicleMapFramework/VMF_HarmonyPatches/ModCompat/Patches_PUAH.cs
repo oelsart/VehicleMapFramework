@@ -27,7 +27,7 @@ public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     var f_rootCell = AccessTools.Field("PickUpAndHaul.WorkGiver_HaulToInventory+ThingPositionComparer:rootCell");
     codes.MatchStartForward(CodeMatch.StoresField(f_rootCell));
     codes.Insert(
@@ -60,7 +60,7 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
   [PatchLevel(Level.Sensitive)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var codes = new CodeMatcher(instructions, generator);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions, generator);
 
     ////pawn.Map -> thing.MapHeld ?? pawn.Map
     //codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));

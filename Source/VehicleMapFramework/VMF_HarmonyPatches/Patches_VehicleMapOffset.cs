@@ -276,7 +276,7 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
     var i_index = local_i?.LocalIndex ?? 3;
     var g_Item = AccessTools.Method(typeof(JobQueue), "get_Item");
     
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       // pawn.Position.ToVector3Shifted().ToThingBaseMapCoord(pawn);
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
       .InsertAfterAndAdvance(
@@ -361,7 +361,7 @@ public static class Patch_PawnPath_DrawPath
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
     ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out var vehicle,
         getInstance: [CodeInstruction.LoadArgument(1)])
       .MatchEndForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted), CodeMatch.IsStloc())

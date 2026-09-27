@@ -60,7 +60,7 @@ public static class Patch_Building_CMCTurretGun_TryFindNewTarget
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Map), nameof(Map.attackTargetsCache))))
       .RemoveInstruction()
       .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(AttackTargetsCache), nameof(AttackTargetsCache.GetPotentialTargetsFor))))
@@ -110,7 +110,7 @@ public static class Patch_Building_CMCTurretGun_ScoreTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
       .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMapSpawned)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
@@ -175,7 +175,7 @@ public static class Patch_CMCTurretTop_DrawTurret
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out _,
         getInstance:
         [
@@ -217,7 +217,7 @@ public static class Patch_Comp_FCradar_PostDraw
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out _,
         getInstance: [CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent))])
       .InstructionEnumeration();
@@ -472,7 +472,7 @@ public static class Patch_CompFullProjectileInterceptor_PostDraw
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Map), nameof(Map.attackTargetsCache))))
       .RemoveInstruction()
       .Set(OpCodes.Call, ((Delegate)TargetsHostileToColonyCrossMap).Method)

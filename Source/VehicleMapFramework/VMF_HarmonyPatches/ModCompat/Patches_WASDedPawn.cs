@@ -26,7 +26,7 @@ public static class Patch_WASDGameComponent_TryMovePawn
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var f_lasPos3 = AccessTools.Field("wasdedPawn.WASDGameComponent:lasPos3");
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_ToIntVec3))
       .Repeat(c =>
         c.MatchStartBackwards(CodeMatch.LoadsField(f_lasPos3))
@@ -47,7 +47,7 @@ public static class Patch_WASDGameComponent_RenderPawn
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var f_lasPos3 = AccessTools.Field("wasdedPawn.WASDGameComponent:lasPos3");
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.LoadsField(f_lasPos3))
       .Repeat(c => c.InsertAfterAndAdvance(
         CodeInstruction.LoadArgument(1),

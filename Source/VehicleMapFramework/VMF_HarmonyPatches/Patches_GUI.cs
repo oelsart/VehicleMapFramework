@@ -80,7 +80,7 @@ public static class Patch_ColonistBar_CheckRecacheEntries
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(Find), nameof(Find.Maps))))
       .InsertAfterAndAdvance(((Delegate)ExcludeVehicleMaps).Method.CallInstruction)
       .MatchStartForward(
@@ -321,7 +321,7 @@ public static class Patch_GUI_VehicleMapOffset
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
     ILGenerator generator)
   {
-    var codes = new CodeMatcher(instructions, generator);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions, generator);
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity));
     codes.InsertAndAdvance(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction);
     codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);

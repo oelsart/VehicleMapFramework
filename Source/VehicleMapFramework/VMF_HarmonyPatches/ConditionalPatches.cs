@@ -62,7 +62,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
     codes.InsertAfter(
       CodeInstruction.LoadArgument(5),
@@ -84,7 +84,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostOverlays
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
     codes.InsertAfter(
       CodeInstruction.LoadArgument(6),
@@ -103,7 +103,7 @@ public static class Patch_VehicleGhostUtility_DrawData_DrawPos
   {
     var type = GenTypes.GetTypeInAnyAssembly("Vehicles.VehicleGhostUtility+DrawData");
     var f_rot = AccessTools.Field(type, "rot");
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.LoadsField(f_rot))
       .InsertAfterAndAdvance(
         CodeInstruction.LoadArgument(0),
@@ -175,7 +175,7 @@ public static class Patch_TextureDrawer_Draw
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(
         AccessTools.Method(typeof(UIElements), nameof(UIElements.DrawTextureWithMaterialOnGUI))))
       .InsertAfter(

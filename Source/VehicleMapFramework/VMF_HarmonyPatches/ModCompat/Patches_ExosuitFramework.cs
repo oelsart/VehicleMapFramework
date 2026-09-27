@@ -32,7 +32,7 @@ public static class Patch_CompBuildingExtraRenderer_PostPrintOnto
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.LoadsConstant(0f))
       .Set(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation)
       .Insert(new CodeInstruction(OpCodes.Dup))

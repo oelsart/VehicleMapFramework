@@ -211,7 +211,7 @@ public static class Patch_LoadTransportersJobUtility_FindThingToLoad
 
     static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      var codes = new CodeMatcher(instructions);
+      var codes = PatchHelper.CreateCodeMatcherFast(instructions);
       codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position));
       codes.Insert(
         new CodeInstruction(OpCodes.Pop),
@@ -261,7 +261,7 @@ public static class Patch_JobDriver_HaulToContainer_TryReplaceWithFrame
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .InsertAndAdvance(CodeInstruction.LoadLocal(0))
       .Set(OpCodes.Call, ((Delegate)ThingMapOrPawnMap).Method)

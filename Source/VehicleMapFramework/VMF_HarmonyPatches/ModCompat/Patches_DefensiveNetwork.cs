@@ -26,7 +26,7 @@ public static class Patch_Building_HunterKillerSupportSystem_DrawSupportOverlay
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out _, 0.1f)
       .InstructionEnumeration();
   }
@@ -86,7 +86,7 @@ public static class Patch_Building_GhoulBomberBay_DrawAt
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out var vehicle)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
       .Advance()
@@ -470,7 +470,7 @@ public static class Patch_Building_EDD_DrawExtraSelectionOverlays
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges2))
       .InsertAndAdvance(
         CodeInstruction.LoadArgument(0),
@@ -487,7 +487,7 @@ public static class Patch_Building_EDD_DrawTripLaser
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
       .InsertAfter(
         CodeInstruction.LoadArgument(0),

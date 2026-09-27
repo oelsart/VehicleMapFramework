@@ -27,7 +27,7 @@ public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
+        var codes = PatchHelper.CreateCodeMatcherFast(instructions, generator);
         ReplaceType(typeof(SectionLayer_GravshipHull), typeof(SectionLayer_GravshipHullOnVehicle));
         ReplaceType(typeof(SectionLayer_SubstructureProps), typeof(SectionLayer_SubstructurePropsOnVehicle));
         return codes.Instructions();
@@ -87,7 +87,7 @@ public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
+        var codes = PatchHelper.CreateCodeMatcherFast(instructions, generator);
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         codes.CreateLabel(out var label);
         codes.DefineLabel(out var label2);

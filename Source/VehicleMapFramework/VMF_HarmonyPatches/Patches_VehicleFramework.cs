@@ -179,7 +179,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var matcher = new CodeMatcher(instructions, generator)
+    var matcher = PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add))
       .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
       .CreateLabel(out var label);
@@ -280,7 +280,7 @@ public static class Patch_TurretShotReport_HitReportFor
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     var g_Thing = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Thing));
-    return new CodeMatcher(instructions, generator).Reset()
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator).Reset()
       .DeclareLocal(typeof(Thing), out var targetThing)
       .DeclareLocal(typeof(Map), out var targetMap)
       .CreateLabel(out var label)
@@ -667,7 +667,7 @@ public static class Patch_CaravanFormation_CheckForErrors
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var matcher = new CodeMatcher(instructions)
+    var matcher = PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(
         AccessTools.PropertyGetter(
           typeof(List<VehiclePawn>.Enumerator),
@@ -1326,7 +1326,7 @@ public static class Patch_RenderHelper_DrawLinesBetweenTargets
     var i_index = local_i?.LocalIndex ?? 3;
     var g_Item = AccessTools.Method(typeof(JobQueue), "get_Item");
     
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       // vehicle.Position.ToVector3Shifted().ToThingBaseMapCoord(vehicle);
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
       .InsertAfterAndAdvance(

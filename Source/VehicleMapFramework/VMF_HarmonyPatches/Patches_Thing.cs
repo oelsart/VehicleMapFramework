@@ -65,7 +65,7 @@ public static class Patch_Building_Door_DrawMovers
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     var asQuatMatch = CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat);
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(asQuatMatch).Advance()
       .AddExtraAngle(out var vehicle)
       .MatchStartForward(asQuatMatch).Advance()
@@ -513,7 +513,7 @@ public static class Patch_CompBiosculpterPod_FindPodFor
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(new CodeMatch(OpCodes.Ldarg_0), CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
       .Set(OpCodes.Call, CachedMethodInfo.g_Thing_MapHeld)

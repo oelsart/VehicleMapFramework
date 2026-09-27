@@ -87,7 +87,7 @@ public static class Patch_Thing_Print
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(CodeMatch.LoadsConstant(0f))
       .Repeat(matcher =>
         matcher.InsertAndAdvance(CodeInstruction.LoadArgument(0))
@@ -102,7 +102,7 @@ public static class Patch_MinifiedThing_Print
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     var m_PrintPlane = ((Delegate)Printer_Plane.PrintPlane).Method;
     codes.MatchStartForward(CodeMatch.Calls(m_PrintPlane));
     codes.MatchStartBackwards(new CodeMatch(c => c.opcode == OpCodes.Ldloc_1));
@@ -218,7 +218,7 @@ public static class Patch_CameraDriver_Update
     ILGenerator generator)
   {
     const float limit = 200f;
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(CodeMatch.LoadsConstant(-2f))
       .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
       .DeclareLocal(typeof(bool), out var isVehicleMap)
@@ -287,7 +287,7 @@ public static class Patch_PawnRenderer_ParallelGetPreRenderResults
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.StoresField(AccessTools.Field("Verse.PawnRenderer+PreRenderResults:bodyAngle")))
       .Insert(
         CodeInstruction.LoadArgument(0),
@@ -463,7 +463,7 @@ public static class Patch_Graphic_Shadow_DrawWorker
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
     ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out var vehicle, // AASB2の下階terrainを下回らない程度
         getInstance: [CodeInstruction.LoadArgument(4)])
       .InsertAndAdvance(

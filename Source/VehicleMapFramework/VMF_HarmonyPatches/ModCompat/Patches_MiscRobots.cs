@@ -85,7 +85,7 @@ public static class Patch_X2_JobGiver_Work_TryIssueJobPackage
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
   {
-    var codes = new CodeMatcher(instructions, generator)
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions, generator)
       //scanner変数をローカルに保存しておく
       .MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Isinst && c.operand.Equals(typeof(WorkGiver_Scanner))))
       .DeclareLocal(typeof(WorkGiver_Scanner), out var scanner)

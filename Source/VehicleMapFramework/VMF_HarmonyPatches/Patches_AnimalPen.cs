@@ -142,7 +142,7 @@ public static class Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo
     
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return new CodeMatcher(instructions)
+        return PatchHelper.CreateCodeMatcherFast(instructions)
             .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(ListerBuildings),
                 nameof(ListerBuildings.allBuildingsHitchingPosts))))
             .InsertAfter(

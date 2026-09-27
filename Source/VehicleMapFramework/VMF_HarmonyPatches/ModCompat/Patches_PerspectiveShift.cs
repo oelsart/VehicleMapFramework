@@ -29,7 +29,7 @@ public static class Patch_State_OnGUI
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     CodeInstruction[] code = [new(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map)];
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
       .Repeat(matcher => matcher.InsertAndAdvance(code).InsertAfter(code).Advance())
       .InstructionEnumeration();
@@ -43,7 +43,7 @@ public static class Patch_Avatar_UpdatePhysics
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
       .InsertAndAdvance(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
       .InsertAfter(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
@@ -59,7 +59,7 @@ public static class Patch_Avatar_UpdateCamera
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     CodeInstruction[] code = [new(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map)];
-    var matcher = new CodeMatcher(instructions, generator);
+    var matcher = PatchHelper.CreateCodeMatcherFast(instructions, generator);
     matcher
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
       .Repeat(matcher2 => matcher2.InsertAndAdvance(code).InsertAfter(code).Advance())
@@ -396,7 +396,7 @@ public static class Patch_Avatar_GetBestTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GetThingList))

@@ -68,7 +68,7 @@ public static class Patch_FireProperties_AdjustForLeaning
     var g_Caster = AccessTools.PropertyGetter("AvoidFriendlyFire.FireProperties:Caster");
     var g_CasterMap = AccessTools.PropertyGetter("AvoidFriendlyFire.FireProperties:CasterMap");
     var match_LeanShootingSourcesFromTo = CodeMatch.Calls(((Delegate)ShootLeanUtility.LeanShootingSourcesFromTo).Method);
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(match_LeanShootingSourcesFromTo)
       .MatchStartBackwards(CodeMatch.LoadsField(f_Origin))
       .SetAndAdvance(OpCodes.Callvirt, g_Caster)

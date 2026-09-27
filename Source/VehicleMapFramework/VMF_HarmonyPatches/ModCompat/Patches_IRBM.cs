@@ -43,7 +43,7 @@ public static class Patch_Building_CIWS_FindBestGroundTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .End()
       .MatchEndBackwards(new CodeMatch(OpCodes.Ret))
       .Insert(

@@ -190,7 +190,7 @@ public static class Patch_Gizmo_LaserController_GizmoOnGUI_Delegate
   
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
       .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMapSpawned)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
@@ -268,7 +268,7 @@ public static class Patch_CompLaserADS_DrawLaserOffscreen
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
       .InsertAndAdvance(CachedMethodInfo.m_BaseMap_Map.CallInstruction)
       .InsertAfter(CachedMethodInfo.m_BaseMap_Map.CallInstruction)

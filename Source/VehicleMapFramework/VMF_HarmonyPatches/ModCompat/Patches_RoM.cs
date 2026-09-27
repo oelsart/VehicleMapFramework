@@ -28,7 +28,7 @@ public static class Patch_FloatMenuMakerMap_Patch_Postfix
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(CodeMatch.IsLdarg(2), CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
     codes.Repeat(c => { c.Opcode = OpCodes.Ldarg_0; });
     return codes.Instructions();
@@ -42,7 +42,7 @@ public static class Patch_TryFindShootLineFromTo_Base_Patch_Prefix
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     var m_CanReachImmediate =
       ((Func<IntVec3, LocalTargetInfo, Map, PathEndMode, Pawn, bool>)ReachabilityImmediate.CanReachImmediate).Method;
     codes.MatchStartForward(CodeMatch.Calls(m_CanReachImmediate));
@@ -137,7 +137,7 @@ public static class Patch_Verb_UseAbility_UpdateTargets
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     var g_AllThings = AccessTools.PropertyGetter(typeof(ListerThings), nameof(ListerThings.AllThings));
     codes.MatchStartForward(CodeMatch.Calls(g_AllThings));
     codes.Repeat(c =>

@@ -19,7 +19,7 @@ public static class Patch_FloatMenuMakerMap_GetOptions
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(((Func<Vector3, Map, bool>)GenGrid.InBounds).Method))
       .Set(OpCodes.Call, ((Delegate)InBounds).Method)
       .MatchStartForward(CodeMatch.Calls(((Func<IntVec3, Map, bool>)GenGrid.InBounds).Method))
@@ -89,7 +89,7 @@ public static class Patch_FloatMenuMakerMap_ShouldGenerateFloatMenuForPawn
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
       .InsertAndAdvance(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
       .InsertAfter(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
@@ -104,7 +104,7 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOptio
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
     ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(FloatMenuContext),
         nameof(FloatMenuContext.FirstSelectedPawn))))
       .RemoveInstruction()
@@ -156,7 +156,7 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOptio
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
     ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(FloatMenuContext),
         nameof(FloatMenuContext.ClickedCell))))
       .DeclareLocal(typeof(FloatMenuContext), out var context)
@@ -246,7 +246,7 @@ public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     var m_AllBuildingsColonistOfClass = AccessTools
       .Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass))
       .MakeGenericMethod(typeof(Building_HoldingPlatform));

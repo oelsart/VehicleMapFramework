@@ -32,7 +32,7 @@ public static class Patch_Building_Radar_DrawAt
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out _, 0.1f)
       .InstructionEnumeration();
   }
@@ -141,7 +141,7 @@ public static class Patch_CompRimatomicsShield_PostDraw
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
       .CreateLabelWithOffsets(1, out var label)
       .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)

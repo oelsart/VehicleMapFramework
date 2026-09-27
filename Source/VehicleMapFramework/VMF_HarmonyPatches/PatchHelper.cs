@@ -11,6 +11,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 public static class PatchHelper
 {
+  private static readonly AccessTools.FieldRef<CodeMatcher, List<CodeInstruction>> codes =
+    AccessTools.FieldRefAccess<CodeMatcher, List<CodeInstruction>>("codes");
+  private static readonly AccessTools.FieldRef<CodeMatcher, ILGenerator> generator =
+    AccessTools.FieldRefAccess<CodeMatcher, ILGenerator>("generator");
+  
+  public static CodeMatcher CreateCodeMatcherFast(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator = null)
+  {
+    var matcher = new CodeMatcher();
+    if (instructions is List<CodeInstruction> list)
+      codes(matcher) = list;
+    else
+      codes(matcher).AddRange(instructions);
+    generator(matcher) = ilGenerator;
+    return matcher;
+  }
+  
   public static IEnumerable<KeyValuePair<OpCode, object>> ReadMethodBodyWrapper(MethodBase method)
   {
     try

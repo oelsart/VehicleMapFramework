@@ -128,7 +128,7 @@ public static class Patch_Patch_JobTracker_ABLocalizeJobLines_Prefix
     var i_index = local_i?.LocalIndex ?? 13;
     var g_Item = AccessTools.Method(typeof(JobQueue), "get_Item");
     
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       // pawn.pather.Destination.CenterVector3VehicleOffsetPawn(pawn);
       .MatchStartForward(match)
       .InsertAndAdvance(
@@ -249,7 +249,7 @@ public static class Patch_Graphic_ABLink_Print
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Graphic), nameof(Graphic.DrawOffset))))
       .InsertAfter(CachedMethodInfo.m_RotateForPrintNegate.CallInstruction)
       .InstructionEnumeration()

@@ -59,7 +59,7 @@ public static class Patch_MapText_DoOverlayGUI
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field("TextTool.MapText:exactPosition")))
       .InsertAfter(
         new CodeInstruction(OpCodes.Ldarg_0),

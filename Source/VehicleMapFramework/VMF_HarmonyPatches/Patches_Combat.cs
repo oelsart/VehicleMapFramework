@@ -69,7 +69,7 @@ public static class Patch_Projectile_Launch
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
       .InsertAndAdvance(
         CodeInstruction.LoadArgument(1),
@@ -101,7 +101,7 @@ public static class Patch_Projectile_CanHit
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
       .MatchStartForward(
@@ -152,7 +152,7 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(new CodeMatch(OpCodes.Ldarg_1), CodeMatch.Calls(CachedMethodInfo.m_ToIntVec3))
       .CreateLabel(out var label)
       .Insert(
@@ -255,7 +255,7 @@ public static class Patch_Bombardment_TryDoExplosion
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(
         new CodeMatch(OpCodes.Ldarg_1),
         CodeMatch.LoadsField(
@@ -538,7 +538,7 @@ public static class Patch_TurretTop_DrawTurret
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_RotatedBy))
       .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
       .CreateLabel(out var label)
@@ -610,7 +610,7 @@ public static class Patch_Explosion_AffectCell
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return new CodeMatcher(instructions)
+      return PatchHelper.CreateCodeMatcherFast(instructions)
         .MatchStartForward(new CodeMatch(OpCodes.Ldarg_1),
           CodeMatch.Calls(AccessTools.Method(typeof(Explosion), "ShouldCellBeAffectedOnlyByDamage")))
         .Repeat(matcher => matcher.SetOpcodeAndAdvance(OpCodes.Ldarg_2))

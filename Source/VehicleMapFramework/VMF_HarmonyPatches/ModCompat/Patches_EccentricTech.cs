@@ -66,7 +66,7 @@ public static class Patch_CompProjectorOverlay_PostDraw
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out var vehicle,
         Altitudes.AltInc * 3f,
         getInstance: [CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent))])
@@ -106,7 +106,7 @@ public static class Patch_InterceptorMapComponent_MapComponentUpdate
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(MapComponent), nameof(MapComponent.map))))
       .InsertAfter(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map))
       .InstructionEnumeration();

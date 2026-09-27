@@ -40,7 +40,7 @@ public static class Patch_PenSession_MousePoint
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(UI), nameof(UI.MouseMapPosition))))
       .InsertAfter(
         CodeInstruction.LoadArgument(0),
@@ -63,7 +63,7 @@ public static class Patch_PenSession_Draw
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .DeclareLocal(typeof(Matrix4x4), out var matrix)
       .MatchStartForward(
         CodeMatch.Calls(CachedMethodInfo.m_CurrentViewRect))
@@ -103,7 +103,7 @@ public static class Patch_PenSession_DrawCurve
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var matcher = new CodeMatcher(instructions, generator)
+    var matcher = PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(new CodeMatch(OpCodes.Ret))
       .CreateLabelWithOffsets(1, out var label)
       .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
@@ -148,7 +148,7 @@ public static class Patch_PenSession_DrawBlueprintCell
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(new CodeMatch(OpCodes.Ldelem))
       .CreateLabel(out var label)
       .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)

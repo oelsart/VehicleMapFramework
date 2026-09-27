@@ -50,7 +50,7 @@ public static class Patch_BeamManipulatorUtility_TryFindConstructionTransfer
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
       .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMap)
       .InstructionEnumeration();
@@ -152,7 +152,7 @@ public static class Patch_BeamAutoOperator_CanReserve
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(new CodeMatch(OpCodes.Stloc_0))
       .Insert(
         CodeInstruction.LoadArgument(1),
@@ -231,7 +231,7 @@ public static class Patch_BeamChannelUtility_BeginTransport
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .End()
       .MatchStartBackwards(CodeMatch.Calls(AccessTools.Method("ManipulatorBeam.BeamManipulatorUtility:WorldPosForCell")))
       .InsertAfter(
@@ -279,7 +279,7 @@ public static class Patch_BeamManipulatorUtility_WorldPosForTransferDestination
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .End()
       .MatchStartBackwards(CodeMatch.Calls(AccessTools.Method("ManipulatorBeam.BeamManipulatorUtility:WorldPosForCell")))
       .InsertAfter(

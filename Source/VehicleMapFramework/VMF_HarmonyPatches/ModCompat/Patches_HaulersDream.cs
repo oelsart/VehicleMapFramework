@@ -27,7 +27,7 @@ public static class Patch_BulkHaul_TryBuildBulkJob
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .InsertAndAdvance(CodeInstruction.LoadArgument(1))
       .Set(OpCodes.Call, ((Delegate)ThingMapOrPawnMap).Method)
@@ -99,7 +99,7 @@ public static class Patch_Patch_JobDriver_HaulToCell_NoCellReservation_Prefix
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .InsertAndAdvance(CodeInstruction.LoadArgument(0))
       .Set(OpCodes.Call, ((Delegate)TargetMap).Method)

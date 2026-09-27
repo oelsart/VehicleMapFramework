@@ -113,7 +113,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
     ILGenerator generator, MethodBase original)
   {
-    var codes = new CodeMatcher(instructions, generator);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions, generator);
     //scanner変数をローカルに保存しておく
     codes.MatchStartForward(
       new CodeMatch(c => c.opcode == OpCodes.Isinst && c.operand.Equals(typeof(WorkGiver_Scanner))));
@@ -867,7 +867,7 @@ public static class Patch_ReservationManager_Reserve
   [PatchLevel(Level.Sensitive)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
     codes.Repeat(c =>
     {
@@ -1011,7 +1011,7 @@ public static class Patch_RestUtility_CanUseBedNow
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     //!building_Bed.Position.IsInPrisonCell(building_Bed.Map)があるので置き換えるのは最初のMapのみ
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .Set(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_MapHeld))
@@ -1048,7 +1048,7 @@ public static class Patch_ForbidUtility_IsForbidden
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IsForbidden))
       .InsertAndAdvance(CodeInstruction.LoadArgument(0))
       .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden1)
@@ -1143,7 +1143,7 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
   {
     var ind = original.GetMethodBody()!.LocalVariables.FirstIndexOf(l => l.LocalType == typeof(LocalTargetInfo));
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
       .Set(OpCodes.Call, ((Delegate)ThingMapOrTargetMapOrPawnMap).Method)
       .Insert(CodeInstruction.LoadLocal(ind));
@@ -1342,7 +1342,7 @@ public static class Patch_ToilFailConditions_FailOnForbidden_Delegate
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IsForbidden))
       .InsertAndAdvance(CodeInstruction.LoadLocal(2))
       .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden1)
@@ -1371,7 +1371,7 @@ public static class Patch_Reachability_ClearCache
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(
         CodeMatch.Calls(AccessTools.Method(typeof(ReachabilityCache), nameof(ReachabilityCache.Clear))))
       .InsertAfter(
@@ -1415,7 +1415,7 @@ public static class Patch_PaintUtility_FindNearbyDyes
     var isStatic = original.IsStatic ? 0 : 1;
     var i_pawn = parameters.FirstIndexOf(p => p.ParameterType == typeof(Pawn)) + isStatic;
     var i_forced = parameters.FirstIndexOf(p => p.ParameterType == typeof(bool)) + isStatic;
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(ListerThings), nameof(ListerThings.ThingsOfDef))))
       .InsertAfter(
         CodeInstruction.LoadArgument(i_pawn),

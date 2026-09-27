@@ -24,7 +24,7 @@ public static class Patch_MapComponent_SmartFarming_FinalizeInit
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Isinst && c.OperandIs(typeof(PocketMapParent))));
     codes.InsertAfter(((Delegate)CheckNotVehicleMapParent).Method.CallInstruction);
     return codes.Instructions();

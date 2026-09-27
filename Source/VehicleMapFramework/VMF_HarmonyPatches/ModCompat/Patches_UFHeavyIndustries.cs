@@ -42,7 +42,7 @@ public static class Patch_Building_TurretGunHasSpeed_DrawAt
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return new CodeMatcher(instructions, generator)
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .AddAltitudeFor(out _)
       .InstructionEnumeration();
   }
@@ -112,7 +112,7 @@ public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Prefix
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return new CodeMatcher(instructions)
+      return PatchHelper.CreateCodeMatcherFast(instructions)
         .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map), new CodeMatch(OpCodes.Bne_Un_S))
         .Set(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing)
         .MatchStartBackwards(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
@@ -269,7 +269,7 @@ public static class Patch_Comp_AbsoluteTerrorField_DrawShield
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
       .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
@@ -285,7 +285,7 @@ public static class Patch_ATFieldManager_DrawAllFields
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return new CodeMatcher(instructions)
+    return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
       .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(MapComponent), nameof(MapComponent.map))))

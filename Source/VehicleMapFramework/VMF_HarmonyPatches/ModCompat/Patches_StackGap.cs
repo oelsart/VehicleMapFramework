@@ -27,7 +27,7 @@ public static class Patch_HaulingUtility_TryGetHaulingDestination
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = new CodeMatcher(instructions);
+    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
     codes.MatchStartForward(CodeMatch.Calls(((Func<IntVec3, Map, SlotGroup>)StoreUtility.GetSlotGroup).Method));
     codes.MatchStartBackwards(new CodeMatch(OpCodes.Ldarg_2));
     codes.Insert(
