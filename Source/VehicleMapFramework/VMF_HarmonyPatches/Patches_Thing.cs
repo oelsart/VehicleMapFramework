@@ -243,7 +243,11 @@ public static class Patch_CompRefuelable_PostDraw
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return Patch_Building_Battery_DrawAt.Transpiler(instructions, generator);
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .NonFocusedMapVehicleForThingComp(out var vehicle)
+      .FocusVehicleAroundMethod(vehicle, CachedMethodInfo.m_GenDraw_DrawFillableBar)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
   }
 }
 

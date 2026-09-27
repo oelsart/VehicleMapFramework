@@ -71,7 +71,7 @@ public static class VehicleCaravanIncidentUtility
         });
 
       // 敵側スポーン
-      SpawnEnemies(map, vehicles, enemies, CellRect.WholeMap(map).GetClosestEdge(first.Position).Opposite);
+      SpawnEnemies(map, vehicles, enemies, CellRect.WholeMap(map).GetClosestEdge(first.Position));
 
       if (sendLetterIfRelatedPawns)
       {
