@@ -5,6 +5,7 @@ using RimWorld.Planet;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.AI.Group;
 
 namespace VehicleMapFramework;
 
@@ -47,6 +48,11 @@ public class GenStep_MapVehicleThreat : GenStep
         ];
     }
     
+    protected virtual LordJob CreateLordJob(Faction faction)
+    {
+      return new LordJob_ArmoredAssault(faction, LordJob_ArmoredAssault.RaiderPermissions.All);
+    }
+    
     public override void Generate(Map map, GenStepParams parms)
     {
         var faction = parms.sitePart.site.Faction is { IsPlayer: false }
@@ -54,9 +60,15 @@ public class GenStep_MapVehicleThreat : GenStep
             : Find.FactionManager.RandomEnemyFaction(allowNonHumanlike: false);
         LongEventHandler.ExecuteWhenFinished(() =>
         {
-          VehicleCaravanIncidentUtility.SpawnEnemies(map,
-            GenerateVehicles(faction, parms.sitePart), GeneratePawns(faction, parms.sitePart));
-          // TODO: ここでLordJob設定
+          var vehicles = GenerateVehicles(faction, parms.sitePart);
+          var pawns = GeneratePawns(faction, parms.sitePart);
+          VehicleCaravanIncidentUtility.SpawnEnemies(map, vehicles, pawns);
+          var lordJob = CreateLordJob(faction);
+          if (lordJob != null)
+          {
+            var lord = LordMaker.MakeNewLord(faction, lordJob, map, pawns);
+            lord.AddPawns(vehicles);
+          }
         });
     }
 }
