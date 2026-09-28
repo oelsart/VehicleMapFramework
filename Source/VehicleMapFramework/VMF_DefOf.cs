@@ -68,6 +68,8 @@ public static class VMF_DefOf
 
   public static ThinkTreeDef VMF_GotoDestMapThinkTree;
 
+  public static PawnsArrivalModeDef VMF_GroundMapEdgeWalkIn;
+
   //public static JobDef VMF_RefuelVehicleTankAtomic;
 
   public static VehicleStatDef MaximumPayload;

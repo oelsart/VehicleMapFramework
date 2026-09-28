@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_GroundMapEdgeWalkIn.textEnemy>{1}から来た{0}が,すぐ近くに到着しました.</VMF_GroundMapEdgeWalkIn.textEnemy>
+  <VMF_GroundMapEdgeWalkIn.textFriendly>{1}から来た友好的な{0}が,すぐ近くに到着しました.</VMF_GroundMapEdgeWalkIn.textFriendly>
+  <VMF_GroundMapEdgeWalkIn.textWillArrive>{0_pawnsPluralDef}は歩いて到着します.</VMF_GroundMapEdgeWalkIn.textWillArrive>
+  
+</LanguageData>

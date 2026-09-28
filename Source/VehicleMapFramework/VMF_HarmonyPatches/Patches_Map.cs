@@ -873,7 +873,7 @@ public static class Patch_WildAnimalSpawner_WildAnimalSpawnerTick
 [PatchLevel(Level.Safe)]
 public static class Patch_QuestNode_GetWalkInSpot_TryFindWalkInSpot
 {
-  public static void Postfix(ref Map map, ref IntVec3 spawnSpot, ref bool __result)
+  public static void Postfix(Map map, ref IntVec3 spawnSpot, ref bool __result)
   {
     if (!__result || !map.IsVehicleMapOf(out var vehicle))
       return;
@@ -886,5 +886,17 @@ public static class Patch_QuestNode_GetWalkInSpot_TryFindWalkInSpot
     }
 
     __result = VehicleMapCellFinder.TryFindRandomEdgeCellWith(null, vehicle, out spawnSpot);
+  }
+}
+
+[HarmonyPatch(typeof(QuestNode_PawnsArrive), "RunInt")]
+[PatchLevel(Level.Safe)]
+public static class Patch_QuestNode_PawnsArrive_RunInt
+{
+  public static void Prefix(QuestNode_PawnsArrive __instance)
+  {
+    var slate = QuestGen.slate;
+    if (slate.Get<Map>("map").IsVehicleMap && __instance.arrivalMode.GetValue(slate) is not { walkIn: false })
+      __instance.arrivalMode = VMF_DefOf.VMF_GroundMapEdgeWalkIn;
   }
 }

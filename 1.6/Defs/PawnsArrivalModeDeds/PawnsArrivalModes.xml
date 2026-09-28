@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  
+  <!-- Fallback arrival mode for events targeting the vehicle map -->
+  <PawnsArrivalModeDef>
+    <defName>VMF_GroundMapEdgeWalkIn</defName>
+    <workerClass>VehicleMapFramework.PawnsArrivalModeWorker_GroundMapEdgeWalkIn</workerClass>
+    <selectionWeightCurve>
+      <points>
+        <li>(0, 0.1)</li>
+      </points>
+    </selectionWeightCurve>
+    <textEnemy>A group of {0} from {1} have arrived nearby.</textEnemy>
+    <textFriendly>A group of friendly {0} from {1} have arrived nearby.</textFriendly>
+    <textWillArrive>{0_pawnsPluralDef} will arrive on foot.</textWillArrive>
+  </PawnsArrivalModeDef>
+  
+</Defs>
