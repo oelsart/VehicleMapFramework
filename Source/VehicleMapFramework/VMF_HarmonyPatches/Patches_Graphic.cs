@@ -341,8 +341,10 @@ public static class Patch_Graphic_Draw
 {
   public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
   {
-    if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly &&
-        thing.def.category != ThingCategory.Item)
+    if (thing is { def.category: ThingCategory.Item or ThingCategory.Ethereal })
+      return;
+    
+    if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly)
     {
       var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef ?? thing.def : thing.def;
 
@@ -370,7 +372,7 @@ public static class Patch_Graphic_Draw
       if (def.ShouldRotatedOnVehicle())
       {
         var angle = vehicle.ExtraAngle;
-        extraRotation += vehicle.ExtraAngle;
+        extraRotation += angle;
         var offset = thing.Graphic.DrawOffset(rot);
         if (__instance is Graphic_Flicker && thing.Graphic is not Graphic_Single &&
             thing.TryGetComp<CompFireOverlay>(out var comp))
