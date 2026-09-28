@@ -34,13 +34,17 @@ public class GenStep_MapVehicleThreat : GenStep
 
     protected virtual List<Pawn> GeneratePawns(Faction faction, SitePart sitePart)
     {
-        return PawnGroupMakerUtility.GeneratePawns(new PawnGroupMakerParms
-        {
+        return
+        [
+          .. PawnGroupMakerUtility.GeneratePawns(new PawnGroupMakerParms
+          {
             groupKind = PawnGroupKindDefOf.Combat,
             tile = sitePart.site.Tile,
             faction = faction,
-            points = Mathf.Max(sitePart.parms.points, faction.def.MinPointsToGeneratePawnGroup(PawnGroupKindDefOf.Combat))
-        }).ToList();
+            points = Mathf.Max(sitePart.parms.points,
+              faction.def.MinPointsToGeneratePawnGroup(PawnGroupKindDefOf.Combat))
+          })
+        ];
     }
     
     public override void Generate(Map map, GenStepParams parms)
@@ -48,7 +52,11 @@ public class GenStep_MapVehicleThreat : GenStep
         var faction = parms.sitePart.site.Faction is { IsPlayer: false }
             ? parms.sitePart.site.Faction
             : Find.FactionManager.RandomEnemyFaction(allowNonHumanlike: false);
-        VehicleCaravanIncidentUtility.SpawnEnemies(map,
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+          VehicleCaravanIncidentUtility.SpawnEnemies(map,
             GenerateVehicles(faction, parms.sitePart), GeneratePawns(faction, parms.sitePart));
+          // TODO: ここでLordJob設定
+        });
     }
 }
