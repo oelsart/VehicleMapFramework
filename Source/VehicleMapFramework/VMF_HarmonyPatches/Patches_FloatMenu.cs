@@ -44,7 +44,7 @@ public static class Patch_FloatMenuContext_Constructor
   public static void Prefix(List<Pawn> selectedPawns, ref Vector3 clickPosition, ref Map map)
   {
     if (selectedPawns.All(p => p is VehiclePawnWithMap) ||
-        !clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.ExpandableCells) ||
+        !clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle) ||
         // FloatMenuMap.StillValidからの呼び出しでは車両マップが意図せず取得されてしまう
         clickPosition == vehicle.PositionHeld.ToVector3Shifted())
       return;
@@ -511,7 +511,7 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
     {
       var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, dest)
         .SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, spotsQueue);
-      if (!map.IsVehicleMapOf(out _) && map.exitMapGrid.IsExitCell(clickCell))
+      if (!map.IsVehicleMap && map.exitMapGrid.IsExitCell(clickCell))
       {
         job.exitMapOnArrival = !pawn.IsColonyMech;
       }

@@ -1046,6 +1046,9 @@ public static class VehicleMapUtility
         return false;
       if (!vehicle.ImpassableCellGrid[intVec])
         return true;
+      if (vehicle.VehicleMap.thingGrid.ThingsListAtFast(intVec).Any() ||
+          vehicle.VehicleMap.zoneManager.ZoneAt(intVec) is not null)
+        return true;
       var isEmptyStructureCell = vehicle.EmptyStructureGrid[intVec];
       var isExpandableCell = vehicle.ExpandableGrid[intVec];
       var isOutOfBoundsCell = vehicle.OutOfBoundsGrid[intVec];
