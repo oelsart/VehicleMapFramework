@@ -1530,6 +1530,22 @@ public static class Patch_RitualOutcomeComp_ParticipantCount_Tick
   }
 }
 
+[HarmonyPatch(typeof(RitualOutcomeComp_BuildingsPresent), "CountAvailable")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_RitualOutcomeComp_BuildingsPresent_CountAvailable
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.Calls(((Delegate)default(CellRect).GetEnumerator).Method))
+      .Insert(
+        new CodeInstruction(OpCodes.Dup),
+        CachedMethodInfo.m_CellRect_ClipInsideMap.CallInstruction,
+        new CodeInstruction(OpCodes.Pop))
+      .InstructionEnumeration();
+  }
+}
+
 [HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_JobGiver_Lord_TryGiveJob
