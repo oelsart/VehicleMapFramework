@@ -1530,6 +1530,7 @@ public static class Patch_RitualOutcomeComp_ParticipantCount_Tick
   }
 }
 
+// マップ端から18マス以内にritualTargetがある時エラーが起きるはず。これバニラバグじゃない？
 [HarmonyPatch(typeof(RitualOutcomeComp_BuildingsPresent), "CountAvailable")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_RitualOutcomeComp_BuildingsPresent_CountAvailable
@@ -1540,6 +1541,8 @@ public static class Patch_RitualOutcomeComp_BuildingsPresent_CountAvailable
       .MatchStartForward(CodeMatch.Calls(((Delegate)default(CellRect).GetEnumerator).Method))
       .Insert(
         new CodeInstruction(OpCodes.Dup),
+        CodeInstruction.LoadArgument(2, true),
+        CachedMethodInfo.g_TargetInfo_Map.CallInstruction,
         CachedMethodInfo.m_CellRect_ClipInsideMap.CallInstruction,
         new CodeInstruction(OpCodes.Pop))
       .InstructionEnumeration();
