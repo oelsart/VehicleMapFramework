@@ -853,19 +853,26 @@ public static class VehicleMapUtility
     {
       var rot = thing.Rotation;
 
-      if (VehicleSectionLayerManager.RotForPrint != Rot4.North && (thing.def.size.x != thing.def.size.z || thing.def.rotatable || (thing.def.graphicData?.drawRotated ?? false) && thing.Graphic is Graphic_Multi && !SameMaterialByRot()))
+      if (VehicleSectionLayerManager.RotForPrint != Rot4.North && ((thing.def.size.x != thing.def.size.z ||
+                                                                   thing.def.rotatable ||
+                                                                   thing.def.graphicData is not { drawRotated: true }) &&
+                                                                   thing.Graphic is Graphic_Multi &&
+                                                                   !SameMaterialByRot()))
       {
         rot.AsInt += VehicleSectionLayerManager.RotForPrint.AsInt;
       }
+
       return rot;
 
       bool SameMaterialByRot()
       {
         var graphic = thing.Graphic;
         var rotation = new Rot4(rot.AsInt + VehicleSectionLayerManager.RotForPrint.AsInt);
-        return graphic != null && graphic.MatAt(rot, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot) == graphic.DrawOffset(rotation);
+        return graphic is not null &&
+               graphic.MatAt(rot, thing) == graphic.MatAt(rotation, thing) &&
+               graphic.DrawOffset(rot) == graphic.DrawOffset(rotation);
       }
-    }
+  }
 
     public CellRect MovedOccupiedRect()
     {
