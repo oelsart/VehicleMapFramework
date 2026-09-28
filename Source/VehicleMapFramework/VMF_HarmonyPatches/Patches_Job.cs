@@ -14,6 +14,12 @@ using Verse.AI.Group;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
+[HarmonyPatch(typeof(Job), nameof(Job.Clear))]
+public static class Patch_Job_Clear
+{
+  public static void Postfix(ref Job __instance) => __instance.globalTarget = GlobalTargetInfo.Invalid;
+}
+
 [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob))]
 public static class Patch_Pawn_JobTracker_StartJob
 {
