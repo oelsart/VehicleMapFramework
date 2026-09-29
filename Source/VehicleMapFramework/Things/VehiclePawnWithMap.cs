@@ -345,7 +345,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     return pos.Value;
   }
 
-  private void WalkableCellsDirtyIfNeeded(Building building)
+  private void DirtyWalkableCellsIfNeeded(Building building)
   {
     if (!building.def.AffectsReachability) return;
     foreach (var c in building.OccupiedRect())
@@ -360,7 +360,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     }
   }
 
-  private void WalkableCellsDirtyIfNeeded(IntVec3 c)
+  private void DirtyWalkableCellsIfNeeded(IntVec3 c)
   {
     if (CachedMapEdgeCells.Contains(c))
     {
@@ -640,8 +640,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         SpawnStructures(IntVec3.Zero);
       }
 
-      interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
-      interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
+      RegisterVehicleMapEvents();
       CurrentLevel ??= interiorMap;
       if (!Find.World.worldObjects.Contains(interiorMap.Parent))
       {
@@ -723,8 +722,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     }
     else if (respawningAfterLoad)
     {
-      interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
-      interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
       _ = CachedMapEdgeCells;
 
       if (VehicleMapProps is VehicleMapProps_Unique { baseDef: not null })
@@ -1369,6 +1366,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     VMF_Harmony.DynamicPatchAll(Level.All);
     base.PostLoad();
     RegisterEvents();
+    RegisterVehicleMapEvents();
     CompVehicleTurrets?.RevalidateTurrets();
     ResetRenderStatus();
     if (VehicleDef.IsUniqueVehicle)
@@ -1431,6 +1429,19 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         }
       });
     }
+  }
+
+  public void RegisterVehicleMapEvents()
+  {
+    interiorMap.events.ThingSpawned += DirtyVehicleSpeedIfNeeded;
+    interiorMap.events.ThingDespawned += DirtyVehicleSpeedIfNeeded;
+    interiorMap.events.BuildingSpawned += DirtyWalkableCellsIfNeeded;
+    interiorMap.events.PathCostRecalculate += DirtyWalkableCellsIfNeeded;
+  }
+
+  private void DirtyVehicleSpeedIfNeeded(Thing thing)
+  {
+    statHandler.MarkStatDirty(VehicleStatDefOf.MoveSpeed);
   }
 
   public void Resize()
