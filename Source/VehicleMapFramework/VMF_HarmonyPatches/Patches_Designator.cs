@@ -4,65 +4,57 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using JetBrains.Annotations;
 using RimWorld;
 using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patches_Designator_ZoneAdd_MakeNewZone
+[HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.ProcessInputEvents))]
+[PatchLevel(Level.Safe)]
+public static class Patch_DesignatorManager_ProcessInputEvents
 {
-  private static IEnumerable<MethodBase> TargetMethods()
+  internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
   {
-    return typeof(Designator_ZoneAdd).AllSubclasses()
-      .Select(type => AccessTools.DeclaredMethod(type, "MakeNewZone"))
-      .WhereCallsMethod(CachedMethodInfo.g_Find_CurrentMap);
+    if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
+      __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
   }
-
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap,
-      CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-  }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
 }
 
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patches_Designator_DesignateThing
+[HarmonyPatch(typeof(Building_OrbitalTradeBeacon), "MakeMatchingStockpile")]
+public static class Patch_Building_OrbitalTradeBeacon_MakeMatchingStockpile
 {
-  private static IEnumerable<MethodBase> TargetMethods()
+  internal static void Prefix(Thing __instance, [MustDisposeResource] ref FocusMapScope __state)
   {
-    return typeof(Designator).AllSubclasses()
-      .SelectMany(t => t.GetDeclaredMethods())
-      .Where(m => m.Name is "DesignateThing" or "CanDesignateThing")
-      .WhereCallsMethod(CachedMethodInfo.g_Designator_Map);
+    if (__instance.IsOnVehicleMapOf(out var vehicle))
+      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
   }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
+}
 
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-    ILGenerator generator)
+[HarmonyPatch("RimWorld.Building_SunLamp", "MakeMatchingGrowZone")]
+public static class Patch_Building_SunLamp_MakeMatchingGrowZone
+{
+  internal static void Prefix(Thing __instance, [MustDisposeResource] ref FocusMapScope __state)
   {
-    foreach (var instruction in instructions)
-    {
-      if (instruction.Calls(CachedMethodInfo.g_Designator_Map))
-      {
-        var label = generator.DefineLabel();
-        yield return new CodeInstruction(OpCodes.Pop);
-        yield return CodeInstruction.LoadArgument(1);
-        yield return new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld);
-        yield return new CodeInstruction(OpCodes.Dup);
-        yield return new CodeInstruction(OpCodes.Brtrue_S, label);
-        yield return new CodeInstruction(OpCodes.Pop);
-        yield return CodeInstruction.LoadArgument(0);
-        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Designator_Map);
-        yield return new CodeInstruction(OpCodes.Nop).WithLabels(label);
-      }
-      else
-      {
-        yield return instruction;
-      }
-    }
+    if (__instance.IsOnVehicleMapOf(out var vehicle))
+      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
+  }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
+}
+
+[HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerUpdate))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_DesignationDragger_DraggerUpdate
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.m_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
   }
 }
 
@@ -70,6 +62,14 @@ public static class Patches_Designator_DesignateThing
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Designator_SelectedUpdate
 {
+  internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
+  {
+    if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
+      __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
+  }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
+  
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var m_SelectedUpdate = AccessTools.Method(typeof(Designator), nameof(Designator.SelectedUpdate));
@@ -124,40 +124,6 @@ public static class Patch_Designator_SelectedUpdate
   }
 }
 
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Designator_CreateReverseDesignationGizmo_Delegate
-{
-  private static MethodBase TargetMethod()
-  {
-    return AccessTools.FindIncludingInnerTypes(typeof(Designator),
-      t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CreateReverseDesignationGizmo>")));
-  }
-
-  public static void Prefix(Thing ___t, ref VehiclePawnWithMap __state)
-  {
-    ___t.IsOnVehicleMapOf(out var vehicle);
-    __state = Command_FocusVehicleMap.FocusedVehicle;
-    Command_FocusVehicleMap.FocusedVehicle = vehicle;
-  }
-
-  public static void Finalizer(VehiclePawnWithMap __state)
-  {
-    Command_FocusVehicleMap.FocusedVehicle = __state;
-  }
-}
-
-[HarmonyPatch(typeof(Designator), nameof(Designator.Map), MethodType.Getter)]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Designator_Map
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap,
-      CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-  }
-}
-
 [HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.Deselect))]
 [PatchLevel(Level.Safe)]
 public static class Patch_DesignatorManager_Deselect
@@ -171,13 +137,45 @@ public static class Patch_DesignatorManager_Deselect
   }
 }
 
+[HarmonyPatch(typeof(Designator), nameof(Designator.CreateReverseDesignationGizmo))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Designator_CreateReverseDesignationGizmo
+{
+  internal static void Prefix(Thing t, [MustDisposeResource] ref FocusMapScope __state)
+  {
+    if (t.IsOnVehicleMapOf(out var vehicle))
+      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
+  }
+
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Designator_CreateReverseDesignationGizmo_Delegate
+{
+  private static MethodBase TargetMethod()
+  {
+    return AccessTools.FindIncludingInnerTypes(typeof(Designator),
+      t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CreateReverseDesignationGizmo>")));
+  }
+
+  internal static void Prefix(Thing ___t, [MustDisposeResource] ref FocusMapScope __state)
+  {
+    if (___t.IsOnVehicleMapOf(out var vehicle))
+      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
+  }
+
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
+}
+
 [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_DesignationManager_DrawDesignations
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+    return instructions.MethodReplacer(CachedMethodInfo.m_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
   }
 }
 
@@ -187,27 +185,7 @@ public static class Patch_GenGrid_InNoZoneEdgeArea
 {
   public static void Postfix(ref bool __result, Map map)
   {
-    __result &= !map.IsVehicleMapOf(out _);
-  }
-}
-
-[HarmonyPatch(typeof(Designator_Zone), nameof(Designator_Zone.SelectedUpdate))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Designator_Zone_SelectedUpdate
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
-    codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
-    codes.InsertRange(pos,
-    [
-      new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Find), nameof(Find.Selector))),
-      new CodeInstruction(OpCodes.Callvirt,
-        AccessTools.PropertyGetter(typeof(Selector), nameof(Selector.SelectedZone))),
-      new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
-    ]);
-    return codes;
+    __result &= !map.IsVehicleMap;
   }
 }
 
@@ -232,18 +210,6 @@ public static class Patch_Designator_Build_ProcessInput
   }
 }
 
-[HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerUpdate))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_DesignationDragger_DraggerUpdate
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-    ILGenerator generator)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap,
-      CachedMethodInfo.m_ClipInsideVehicleMap);
-  }
-}
-
 [HarmonyPatch(typeof(Area), nameof(Area.MarkForDraw))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Area_MarkForDraw
@@ -260,8 +226,5 @@ public static class Patch_Area_MarkForDraw
 [PatchLevel(Level.Safe)]
 public static class Patch_GenDraw_DrawMapEdgeLines
 {
-  public static bool Prefix()
-  {
-    return !Find.CurrentMap.IsVehicleMapOf(out _);
-  }
+  public static bool Prefix() => !Find.CurrentMap.IsVehicleMap;
 }

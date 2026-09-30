@@ -42,7 +42,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   public bool mapEdgeCellsDirty = true;
   public bool walkableCellsDirty = true;
   public bool enterPositionsDirty = true;
-  private int cellDesignationsDirtyTick;
   private int vehicleCaravanOrStashedVehicleCachedTick;
   private Vector3 lastRecachedDrawPos;
 
@@ -1084,10 +1083,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (phase == DrawPhase.Draw)
     {
       RecacheDrawPos(drawLoc2);
-      if (vehiclePather?.Moving ?? false)
-      {
-        CellDesignationsDirty();
-      }
 
       DrawVehicleMap();
     }
@@ -1110,12 +1105,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     {
       cachedExactPos = cachedDrawPos;
     }
+    CellDesignationsDirty();
   }
 
   private void CellDesignationsDirty()
   {
-    if (cellDesignationsDirtyTick == GenTicks.TicksGame) return;
-    cellDesignationsDirtyTick = GenTicks.TicksGame;
     foreach (var designationDef in cellDesignations)
     {
       DirtyCellDesignationsCache(CurrentLevel.designationManager, SingleParam.Get(designationDef));
@@ -1152,15 +1146,15 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       : Vector3.zero;
     var drawPos = origin.ToBaseMapCoord(this);
     DrawVehicleMapMesh(drawPos, map);
-    DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
     DrawClippers();
-    map.designationManager.DrawDesignations();
-    map.overlayDrawer.DrawAllOverlays();
-    map.temporaryThingDrawer.Draw();
-    map.flecks.FleckManagerDraw();
 
     using (new Command_FocusVehicleMap.FocusVehicleScope(this))
     {
+      DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
+      map.designationManager.DrawDesignations();
+      map.overlayDrawer.DrawAllOverlays();
+      map.temporaryThingDrawer.Draw();
+      map.flecks.FleckManagerDraw();
       map.roofGrid.RoofGridUpdate();
       map.mapTemperature.TemperatureUpdate();
       MapComponentUtility.MapComponentOnDraw(map);
@@ -1207,6 +1201,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos, rot, angle);
     VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0(), rot, angle);
     VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos, rot, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_Plans), drawPos.Yto0(), rot, angle);
     ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
       .DrawLayer(drawPos, Transform.rotation - Angle);
     ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default))
@@ -1322,6 +1317,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     var viewRect = Find.CameraDriver.CurrentViewRect;
     var currentMap = Find.CurrentMap == map;
     var bounds = viewRect.ToBounds();
+
+    using var scope = FocusMapScope.FocusMapUnsafe(map);
     foreach (var thing in map.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay))
     {
       // CurrentMapのviewRectがPositionを含むThingについてはバニラメソッドで既に描画されている

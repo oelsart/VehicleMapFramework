@@ -33,7 +33,7 @@ public static class Patch_Designator_TextTool_DesignateSingleCell
 
   private static Vector3 MouseVehicleMapPosition()
   {
-    return VehicleMapUtility.CurrentMap.IsVehicleMapOf(out var vehicle)
+    return VehicleMapUtility.FocusedOnVehicleMap(out var vehicle)
       ? UI.MouseMapPosition().ToVehicleMapCoord(vehicle)
       : UI.MouseMapPosition();
   }

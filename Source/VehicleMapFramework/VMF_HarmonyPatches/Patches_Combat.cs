@@ -178,13 +178,16 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
         for (var i = 0; i < Prefixes.Count; i++)
         {
           var result = false;
-          if (!Prefixes[i](instance, lastExactPos, newExactPos, ref result) && result) return true;
+          if (!Prefixes[i](instance, lastExactPos, newExactPos, ref result) && result)
+            return true;
         }
 
         for (var i = 0; i < Postfixes.Count; i++)
         {
           var result = false;
           Postfixes[i](instance, ref result, lastExactPos, newExactPos);
+          if (instance.Destroyed)
+            return true;
           if (result)
           {
             Impact(instance, null, true);
@@ -202,7 +205,7 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
 
   private static void VanillaIntercept(Projectile instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos)
   {
-    var list = instance.TargetMapOrThingMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
+    var list = instance.ThingTargetMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
     for (var i = 0; i < list.Count; i++)
     {
       if (Patch_CompProjectileInterceptor_CheckIntercept.CheckIntercept(
@@ -617,7 +620,7 @@ public static class Patch_Explosion_AffectCell
         .InstructionEnumeration()
         .MethodReplacer(
           (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnTargetMap),
-          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap));
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap));
     }
   }
 }

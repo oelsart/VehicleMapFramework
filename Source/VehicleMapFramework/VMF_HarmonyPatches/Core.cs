@@ -306,14 +306,10 @@ public static class Core
 [StaticConstructorOnStartupPriority(Priority.Last)]
 public static class LatePatchCore
 {
-  public const string Category = "VehicleMapFramework.LatePatches";
-
   static LatePatchCore()
   {
     LongEventHandler.ExecuteWhenFinished(() =>
     {
-      VMF_Harmony.PatchCategory(Category);
-
       var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version
         ?.Split('.');
       if (version != null)

@@ -67,7 +67,6 @@ public class CompFuelTank : CompRefuelable
         rotation = parent.Rotation
       };
       r.rotation.Rotate(RotationDirection.Clockwise);
-      using var scope = Command_FocusVehicleMap.FocusVehicle(vehicle);
       GenDraw.DrawFillableBar(r);
     }
   }

@@ -44,7 +44,7 @@ public static class Patch_BulkHaul_HasPotentialBulkWork
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
   }
 }
 
@@ -55,7 +55,7 @@ public static class Patch_BulkHaul_BuildBulkJob
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
   }
 }
 
@@ -66,7 +66,7 @@ public static class Patch_BulkHaul_TakeNearestEligible
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
   }
 }
 
@@ -77,7 +77,7 @@ public static class Patch_BulkHaul_BuildPickUpJob
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
   }
 }
 
@@ -106,7 +106,7 @@ public static class Patch_Patch_JobDriver_HaulToCell_NoCellReservation_Prefix
       .InstructionEnumeration();
   }
 
-  private static Map TargetMap(Pawn pawn, JobDriver driver) => driver.job?.globalTarget.Map ?? pawn.TargetMapOrThingMap;
+  private static Map TargetMap(Pawn pawn, JobDriver driver) => driver.job?.globalTarget.Map ?? pawn.ThingTargetMap;
 }
 
 [HarmonyPatchCategory(PatchCategories.HaulersDream)]
@@ -118,7 +118,7 @@ public static class Patch_StorageCommitments_FreeUnitsFor
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
   }
 }
 
@@ -128,7 +128,7 @@ public static class Patch_StorageEvidence_AddCarriedHaul
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
   }
 }
 
@@ -139,7 +139,7 @@ public static class Patch_Patch_HaulToCellStorageJob_ClampToCommitments_Postfix
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
   }
 }
 
@@ -149,6 +149,6 @@ public static class Patch_Patch_CarryHauledThingToCell_ReRoute_ReRouteIfDestinat
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
   }
 }

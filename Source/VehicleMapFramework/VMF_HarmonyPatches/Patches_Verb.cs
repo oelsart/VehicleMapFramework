@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using HarmonyLib;
+using JetBrains.Annotations;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -36,26 +38,6 @@ public static class Patch_Verb_TryFindShootLineFromTo
 [HarmonyPatch(typeof(Verb), nameof(Verb.CanHitTarget))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_CanHitTarget
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-  }
-}
-
-[HarmonyPatch(typeof(Verb), nameof(Verb.DrawHighlight))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Verb_DrawHighlight
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-  }
-}
-
-[HarmonyPatch(typeof(Verb), "DrawHighlightFieldRadiusAroundTarget")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Verb_DrawHighlightFieldRadiusAroundTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
@@ -304,7 +286,7 @@ public static class Patch_JumpUtility_CanHitTargetFrom
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
       (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_TargetCellOnBaseMap),
-      (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)).ToList();
+      (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1));
 
     var pos = codes.FindIndex(c => c.Calls(CachedMethodInfo.m_TargetCellOnBaseMap));
     codes.Insert(pos, CodeInstruction.LoadArgument(0));
@@ -318,7 +300,7 @@ public static class Patch_JumpUtility_OrderJump
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
   }
 }
 
@@ -344,7 +326,7 @@ public static class Patch_JobDriver_CastJump_TryMakePreToilReservations
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
   }
 }
 
@@ -364,22 +346,14 @@ public static class Patch_Verb_Jump_DrawHighlight
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
-
-    var m_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
-    var m_CenterVector3Offset = ((Delegate)CenterVector3Offset).Method;
-    foreach (var instruction in instructions)
-    {
-      if (instruction.Calls(m_CenterVector3))
-      {
-        yield return CodeInstruction.LoadArgument(0);
-        yield return m_CenterVector3Offset.CallInstruction;
-      }
-      else
-      {
-        yield return instruction;
-      }
-    }
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+      .Set(OpCodes.Call, CachedMethodInfo.m_ThingTargetMap)
+      .MatchStartForward(
+        CodeMatch.Calls(AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3))))
+      .InsertAndAdvance(CodeInstruction.LoadArgument(0))
+      .Set(OpCodes.Call, ((Delegate)CenterVector3Offset).Method)
+      .InstructionEnumeration();
   }
 
   public static Vector3 CenterVector3Offset(ref LocalTargetInfo target, Verb verb)
@@ -409,7 +383,9 @@ public static class Patch_Verb_Jump_DrawHighlight
 
     var cell = target.Cell;
     if (!cell.IsValid) return default;
-    return caster.TryGetTargetMap(out map) ? cell.ToVector3Shifted().ToBaseMapCoord(map) : cell.ToVector3Shifted();
+    return caster.TryGetTargetMap(out map)
+      ? cell.ToVector3Shifted().ToBaseMapCoord(map)
+      : cell.ToVector3Shifted();
   }
 }
 
@@ -427,7 +403,7 @@ public static class Patch_Verb_Jump_OnGUI
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
   }
 }
 
@@ -445,7 +421,7 @@ public static class Patch_Verb_Jump_ValidateTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
   }
 }
 
@@ -455,6 +431,48 @@ public static class Patch_Verb_CastAbilityJump_ValidateTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
     Patch_Verb_Jump_ValidateTarget.Transpiler(instructions);
+}
+
+[HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.ValidJumpTarget))]
+[PatchLevel(Level.Safe)]
+public static class Patch_JumpUtility_ValidJumpTarget
+{
+  private static bool working;
+  
+  public static void Postfix(Thing flying, Map map, IntVec3 cell, ref bool __result)
+  {
+    if (__result || working)
+      return;
+
+    working = true;
+    try
+    {
+      if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+      {
+        if (vehicle.Spawned)
+        {
+          __result = JumpUtility.ValidJumpTarget(flying, vehicle.Map, cell.ToBaseMapCoord(vehicle));
+          return;
+        }
+
+        var point = cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
+        if (point.TryGetVehicleMap(Find.CurrentMap, out var vehicle2))
+        {
+          __result = JumpUtility.ValidJumpTarget(flying, vehicle2.VehicleMap, point.ToVehicleMapCoord(vehicle2).ToIntVec3());
+        }
+
+        return;
+      }
+      if (cell.TryGetVehicleMap(map, out var vehicle3))
+      {
+        __result = JumpUtility.ValidJumpTarget(flying, vehicle3.VehicleMap, cell.ToVehicleMapCoord(vehicle3));
+      }
+    }
+    finally
+    {
+      working = false;
+    }
+  }
 }
 
 [HarmonyPatch]
@@ -470,9 +488,49 @@ public static class Patch_Verb_Jump_DrawHighlight_Delegate
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
-      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
-      (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1));
+    return instructions.MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1);
+  }
+}
+
+[HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.DoJump))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_JumpUtility_DoJump
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
+  }
+}
+
+[HarmonyPatch(typeof(VerbProperties), nameof(VerbProperties.DrawRadiusRing))]
+[PatchLevel(Level.Safe)]
+public static class Patch_VerbProperties_DrawRadiusRing
+{
+  internal static void Prefix(Verb verb, [MustDisposeResource] ref FocusMapScope __state)
+  {
+    if (verb.caster.IsOnNonFocusedVehicleMapOf(out var vehicle))
+      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
+  }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
+}
+
+[HarmonyPatch(typeof(Targeter), nameof(Targeter.TargeterUpdate))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Targeter_TargeterUpdate
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Targeter), "CurrentTargetUnderMouse")))
+      .NonFocusedMapVehicle(out var vehicle,
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Targeter), nameof(Targeter.targetingSource)),
+        AccessTools.PropertyGetter(typeof(ITargetingSource), nameof(ITargetingSource.Caster)).CallvirtInstruction)
+      .FocusVehicleAroundMethod(vehicle,
+        AccessTools.Method(typeof(ITargetingSource), nameof(ITargetingSource.DrawHighlight)))
+      .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Targeter), "highlightAction")))
+      .FocusVehicleAroundMethod(vehicle, AccessTools.Method(typeof(Action<LocalTargetInfo>), nameof(Action.Invoke)))
+      .InstructionEnumeration();
   }
 }

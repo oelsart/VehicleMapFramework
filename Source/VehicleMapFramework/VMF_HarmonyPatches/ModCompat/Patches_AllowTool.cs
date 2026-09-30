@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using HarmonyLib;
+﻿using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 using Verse;
 
@@ -19,64 +18,27 @@ internal class Patches_AllowTool
 }
 
 [HarmonyPatchCategory(PatchCategories.AllowTool)]
-[HarmonyPatch("AllowTool.Designator_SelectSimilar", "ProcessSingleCellClick")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Designator_SelectSimilar_ProcessSingleCellClick
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.AllowTool)]
-[HarmonyPatch("AllowTool.Designator_SelectableThings", "DesignateMultiCell")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Designator_SelectableThings_DesignateMultiCell
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.AllowTool)]
-[HarmonyPatch("AllowTool.UnlimitedAreaDragger", "OnSelectionStarted")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_UnlimitedAreaDragger_OnSelectionStarted
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.AllowTool)]
 [HarmonyPatch("AllowTool.UnlimitedAreaDragger", "Update")]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Safe)]
 public static class Patch_UnlimitedAreaDragger_Update
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+    if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
+      __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
   }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
 }
 
 [HarmonyPatchCategory(PatchCategories.AllowTool)]
-[HarmonyPatch]
+[HarmonyPatch("AllowTool.MapCellHighlighter+CachedHighlight", null, MethodType.Constructor)]
+[HarmonyPatch([typeof(Vector3), typeof(Material)])]
 [PatchLevel(Level.Safe)]
 public static class Patch_MapCellHighlighter_CachedHighlight
 {
-  private static MethodBase TargetMethod()
-  {
-    return AccessTools.TypeByName("AllowTool.MapCellHighlighter+CachedHighlight").Constructor([typeof(Vector3), typeof(Material)]);
-  }
-
   public static void Prefix(ref Vector3 drawPosition)
   {
-    if (Find.CurrentMap.IsVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
-    {
-      drawPosition = drawPosition.ToBaseMapCoord(vehicle).WithY(drawPosition.y);
-    }
+    drawPosition = drawPosition.ToBaseMapCoord().WithY(drawPosition.y);
   }
 }

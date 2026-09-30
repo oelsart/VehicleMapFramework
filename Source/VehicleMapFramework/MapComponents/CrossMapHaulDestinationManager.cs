@@ -7,6 +7,7 @@ using Verse;
 
 namespace VehicleMapFramework;
 
+// TODO: いらんだろこれ
 public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
 {
     public List<IHaulDestination> AllHaulDestinationsListInPriorityOrder { get; } = [];

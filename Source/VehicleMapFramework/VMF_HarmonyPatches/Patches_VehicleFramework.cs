@@ -1196,7 +1196,7 @@ public static class Patch_VehicleOrientationController_TargeterUpdate
     var ind = codes.Select(c => c.operand).OfType<LocalBuilder>().First(l => l.LocalType == typeof(VehiclePawn)).LocalIndex;
     foreach (var code in codes)
     {
-      if (code.Calls(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude))
+      if (code.Calls(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude1))
       {
         num++;
         if (num > 2)

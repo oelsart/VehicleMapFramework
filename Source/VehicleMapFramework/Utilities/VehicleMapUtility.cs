@@ -47,9 +47,7 @@ public static class VehicleMapUtility
   private static readonly SimpleCurve PointsFactorForPawnAgeYearsCurve =
     AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsFactorForPawnAgeYearsCurve");
 
-  public static Map CurrentMap => Command_FocusVehicleMap.FocusedVehicle != null
-    ? Command_FocusVehicleMap.FocusedVehicle.CurrentLevel
-    : Find.CurrentMap;
+  public static Map CurrentMap => Command_FocusVehicleMap.FocusedVehicle?.CurrentLevel ?? Find.CurrentMap;
 
   [ContractAnnotation("=> true, vehicle:notnull; => false, vehicle:null")]
   public static bool FocusedOnVehicleMap([CanBeNull] out VehiclePawnWithMap vehicle)
@@ -87,6 +85,24 @@ public static class VehicleMapUtility
       return cellRect = CellRect.WholeMap(vehicle.VehicleMap);
     }
     return cellRect.ClipInsideMap(map);
+  }
+
+  extension(CameraDriver driver)
+  {
+    public CellRect CurrentVehicleMapViewRect
+    {
+      get
+      {
+        var currentViewRect = driver.CurrentViewRect;
+        if (FocusedOnVehicleMap(out var vehicle))
+        {
+          return CellRect.FromLimits(
+            currentViewRect.Min.ToVehicleMapCoord(vehicle),
+            currentViewRect.Max.ToVehicleMapCoord(vehicle));
+        }
+        return currentViewRect;
+      }
+    }
   }
 
   public static Matrix4x4 ToBaseMapCoord(this Matrix4x4 matrix, VehiclePawnWithMap vehicle)
@@ -254,37 +270,11 @@ public static class VehicleMapUtility
     matrix = Matrix4x4.TRS(pos, q, s);
   }
 
-  public static Vector3 SelectedDrawPosOffset(Vector3 original, IntVec3 center)
-  {
-    VehiclePawnWithMap vehicle = null;
-    return Find.Selector.SelectedObjects
-      .Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle))
-      ? original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor())
-      : original;
-  }
-
   public static Vector3 FocusedDrawPosOffset(Vector3 original)
   {
     return FocusedOnVehicleMap(out var vehicle)
       ? original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor())
       : original;
-  }
-
-  public static Vector3 FocusedOrSelectedDrawPosOffset(Vector3 original, IntVec3 center)
-  {
-    Thing thing;
-    if ((thing = Find.Selector.SelectedObjects.OfType<Thing>().FirstOrDefault(t => t.Position == center)) != null)
-    {
-      if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
-      {
-        return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-      }
-    }
-    else if (FocusedOnVehicleMap(out var vehicle))
-    {
-      return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-    }
-    return original;
   }
 
   public static IEnumerable<Thing> ColonyThingsWillingToBuyOnVehicle(this VehiclePawnWithMap vehicle, ITrader trader)
@@ -853,9 +843,10 @@ public static class VehicleMapUtility
     {
       var rot = thing.Rotation;
 
-      if (VehicleSectionLayerManager.RotForPrint != Rot4.North && ((thing.def.size.x != thing.def.size.z ||
-                                                                   thing.def.rotatable ||
-                                                                   thing.def.graphicData is not { drawRotated: true }) &&
+      if (VehicleSectionLayerManager.RotForPrint != Rot4.North && (thing.def.size.x != thing.def.size.z ||
+                                                                   (thing.def.rotatable ||
+                                                                    thing.def.graphicData is not
+                                                                      { drawRotated: true }) &&
                                                                    thing.Graphic is Graphic_Multi &&
                                                                    !SameMaterialByRot()))
       {
@@ -922,16 +913,9 @@ public static class VehicleMapUtility
 
     public Vector3 ToVehicleMapCoord()
     {
-      if (Command_FocusVehicleMap.FocusedVehicle != null)
-      {
-        return original.ToVehicleMapCoord(Command_FocusVehicleMap.FocusedVehicle);
-      }
-      if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out _) &&
-          UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
-      {
-        return original.ToVehicleMapCoord(vehicle);
-      }
-      return original;
+      return FocusedOnVehicleMap(out var vehicle)
+        ? original.ToVehicleMapCoord(vehicle)
+        : original;
     }
 
     public Vector3 ToVehicleMapCoord(VehiclePawnWithMap vehicle)
@@ -959,16 +943,9 @@ public static class VehicleMapUtility
 
     public Vector3 ToBaseMapCoord()
     {
-      if (Command_FocusVehicleMap.FocusedVehicle != null)
-      {
-        return original.ToBaseMapCoord(Command_FocusVehicleMap.FocusedVehicle).WithY(original.y);
-      }
-      if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out _) &&
-          UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
-      {
-        return original.ToBaseMapCoord(vehicle).WithY(original.y);
-      }
-      return original;
+      return FocusedOnVehicleMap(out var vehicle)
+        ? original.ToBaseMapCoord(vehicle).WithY(original.y)
+        : original;
     }
 
     public Vector3 ToBaseMapCoord(Map map)

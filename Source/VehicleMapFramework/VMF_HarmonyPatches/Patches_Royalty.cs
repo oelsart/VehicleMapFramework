@@ -28,14 +28,12 @@ public static class Patch_MeditationUtility_DrawMeditationSpotOverlay
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.Calls(CachedMethodInfo.m_GenThing_TrueCenter1)) - 1;
-    codes.InsertRange(pos,
-    [
-      CodeInstruction.LoadArgument(0),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset)
-    ]);
-    return codes;
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(
+        CodeMatch.IsLdloc(),
+        CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter1))
+      .Insert(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction)
+      .InstructionEnumeration();
   }
 }
 

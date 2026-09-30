@@ -102,14 +102,12 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_TargetMapOrMap = ((Delegate)TargetMapUtility.TargetMapOrMap).Method;
 
-    public readonly MethodInfo m_TargetMapOrThingMap = ((Delegate)TargetMapUtility.get_TargetMapOrThingMap).Method;
+    public readonly MethodInfo m_ThingTargetMap = ((Delegate)TargetMapUtility.get_ThingTargetMap).Method;
 
-    public readonly MethodInfo m_TargetMapOrPawnMap = ((Delegate)TargetMapUtility.get_TargetMapOrPawnMap).Method;
+    public readonly MethodInfo m_PawnTargetMap = ((Delegate)TargetMapUtility.get_PawnTargetMap).Method;
     
     public readonly MethodInfo m_LordMapOrMapHeld = ((Delegate)VehicleMapUtility.get_LordMapOrMapHeld).Method;
-
-    public readonly MethodInfo g_Zone_Map = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Map));
-
+    
     public readonly MethodInfo g_Thing_MapHeld = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.MapHeld));
 
     public readonly MethodInfo m_MapHeldBaseMap = ((Delegate)VehicleMapUtility.MapHeldBaseMap).Method;
@@ -147,8 +145,6 @@ public class MethodInfoCache
     public readonly MethodInfo m_CellOnBaseMap_TargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap), [typeof(TargetInfo).MakeByRefType()]);
 
     public readonly MethodInfo m_CellOnBaseMapSpawned_TargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMapSpawned), [typeof(TargetInfo).MakeByRefType()]);
-    
-    public readonly MethodInfo m_CellOnBaseMap_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap), [typeof(GlobalTargetInfo).MakeByRefType()]);
 
     public readonly MethodInfo m_CellOnBaseMapSpawned_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMapSpawned), [typeof(GlobalTargetInfo).MakeByRefType()]);
     
@@ -192,23 +188,11 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_Rot8_AsQuatRef = AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.AsQuat), [typeof(Rot8).MakeByRefType()]);
 
-    public readonly MethodInfo m_Rot4_Rotate = AccessTools.Method(typeof(Rot4), nameof(Rot4.Rotate));
-
-    public readonly MethodInfo m_Rot8_Rotate = ((Delegate)Rot8Utility.Rotate).Method;
-
     public readonly MethodInfo g_Quaternion_identity = AccessTools.PropertyGetter(typeof(Quaternion), nameof(Quaternion.identity));
 
     public readonly MethodInfo o_Quaternion_Multiply = AccessTools.Method(typeof(Quaternion), "op_Multiply", [typeof(Quaternion), typeof(Quaternion)]);
 
     public readonly MethodInfo m_GenDraw_DrawFillableBar = ((Delegate)GenDraw.DrawFillableBar).Method;
-
-    public readonly MethodInfo m_GenDraw_DrawFieldEdges1 = ((Action<List<IntVec3>, int>)GenDraw.DrawFieldEdges).Method;
-    
-    public readonly MethodInfo m_GenDraw_DrawFieldEdges2 = ((Action<List<IntVec3>, Color, float?, HashSet<IntVec3>, int>)GenDraw.DrawFieldEdges).Method;
-
-    public readonly MethodInfo m_GenDrawOnVehicle_DrawFieldEdges1 = ((Action<List<IntVec3>, int, Map>)GenDrawOnVehicle.DrawFieldEdges).Method;
-
-    public readonly MethodInfo m_GenDrawOnVehicle_DrawFieldEdges2 = ((Action<List<IntVec3>, Color, float?, HashSet<IntVec3>, int, Map>)GenDrawOnVehicle.DrawFieldEdges).Method;
 
     public readonly MethodInfo g_Designator_Map = AccessTools.PropertyGetter(typeof(Designator), nameof(Designator.Map));
 
@@ -260,17 +244,15 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Rot8_FacingCell = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.FacingCell));
 
-    public readonly MethodInfo g_Rot4_RighthandCell = AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.RighthandCell));
-
-    public readonly MethodInfo m_Rot8Utility_RighthandCell = ((Delegate)Rot8Utility.RighthandCell).Method;
-
     public readonly MethodInfo m_ToIntVec3 = ((Delegate)IntVec3Utility.ToIntVec3).Method;
 
     public readonly MethodInfo m_IntVec3_ToVector3 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3));
 
     public readonly MethodInfo m_IntVec3_ToVector3Shifted = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3Shifted));
 
-    public readonly MethodInfo m_IntVec3_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), [typeof(float)]);
+    public readonly MethodInfo m_IntVec3_ToVector3ShiftedWithAltitude1 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), [typeof(float)]);
+
+    public readonly MethodInfo m_IntVec3_ToVector3ShiftedWithAltitude2 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), [typeof(AltitudeLayer)]);
     
     public readonly MethodInfo m_Altitudes_AltitudeFor = ((Func<AltitudeLayer, float>)Altitudes.AltitudeFor).Method;
 
@@ -281,14 +263,6 @@ public class MethodInfoCache
     public readonly MethodInfo m_ClipInsideVehicleMap = ((Delegate)VehicleMapUtility.ClipInsideVehicleMap).Method;
 
     public readonly MethodInfo m_FocusedDrawPosOffset = ((Delegate)VehicleMapUtility.FocusedDrawPosOffset).Method;
-
-    public readonly MethodInfo m_SelectedDrawPosOffset = ((Delegate)VehicleMapUtility.SelectedDrawPosOffset).Method;
-
-    public readonly MethodInfo m_FocusedOrSelectedDrawPosOffset = ((Delegate)VehicleMapUtility.FocusedOrSelectedDrawPosOffset).Method;
-
-    public readonly MethodInfo g_Rot4_AsVector2 = AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.AsVector2));
-
-    public readonly MethodInfo m_AsFundVector2 = ((Delegate)Rot8Utility.AsFundVector2).Method;
 
     public readonly MethodInfo m_Roofed = AccessTools.Method(typeof(RoofGrid), nameof(RoofGrid.Roofed), [typeof(IntVec3)]);
 
@@ -341,6 +315,8 @@ public class MethodInfoCache
     public readonly MethodInfo m_Quaternion_AngleAxis = ((Delegate)Quaternion.AngleAxis).Method;
 
     public readonly MethodInfo m_CurrentViewRect = AccessTools.PropertyGetter(typeof(CameraDriver), nameof(CameraDriver.CurrentViewRect));
+
+    public readonly MethodInfo m_CurrentVehicleMapViewRect = ((Delegate)VehicleMapUtility.get_CurrentVehicleMapViewRect).Method;
 
     public readonly MethodInfo m_FocusVehicle = ((Delegate)Command_FocusVehicleMap.FocusVehicle).Method;
 

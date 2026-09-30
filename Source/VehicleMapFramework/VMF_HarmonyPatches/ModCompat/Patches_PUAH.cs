@@ -92,7 +92,7 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
     codes.MatchStartForward(CodeMatch.Calls(g_Position));
     codes.InsertAfter(
       CodeInstruction.LoadArgument(1),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetMapOrPawnMap),
+      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PawnTargetMap),
       ((Func<IntVec3, Map, IntVec3>)VehicleMapUtility.ToBaseMapCoord).Method.CallInstruction);
     var num = 0;
     return codes.Instructions().Manipulator(c => c.Calls(CachedMethodInfo.g_Thing_Position),
@@ -155,7 +155,7 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
   [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
   }
 }
 
@@ -166,7 +166,7 @@ public static class Patch_WorkGiver_HaulToInventory_Stackable
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
   }
 }
 

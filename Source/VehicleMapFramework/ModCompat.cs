@@ -807,38 +807,11 @@ public static class ModCompat
     }
   }
 
-  public class SmartFarming : CompatBase<SmartFarming>
+  public class ReGrowth : CompatBase<ReGrowth>
   {
-    private const string SmartFarmingPackageId = "Owlchemist.SmartFarming";
-    private const string ReGrowthPackageId = "ReGrowth.BOTR.Core";
-    public static readonly bool SmartFarmingActive = IsModActive(SmartFarmingPackageId);
-    public static readonly bool ReGrowthActive = IsModActive(ReGrowthPackageId);
-    public static Type MapComponent_SmartFarming { get; private set;}
-    public static AccessTools.FieldRef<MapComponent, IDictionary> growZoneRegistry { get; private set;}
-    public static AccessTools.FieldRef<object, int> priority { get; private set;}
-
-    static SmartFarming()
+    static ReGrowth()
     {
-      Initialize(SmartFarmingPackageId, () =>
-      {
-        if (SmartFarmingActive && ReGrowthActive && !UnitTestDetector.IsTestingContext)
-        {
-          VMF_Log.Error("When both Smart Farming and ReGrowth 2 are enabled, a patch error will occur. Since these have overlapping functionality, please enable only one of them.");
-        }
-        Type t_ZoneData;
-        if (SmartFarmingActive)
-        {
-          MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("SmartFarming.MapComponent_SmartFarming", nameof(SmartFarming));
-          t_ZoneData = GenTypes.GetTypeInAnyAssembly("SmartFarming.ZoneData", nameof(SmartFarming));
-        }
-        else
-        {
-          MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.MapComponent_SmartFarming", "ReGrowthCore");
-          t_ZoneData = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.ZoneData", "ReGrowthCore");
-        }
-        growZoneRegistry = AccessTools.FieldRefAccess<IDictionary>(MapComponent_SmartFarming, nameof(growZoneRegistry));
-        priority = AccessTools.FieldRefAccess<int>(t_ZoneData, nameof(priority));
-      }, ReGrowthPackageId);
+      Initialize("ReGrowth.BOTR.Core", null);
     }
   }
 

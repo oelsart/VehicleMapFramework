@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using DubsBadHygiene;
 using HarmonyLib;
-using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -45,43 +42,6 @@ public static class Patch_CompResource_Props
 }
 
 [HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
-[HarmonyPatch(typeof(PlaceWorker_SewageArea), nameof(PlaceWorker_SewageArea.DrawGhost))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_PlaceWorker_SewageArea_DrawGhost
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-  {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Stfld);
-    var label = generator.DefineLabel();
-    var label2 = generator.DefineLabel();
-    var f_visibleMap = codes[pos].operand;
-
-    codes[pos].labels.Add(label2);
-    codes.InsertRange(pos - 1,
-    [
-      CodeInstruction.LoadArgument(5),
-      new CodeInstruction(OpCodes.Dup),
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
-      new CodeInstruction(OpCodes.Dup),
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Br_S, label2),
-      new CodeInstruction(OpCodes.Pop).WithLabels(label)
-    ]);
-    pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
-    codes.InsertRange(pos,
-    [
-      CodeInstruction.LoadLocal(0),
-      new CodeInstruction(OpCodes.Ldfld, f_visibleMap)
-    ]);
-    return codes.MethodReplacer(
-      (CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap),
-      (CachedMethodInfo.m_GenDraw_DrawFieldEdges1, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1));
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
@@ -92,22 +52,9 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
       t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<DrawGhost>")));
   }
 
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  public static bool Prefix(IntVec3 x, Map ___visibleMap)
   {
-    return new CodeMatcher(instructions, generator)
-      .MatchStartForward(CodeMatch.Calls(((Delegate)GridsUtility.GetFirstBuilding).Method))
-      .CreateLabel(out var label)
-      .DeclareLocal(typeof(Map), out var map)
-      .Insert(
-        new CodeInstruction(OpCodes.Stloc_S, map),
-        new CodeInstruction(OpCodes.Ldloc_S, map),
-        ((Func<IntVec3, Map, bool>)GenGrid.InBounds).Method.CallInstruction,
-        new CodeInstruction(OpCodes.Brtrue_S, label),
-        new CodeInstruction(OpCodes.Ldc_I4_0),
-        new CodeInstruction(OpCodes.Ret),
-        CodeInstruction.LoadArgument(1).WithLabels(label),
-        new CodeInstruction(OpCodes.Ldloc_S, map))
-      .InstructionEnumeration();
+    return x.InBounds(___visibleMap);
   }
 }
 
@@ -151,23 +98,10 @@ public static class Patch_Building_StallDoor_DrawAt
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var codes = Patch_Building_Door_DrawMovers.Transpiler(instructions, generator).ToList();
-    var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
-    var label = generator.DefineLabel();
-    var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Stfld && c.OperandIs(f_Vector3_y));
-
-    codes[pos].labels.Add(label);
-    codes.InsertRange(pos,
-    [
-      CodeInstruction.LoadArgument(0),
-      new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull)
-    ]);
-    return codes;
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .AddAltitudeFor(vehicle)
+      .InstructionEnumeration();
   }
 }
 
@@ -181,18 +115,33 @@ public static class Patch_Building_bath_DrawAt
     return new CodeMatcher(instructions, generator)
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Building_bath), nameof(Building_bath.WaterOffset))))
       .Advance()
+      .NonFocusedMapVehicleForThing(out var vehicle)
       .CreateLabel(out var label)
-      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
       .InsertAndAdvance(
-        CodeInstruction.LoadArgument(0),
-        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-        CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
         new CodeInstruction(OpCodes.Brfalse_S, label),
         new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.YCompress),
         new CodeInstruction(OpCodes.Div))
       .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Building_bath), nameof(Building_bath.QuatFromRot))))
       .Advance()
-      .AddExtraAngle(vehicle)
+      .MultiplyExtraAngleQuat(vehicle)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
+[HarmonyPatch(typeof(Building_washbucket), nameof(Building_washbucket.DrawAt))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Building_washbucket_DrawAt
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return new CodeMatcher(instructions, generator)
+      .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Building_washbucket), "quat")))
+      .Advance()
+      .NonFocusedMapVehicleForThing(out var vehicle)
+      .MultiplyExtraAngleQuat(vehicle)
       .InstructionEnumeration()
       .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
   }

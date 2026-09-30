@@ -126,12 +126,12 @@ public static class Patch_Verb_RimatomicsVerb_TryCastShot
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
 [HarmonyPatch("Rimatomics.Building_PPC", "DrawAt")]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_PPC_DrawAt
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return Patch_Building_Battery_DrawAt.Transpiler(instructions, generator);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
   }
 }
 
@@ -144,23 +144,15 @@ public static class Patch_CompRimatomicsShield_PostDraw
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
-      .CreateLabelWithOffsets(1, out var label)
-      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
-      .InsertAfterAndAdvance(
-        CodeInstruction.LoadArgument(0),
-        CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)),
-        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+      .Advance()
+      .NonFocusedMapVehicleForThingComp(out var vehicle)
+      .CreateLabel(out var label)
+      .InsertAndAdvance(
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
         new CodeInstruction(OpCodes.Brfalse_S, label),
         new CodeInstruction(OpCodes.Ldloc_S, vehicle),
         new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2))
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor))
-      .CreateLabelWithOffsets(1, out var label2)
-      .InsertAfter(
-        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Brfalse_S, label2),
-        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull))
+      .AddAltitudeFor(vehicle)
       .InstructionEnumeration();
   }
 }
@@ -207,7 +199,7 @@ public static class Patch_Patch_HarmonyPatches_H_CheckForFreeInterceptBetween_Pr
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
     }
   }
 }

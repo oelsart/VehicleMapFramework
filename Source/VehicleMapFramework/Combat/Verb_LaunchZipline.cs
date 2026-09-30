@@ -171,26 +171,21 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
       return;
     }
 
-    var map = caster.TargetMapOrThingMap;
-    if (target.IsValid && JumpUtility.ValidJumpTarget(caster, map, target.Cell))
+    if (target.IsValid && JumpUtility.ValidJumpTarget(caster, caster.Map, target.Cell))
     {
-      GenDraw.DrawTargetHighlightWithLayer(Patch_Verb_Jump_DrawHighlight.CenterVector3Offset(ref target, this),
-        AltitudeLayer.MetaOverlays);
+      GenDraw.DrawTargetHighlightWithLayer(target.CenterVector3, AltitudeLayer.MetaOverlays);
     }
 
-    var baseMap = caster.GroundMap;
     GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white,
       c =>
-        GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap, c, baseMap, false) &&
-        (JumpUtility.ValidJumpTarget(caster, baseMap, c) ||
-         c.InBounds(baseMap) && baseMap.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c) is { } vehicle &&
-         JumpUtility.ValidJumpTarget(caster, vehicle.VehicleMap, c.ToVehicleMapCoord(vehicle))));
+        GenSightOnVehicle.LineOfSight(caster.Position, c, caster.Map, false) &&
+        JumpUtility.ValidJumpTarget(caster, caster.Map, c));
   }
 
   public override void OnGUI(LocalTargetInfo target)
   {
     if (!target.IsValid) return;
-    if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, caster.TargetMapOrThingMap, target.Cell))
+    if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, caster.ThingTargetMap, target.Cell))
     {
       base.OnGUI(target);
       return;

@@ -20,20 +20,6 @@ internal class Patches_EccentricTech
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
-[HarmonyPatch("EccentricDefenseGrid.PlaceWorker_DefenseProjector", "DrawGhost")]
-[PatchLevel(Level.Safe)]
-public static class Patch_PlaceWorker_DefenseProjector_DrawGhost
-{
-  public static void Prefix(ref IntVec3 center, Thing thing)
-  {
-    if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
-    {
-      center = center.ToBaseMapCoord(vehicle);
-    }
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
 [HarmonyPatch("EccentricDefenseGrid.PlaceWorker_ArtillerySensor", "DrawGhost")]
 [PatchLevel(Level.Safe)]
 public static class Patch_PlaceWorker_ArtillerySensor_DrawGhost

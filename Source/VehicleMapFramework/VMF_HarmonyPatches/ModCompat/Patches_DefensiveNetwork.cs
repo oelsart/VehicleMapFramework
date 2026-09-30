@@ -466,23 +466,6 @@ public static class Patch_Verb_ShootWithAimingExtensionRange_MuzzleWorldPosition
 }
 
 [HarmonyPatchCategory(PatchCategories.DefensiveNetwork)]
-[HarmonyPatch("DNX.Building_EDD", "DrawExtraSelectionOverlays")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Building_EDD_DrawExtraSelectionOverlays
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return PatchHelper.CreateCodeMatcherFast(instructions)
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges2))
-      .InsertAndAdvance(
-        CodeInstruction.LoadArgument(0),
-        CachedMethodInfo.g_Thing_Map.CallvirtInstruction)
-      .SetOperandAndAdvance(CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges2)
-      .InstructionEnumeration();
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.DefensiveNetwork)]
 [HarmonyPatch("DNX.Building_EDD", "DrawTripLaser")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_EDD_DrawTripLaser

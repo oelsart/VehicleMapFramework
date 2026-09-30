@@ -62,13 +62,15 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
       yield return thing;
     }
 
-    var zone = vehicle.CurrentLevel.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
-    if (zone != null)
-    {
+    var c = mouseVehicleMapPosition.ToIntVec3();
+    
+    if (vehicle.CurrentLevel.zoneManager.ZoneAt(c) is { } zone)
       yield return zone;
-    }
 
-    if (Find.CurrentMap == vehicle.VehicleMap && vehicle.Spawned) yield return vehicle;
+    if (vehicle.CurrentLevel.planManager.PlanAt(c) is { } plan)
+      yield return plan;
+    
+    if (Find.CurrentMap == vehicle.CurrentLevel && vehicle.Spawned) yield return vehicle;
   }
 }
 

@@ -323,7 +323,7 @@ public static class Patch_MultiPawnGotoController_Draw
     foreach (var instruction in instructions)
     {
       if (num < 2 && instruction.opcode == OpCodes.Call &&
-          instruction.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude))
+          instruction.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude1))
       {
         yield return CodeInstruction.LoadLocal(5);
         instruction.operand = m_ToVector3ShiftedOffsetWithAltitude;

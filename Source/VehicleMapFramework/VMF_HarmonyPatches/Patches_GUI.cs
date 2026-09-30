@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using JetBrains.Annotations;
 using RimWorld;
 using UnityEngine;
 using Vehicles.Rendering;
@@ -17,30 +18,35 @@ public static class Patch_SelectionDrawer_DrawSelectionOverlays
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
+    var f_currentMapIndex = AccessTools.Field(typeof(Game), nameof(Game.currentMapIndex));
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(CodeMatch.Calls(
+        AccessTools.Method(typeof(List<object>), nameof(List<>.GetEnumerator))))
+      .DeclareLocal(typeof(sbyte), out var mapIndex)
+      .InsertAndAdvance(
+        AccessTools.PropertyGetter(typeof(Current), nameof(Current.Game)).CallInstruction,
+        new CodeInstruction(OpCodes.Ldfld, f_currentMapIndex),
+        new CodeInstruction(OpCodes.Stloc_S, mapIndex))
+      .MatchStartForward(CodeMatch.Calls(
         AccessTools.PropertyGetter(typeof(List<object>.Enumerator), nameof(List<>.Enumerator.Current))))
-      // FocusVehicleScopeはNullableでなければ、ループの1回目でdefaultがDisposeされてしまう
-      .DeclareLocal(typeof(Command_FocusVehicleMap.FocusVehicleScope?), out var scope)
       .InsertAfterAndAdvance(
         new CodeInstruction(OpCodes.Dup),
-        new CodeInstruction(OpCodes.Ldloca_S, scope),
         ((Delegate)FocusOnVehicleMap).Method.CallInstruction)
-      .MatchStartForward(CodeMatch.Calls(
-        AccessTools.Method(typeof(List<object>.Enumerator), nameof(List<>.Enumerator.MoveNext))))
+      .MatchStartForward(new CodeMatch(OpCodes.Endfinally))
       .Insert(
-        new CodeInstruction(OpCodes.Ldloc_S, scope),
-        ((Delegate)Dispose).Method.CallInstruction)
+        AccessTools.PropertyGetter(typeof(Current), nameof(Current.Game)).CallInstruction,
+        new CodeInstruction(OpCodes.Ldloc_S, mapIndex),
+        new CodeInstruction(OpCodes.Stfld, f_currentMapIndex))
       .InstructionEnumeration();
   }
-
-  private static void FocusOnVehicleMap(object obj, ref Command_FocusVehicleMap.FocusVehicleScope? __state)
+  
+  private static void FocusOnVehicleMap(object obj)
   {
     var map = obj switch { Zone zone => zone.Map, Plan plan => plan.Map, Thing thing => thing.Map, _ => null };
-    __state = new Command_FocusVehicleMap.FocusVehicleScope(map.ParentVehicle);
+    if (map is null)
+      return;
+    Current.Game.currentMapIndex = (sbyte)map.Index;
   }
-  
-  private static void Dispose(Command_FocusVehicleMap.FocusVehicleScope? __state) => __state?.Dispose();
 }
 
 //thingがIsOnVehicleMapだった場合回転の初期値num4にベースvehicleのAngleを与え、posはRotatePointで回転
@@ -189,34 +195,28 @@ public static class Patch_ColonistBarColonistDrawer_DrawGroupFrame
 [PatchLevel(Level.Safe)]
 public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 {
-  public static void PrefixCommon(ref (sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
+  public static void PrefixCommon(ref sbyte? __state)
   {
-    if ((Command_FocusVehicleMap.FocusedVehicle is { } vehicle ||
-         UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle)))
+    if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) ||
+        UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle))
     {
-      __state = (Current.Game.currentMapIndex, new Command_FocusVehicleMap.FocusVehicleScope(vehicle));
+      __state = Current.Game.currentMapIndex;
       Current.Game.currentMapIndex = (sbyte)vehicle.CurrentLevel.Index;
     }
   }
 
-  //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-  public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
+  private static void Prefix(ref sbyte? __state)
   {
     if (Event.current.type != EventType.Repaint || Find.MainTabsRoot.OpenTab != null)
-    {
       return;
-    }
 
     PrefixCommon(ref __state);
   }
 
-  //FocusedVehicleをもとに戻しておく
-  public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
+  public static void Finalizer(sbyte? __state)
   {
     if (__state is null) return;
-
-    Current.Game.currentMapIndex = __state.Value.Item1;
-    __state.Value.Item2.Dispose();
+    Current.Game.currentMapIndex = __state.Value;
   }
 }
 
@@ -225,55 +225,49 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 [PatchLevel(Level.Safe)]
 public static class Patch_CellInspectorDrawer_DrawMapInspector
 {
-  //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-  public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
+  public static void Prefix(ref sbyte? __state)
   {
     Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
   }
 
-  //FocusedVehicleをもとに戻しておく
-  public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
-  {
-    if (__state is null) return;
-
-    Current.Game.currentMapIndex = __state.Value.Item1;
-    __state.Value.Item2.Dispose();
-  }
+  public static void Finalizer(sbyte? __state) => Patch_MouseoverReadout_MouseoverReadoutOnGUI.Finalizer(__state);
 }
 
 [HarmonyPatch(typeof(CellInspectorDrawer), nameof(CellInspectorDrawer.Update))]
 [PatchLevel(Level.Safe)]
 public static class Patch_CellInspectorDrawer_Update
 {
-  //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-  public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
+  public static void Prefix(ref sbyte? __state)
   {
     if (!KeyBindingDefOf.ShowCellInspector.IsDown) return;
     Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
   }
+  
+  public static void Finalizer(sbyte? __state) => Patch_MouseoverReadout_MouseoverReadoutOnGUI.Finalizer(__state);
+}
 
-  //FocusedVehicleをもとに戻しておく
-  public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
+[HarmonyPatch(typeof(EnvironmentStatsDrawer), nameof(EnvironmentStatsDrawer.DrawRoomOverlays))]
+[PatchLevel(Level.Safe)]
+public static class Patch_EnvironmentStatsDrawer_DrawRoomOverlays
+{
+  public static void Prefix(ref sbyte? __state)
   {
-    if (__state is null) return;
-
-    Current.Game.currentMapIndex = __state.Value.Item1;
-    __state.Value.Item2.Dispose();
+    Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
   }
+  
+  public static void Finalizer(sbyte? __state) => Patch_MouseoverReadout_MouseoverReadoutOnGUI.Finalizer(__state);
 }
 
 //Alt押した時のセルの美しさ
 [HarmonyPatch(typeof(BeautyDrawer), "DrawBeautyAroundMouse")]
 public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
 {
-  //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
   [PatchLevel(Level.Safe)]
-  public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
+  public static void Prefix(ref sbyte? __state)
   {
     Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
   }
 
-  //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
   [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
@@ -290,16 +284,8 @@ public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
     vector.y -= 1f;
     return vector;
   }
-
-  //FocusedVehicleをもとに戻しておく
-  [PatchLevel(Level.Safe)]
-  public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
-  {
-    if (__state is null) return;
-
-    Current.Game.currentMapIndex = __state.Value.Item1;
-    __state.Value.Item2.Dispose();
-  }
+  
+  public static void Finalizer(sbyte? __state) => Patch_MouseoverReadout_MouseoverReadoutOnGUI.Finalizer(__state);
 }
 
 //右下の温度表示
@@ -307,20 +293,12 @@ public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
 [PatchLevel(Level.Safe)]
 public static class Patch_GlobalControls_TemperatureString
 {
-  //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-  public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
+  public static void Prefix(ref sbyte? __state)
   {
     Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
   }
-
-  //FocusedVehicleをもとに戻しておく
-  public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicleScope)? __state)
-  {
-    if (__state is null) return;
-
-    Current.Game.currentMapIndex = __state.Value.Item1;
-    __state.Value.Item2.Dispose();
-  }
+  
+  public static void Finalizer(sbyte? __state) => Patch_MouseoverReadout_MouseoverReadoutOnGUI.Finalizer(__state);
 }
 
 //drawPosを移動してQuaternionに車の回転をかける
@@ -336,23 +314,34 @@ public static class Patch_GUI_VehicleMapOffset
     yield return AccessTools.Method(typeof(CellBoolDrawer), "ActuallyDraw");
   }
 
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-    ILGenerator generator)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var codes = PatchHelper.CreateCodeMatcherFast(instructions, generator);
-    codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity));
-    codes.InsertAndAdvance(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction);
-    codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-    codes.CreateLabelWithOffsets(1, out var label);
-    codes.InsertAfter(
-      new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-      CachedMethodInfo.m_FocusedOnVehicleMap.CallInstruction,
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-      CachedMethodInfo.m_FullAngleQuat.CallInstruction,
-      CachedMethodInfo.o_Quaternion_Multiply.CallInstruction);
-    return codes.Instructions();
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
+      .InsertAndAdvance(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction)
+      .Advance()
+      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+      .CreateLabel(out var label)
+      .InsertAndAdvance(
+        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+        CachedMethodInfo.m_FocusedOnVehicleMap.CallInstruction,
+        new CodeInstruction(OpCodes.Brfalse_S, label))
+      .MultiplyExtraAngleQuat(vehicle)
+      .InstructionEnumeration();
   }
+}
+
+[HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.DesignationManagerOnGUI))]
+[PatchLevel(Level.Safe)]
+public static class Patch_DesignatorManager_DesignationManagerOnGUI
+{
+  internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
+  {
+    if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
+      __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
+  }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
 }
 
 //v, v2にToBaseMapCoordをしてDrawBoxRotatedにFocusedVehicle.FullRotation.AsAngleを渡す

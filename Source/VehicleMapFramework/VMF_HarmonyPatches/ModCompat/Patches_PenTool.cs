@@ -124,19 +124,7 @@ public static class Patch_PenSession_DrawBatchGhosts
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_CurrentViewRect, ((Delegate)CurrentViewRect).Method);
-  }
-
-  private static CellRect CurrentViewRect(CameraDriver driver)
-  {
-    var currentViewRect = driver.CurrentViewRect;
-    if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
-    {
-      return CellRect.FromLimits(
-        currentViewRect.Min.ToVehicleMapCoord(vehicle),
-        currentViewRect.Max.ToVehicleMapCoord(vehicle));
-    }
-    return currentViewRect;
+    return instructions.MethodReplacer(CachedMethodInfo.m_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
   }
 }
 

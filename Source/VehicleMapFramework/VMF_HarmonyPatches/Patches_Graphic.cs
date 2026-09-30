@@ -87,12 +87,12 @@ public static class Patch_Thing_Print
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
-    codes.MatchStartForward(CodeMatch.LoadsConstant(0f))
-      .Repeat(matcher =>
-        matcher.InsertAndAdvance(CodeInstruction.LoadArgument(0))
-          .SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation)));
-    return codes.Instructions();
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.LoadsConstant(0f))
+      .Repeat(matcher => matcher
+        .InsertAndAdvance(CodeInstruction.LoadArgument(0))
+        .SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation)))
+      .InstructionEnumeration();
   }
 }
 
@@ -310,7 +310,7 @@ public static class Patch_GenDraw_DrawAimPie
   [PatchLevel(Level.Safe)]
   public static void Prefix(Thing shooter, ref LocalTargetInfo target)
   {
-    if (!target.HasThing && shooter.TryGetTargetMap(out var map))
+    if (!target.HasThing && shooter.PawnOrThingTargetMap is { } map)
     {
       target = target.Cell.ToBaseMapCoord(map);
     }

@@ -6,6 +6,7 @@ namespace VehicleMapFramework;
 
 public sealed class Command_FocusVehicleMap : Command
 {
+  // TODO 1.7: staticとstructをこのクラスから独立させる
   public static VehiclePawnWithMap FocusLockedVehicle { get; set; }
 
   public static VehiclePawnWithMap FocusedVehicle { get; set; }

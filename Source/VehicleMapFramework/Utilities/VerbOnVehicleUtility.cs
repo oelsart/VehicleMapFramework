@@ -180,7 +180,7 @@ public static class VerbOnVehicleUtility
 
     if ((caster.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned ||
          targ.Thing.IsOnVehicleMapOf(out vehicle) && vehicle.Spawned ||
-         (caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out vehicle) && vehicle.Spawned)))
+         (caster.PawnOrThingTargetMap is { } map && map.IsVehicleMapOf(out vehicle) && vehicle.Spawned)))
       return true;
 
     var casterMap = caster.Map;

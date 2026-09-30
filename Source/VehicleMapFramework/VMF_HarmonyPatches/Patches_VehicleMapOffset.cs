@@ -70,7 +70,8 @@ public static class Patch_GenThing_TrueCenter
     if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle &&
         !VehicleSectionLayerManager.CacheMode && !VehiclePawnWithMapCache.CacheMode)
     {
-      __result = __result.ToBaseMapCoord(vehicle).WithY(__result.y);
+      __result = __result.ToBaseMapCoord(vehicle);
+      __result.y = Mathf.Min(__result.y, AltitudeLayer.MetaOverlays.AltitudeFor());
     }
   }
 }
@@ -209,75 +210,6 @@ public static class Patch_FleckSystemBase_FleckThrown_CreateFleck
   }
 }
 
-//thingがIsOnVehicleMapだった場合回転の初期値num4にベースvehicleのAngleを与え、posはRotatePointで回転
-[HarmonyPatchCategory(LatePatchCore.Category)]
-[HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
-[HarmonyAfter("owlchemist.smartfarming", "Helixien.ReGrowthCore")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_SelectionDrawer_DrawSelectionBracketFor
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-    ILGenerator generator)
-  {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 9);
-    var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-    var label = generator.DefineLabel();
-
-    codes[pos].labels.Add(label);
-    codes.InsertRange(pos,
-    [
-      CodeInstruction.LoadLocal(2),
-      new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-      CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-      CachedMethodInfo.m_FullAngle.CallInstruction,
-      new CodeInstruction(OpCodes.Conv_I4),
-      new CodeInstruction(OpCodes.Add),
-    ]);
-
-    var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 18);
-    var label2 = generator.DefineLabel();
-
-    codes[pos2].labels.Add(label2);
-    codes.InsertRange(pos2,
-    [
-      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-      new CodeInstruction(OpCodes.Brfalse_S, label2),
-      CodeInstruction.LoadLocal(2),
-      CachedMethodInfo.g_Thing_DrawPos.CallvirtInstruction,
-      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-      CachedMethodInfo.m_FullAngle.CallInstruction,
-      new CodeInstruction(OpCodes.Neg),
-      CachedMethodInfo.m_RotatePoint.CallInstruction
-    ]);
-
-    var m_DrawFieldEdges = SmartFarming.Active
-      ? AccessTools.Method(SmartFarming.MapComponent_SmartFarming, "DrawFieldEdges")
-      : CachedMethodInfo.m_GenDraw_DrawFieldEdges1;
-    var m_DrawFieldEdgesOnVehicle =
-      SmartFarming.SmartFarmingActive ? ((Delegate)GenDrawOnVehicle.DrawFieldEdgesSF).Method :
-      SmartFarming.ReGrowthActive ? ((Delegate)GenDrawOnVehicle.DrawFieldEdgesRG).Method :
-      CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
-    var pos3 = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
-    codes[pos3].operand = m_DrawFieldEdgesOnVehicle;
-    codes.InsertRange(pos3,
-    [
-      CodeInstruction.LoadLocal(0),
-      CachedMethodInfo.g_Zone_Map.CallvirtInstruction
-    ]);
-    var pos4 = codes.FindIndex(pos3 + 3, c => c.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
-    codes[pos4].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
-    codes.InsertRange(pos4,
-    [
-      CodeInstruction.LoadLocal(1),
-      AccessTools.PropertyGetter(typeof(Plan), nameof(Plan.Map)).CallvirtInstruction
-    ]);
-    return codes;
-  }
-}
-
 [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.DrawLinesBetweenTargets))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
@@ -392,136 +324,84 @@ public static class Patch_PawnPath_DrawPath
 }
 
 [HarmonyPatch(typeof(Designation), nameof(Designation.DrawLoc))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Designation_DrawLoc
 {
-  [PatchLevel(Level.Safe)]
-  public static void Postfix(ref Vector3 __result, DesignationManager ___designationManager, LocalTargetInfo ___target)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    if (___designationManager.map.IsVehicleMapOf(out var vehicle))
-    {
-      if (!___target.HasThing)
-      {
-        __result = __result.ToBaseMapCoord(vehicle).WithY(__result.y);
-      }
-    }
-  }
-
-  [PatchLevel(Level.Cautious)]
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
-      (CachedMethodInfo.g_Rot4_AsVector2, CachedMethodInfo.m_AsFundVector2));
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchStartForward(CodeMatch.Calls(((Delegate)Vector2Utility.ToVector3).Method))
+      .Advance()
+      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        AccessTools.PropertyGetter(typeof(Designation), "Map").CallvirtInstruction,
+        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+        CachedMethodInfo.m_IsNonFocusedVehicleMapOf.CallInstruction,
+        new CodeInstruction(OpCodes.Pop))
+      .RotatedByVehicleExtraAngle(vehicle)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude1))
+      .InsertAfter(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
   }
 }
 
-[HarmonyPatch(typeof(OverlayDrawer), "RenderPulsingOverlay", typeof(Thing), typeof(Material), typeof(int), typeof(Mesh),
-  typeof(bool))]
+[HarmonyPatch(typeof(OverlayDrawer), "RenderPulsingOverlay",
+  typeof(Thing), typeof(Material), typeof(int), typeof(Mesh), typeof(bool))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_OverlayDrawer_RenderPulsingOverlay
 {
-  [PatchLevel(Level.Cautious)]
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
-      (CachedMethodInfo.g_Rot4_AsVector2, CachedMethodInfo.m_AsFundVector2));
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchStartForward(CodeMatch.Calls(((Delegate)Vector2Utility.ToVector3).Method))
+      .Advance()
+      .NonFocusedMapVehicle(out var vehicle, CodeInstruction.LoadArgument(1))
+      .RotatedByVehicleExtraAngle(vehicle)
+      .InstructionEnumeration();
   }
 }
 
-[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawRadiusRing), typeof(IntVec3), typeof(float), typeof(Color),
-  typeof(Func<IntVec3, bool>))]
-[PatchLevel(Level.Safe)]
-public static class Patch_GenDraw_DrawRadiusRing
-{
-  private static readonly List<IntVec3> ringDrawCells = [];
-
-  public static bool Prefix(ref IntVec3 center, float radius, Color color, Func<IntVec3, bool> predicate)
-  {
-    Thing thing = null;
-    var flag = false;
-    foreach (var selObj in Find.Selector.SelectedObjects)
-    {
-      if (selObj is Thing thing2 && thing2.Position == center)
-      {
-        flag = true;
-        thing = thing2;
-        break;
-      }
-    }
-
-    if (flag)
-    {
-      if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
-      {
-        if (Find.CurrentMap.IsNonFocusedVehicleMap &&
-            Find.CurrentMap.BaseMapOrCaravan == vehicle.VehicleMap.BaseMapOrCaravan)
-        {
-          DrawRadiusRing(vehicle.VehicleMap, center, radius, color, predicate);
-          return false;
-        }
-
-        center = center.ToBaseMapCoord(vehicle);
-      }
-    }
-    else if (Command_FocusVehicleMap.FocusedVehicle != null)
-    {
-      center = center.ToBaseMapCoord(Command_FocusVehicleMap.FocusedVehicle);
-    }
-
-    return true;
-  }
-
-  private static void DrawRadiusRing(Map map, IntVec3 center, float radius, Color color,
-    Func<IntVec3, bool> predicate = null)
-  {
-    if (radius > GenRadial.MaxRadialPatternRadius)
-    {
-      Log.ErrorOnce($"Cannot draw radius ring of radius {radius}: not enough squares in the precalculated list.",
-        71496514);
-      return;
-    }
-
-    ringDrawCells.Clear();
-    var num = GenRadial.NumCellsInRadius(radius);
-    for (var i = 0; i < num; i++)
-    {
-      var intVec = center + GenRadial.RadialPattern[i];
-      if (predicate == null || predicate(intVec))
-      {
-        ringDrawCells.Add(intVec);
-      }
-    }
-
-    GenDrawOnVehicle.DrawFieldEdges(ringDrawCells, color, map: map);
-  }
-}
-
-//tDef.interactionCellGraphic.DrawFromDef(vector, rot, tDef.interactionCellIcon, 0f) ->
-//tDef.interactionCellGraphic.DrawFromDef(vector, rot, tDef.interactionCellIcon, 0f)
-//Graphics.DrawMesh(MeshPool.plane10, SelectedDrawPosOffset(vector, center), Quaternion.identity, GenDraw.InteractionCellMaterial, 0) ->
-//Graphics.DrawMesh(MeshPool.plane10, FocusedDrawPosOffset(vector, center), Quaternion.identity, GenDraw.InteractionCellMaterial, 0)
 [HarmonyPatch(typeof(GenDraw), "DrawInteractionCell")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_GenDraw_DrawInteractionCell
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 4);
-    codes.InsertRange(pos,
-    [
-      CodeInstruction.LoadArgument(2),
-      CachedMethodInfo.m_SelectedDrawPosOffset.CallInstruction
-    ]);
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude2))
+      .InsertAfter(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+  }
+}
 
-    var pos2 = codes.FindIndex(pos,
-      c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity));
-    codes.InsertRange(pos2,
-    [
-      CodeInstruction.LoadArgument(2),
-      CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset.CallInstruction
-    ]);
-    return codes;
+[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges),
+  typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int))]
+[PatchLevel(Level.Safe)]
+public static class Patch_GenDraw_DrawFieldEdges
+{
+  public static bool Prefix(List<IntVec3> cells, Color color, float? altOffset,
+    HashSet<IntVec3> ignoreBorderCells, int renderQueue)
+  {
+    if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
+    {
+      GenDrawOnVehicle.DrawFieldEdges(cells, color, altOffset, ignoreBorderCells, renderQueue, vehicle.CurrentLevel);
+      return false;
+    }
+
+    return true;
+  }
+}
+
+[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawCircleOutline), typeof(Vector3), typeof(float), typeof(Material))]
+[PatchLevel(Level.Safe)]
+public static class Patch_GenDraw_DrawCircleOutline
+{
+  public static void Prefix(ref Vector3 center)
+  {
+    center = center.ToBaseMapCoord();
   }
 }
 
@@ -550,31 +430,6 @@ public static class Patch_GenDraw_DrawTargetHighlightWithLayer
     var codes = instructions.ToList();
     var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
     codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1));
-    return codes;
-  }
-}
-
-[HarmonyPatch(typeof(PlaceWorker_ShowTradeBeaconRadius), nameof(PlaceWorker_ShowTradeBeaconRadius.DrawGhost))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_PlaceWorker_ShowTradeBeaconRadius_DrawGhost
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-    ILGenerator generator)
-  {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
-    var label = generator.DefineLabel();
-    codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
-    codes[pos].labels.Add(label);
-    codes.InsertRange(pos,
-    [
-      new CodeInstruction(OpCodes.Ldnull),
-      CodeInstruction.LoadArgument(5),
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Pop),
-      CodeInstruction.LoadArgument(5),
-      new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
-    ]);
     return codes;
   }
 }
@@ -624,5 +479,33 @@ public static class Patch_SubEffecter_Sprayer_MakeMote
   public static void Finalizer()
   {
     VehiclePawnWithMapCache.CacheMode = false;
+  }
+}
+
+[HarmonyPatch(typeof(PlaceWorker_SpectatorPreview), nameof(PlaceWorker_SpectatorPreview.DrawSpectatorPreview))]
+public static class Patch_PlaceWorker_SpectatorPreview_DrawSpectatorPreview
+{
+  [PatchLevel(Level.Safe)]
+  public static void Prefix(ref Rot4 rot)
+  {
+    if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
+      rot.AsInt += vehicle.FullRotation.RotForVehicleDraw().AsInt;
+  }
+
+  [PatchLevel(Level.Sensitive)]
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
+      .InsertAndAdvance(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction)
+      .Advance()
+      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+      .CreateLabel(out var label)
+      .InsertAndAdvance(
+        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+        CachedMethodInfo.m_FocusedOnVehicleMap.CallInstruction,
+        new CodeInstruction(OpCodes.Brfalse_S, label))
+      .MultiplyExtraAngleQuat(vehicle)
+      .InstructionEnumeration();
   }
 }

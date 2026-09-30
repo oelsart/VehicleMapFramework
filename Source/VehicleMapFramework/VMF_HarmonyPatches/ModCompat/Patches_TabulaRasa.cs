@@ -74,7 +74,7 @@ public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
     }
   }
 }
@@ -93,7 +93,7 @@ public static class Patch_Patch_Skyfaller_Tick_Prefix
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
     }
   }
 }
@@ -124,23 +124,5 @@ public static class Patch_Skyfaller_Tick
       }
     }
     return true;
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
-[HarmonyPatch("TabulaRasa.PlaceWorker_ShowShieldRadius", "DrawGhost")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_PlaceWorker_ShowShieldRadius_DrawGhost
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    foreach (var instruction in instructions)
-    {
-      yield return instruction;
-      if (instruction.opcode == OpCodes.Call && instruction.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
-      {
-        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1);
-      }
-    }
   }
 }

@@ -58,22 +58,32 @@ public static class Patch_JobDriver_GoToAnimationSpot_MakeGoToToil
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ActionController_GetGrappleReport
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var codes = instructions.MethodReplacer(
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchEndForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map), new CodeMatch(OpCodes.Ceq))
+      .DeclareLocal(typeof(Map), out var map)
+      .Insert(
+        new CodeInstruction(OpCodes.Stloc_S, map),
+        CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction,
+        new CodeInstruction(OpCodes.Ldloc_S, map),
+        CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
+      .InstructionEnumeration()
+      .MethodReplacer(
         (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
         (CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing));
+  }
+}
 
-    //GrapplerとTargetのマップ比較のとこだけBaseMapに変換する
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-    pos = codes.FindIndex(pos + 1, c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-    codes[pos].opcode = OpCodes.Call;
-    codes[pos].operand = CachedMethodInfo.m_BaseMap_Thing;
-
-    pos = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Ldarg_1);
-    codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
-
-    return codes;
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
+[HarmonyPatch("AM.Grappling.JobDriver_GrapplePawn", "GiveJob")]
+[PatchLevel(Level.Safe)]
+public static class Patch_JobDriver_GrapplePawn_GiveJob
+{
+  public static void Prefix(Pawn grappler, Pawn target)
+  {
+    grappler.RemoveTargetInfo();
+    target.TargetInfo = grappler;
   }
 }
 
@@ -85,8 +95,9 @@ public static class Patch_JobDriver_GrapplePawn_TickPreEnsnare
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
-      (CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing));
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap),
+      (CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap));
   }
 }
 
@@ -106,6 +117,7 @@ public static class Patch_ActionController_CheckCell
         return false;
       }
     }
+
     return true;
   }
 }
@@ -117,7 +129,8 @@ public static class Patch_ActionController_UpdateClosestCells
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
-    return AccessTools.TypeByName("AM.Controller.ActionController").GetDeclaredMethods().Where(m => m.Name == "UpdateClosestCells");
+    return AccessTools.TypeByName("AM.Controller.ActionController").GetDeclaredMethods()
+      .Where(m => m.Name == "UpdateClosestCells");
   }
 
   //req.Target.Position -> req.Target.PositionOnAnotherThingMap(req.Grappler)
@@ -171,11 +184,13 @@ public static class Patch_AnimRenderer_Draw
   public static Matrix4x4 RootTransformOffset(object instance)
   {
     var root = AnimRenderer_RootTransform(instance);
-    if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
+    if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) &&
+        AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
     {
       var rootPos = root.Position();
       root.SetColumn(3, rootPos.ToBaseMapCoord(vehicle).WithY(rootPos.y));
     }
+
     return root;
   }
 }
@@ -197,10 +212,12 @@ public static class Patch_AnimRenderer_DrawPawns
   public static Vector3 GetWorldPositionOffset(ref object instance, Vector3 vector)
   {
     var result = GetWorldPositionOriginal(ref instance, vector);
-    if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
+    if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) &&
+        AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
     {
       return result.ToBaseMapCoord(vehicle).WithY(result.y);
     }
+
     return result;
   }
 
@@ -250,10 +267,12 @@ public static class Patch_AnimRenderer_DrawSingle
     f_RootPositionOffset = instance => result = (Vector3)f_RootPosition(instance);
     f_RootPositionOffset += instance =>
     {
-      if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
+      if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) &&
+          AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
       {
         return result.ToBaseMapCoord(vehicle);
       }
+
       return result;
     };
     var m_RootPositionOffset = ((Delegate)RootPositionOffset).Method;
@@ -315,10 +334,12 @@ public static class Patch_AnimPartSnapshot_GetWorldDirection
 [PatchLevel(Level.Sensitive)]
 public static class Patch_DraftedFloatMenuOptionsUI_ExecutionEnabledOnClick
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
+    ILGenerator generator)
   {
     var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldstr && ((string)c.operand).StartsWith("CRITICAL ERROR: Failed to force interrupt"));
+    var pos = codes.FindIndex(c =>
+      c.opcode == OpCodes.Ldstr && ((string)c.operand).StartsWith("CRITICAL ERROR: Failed to force interrupt"));
     var label = generator.DefineLabel();
 
     var ldarg1 = CodeInstruction.LoadArgument(1);

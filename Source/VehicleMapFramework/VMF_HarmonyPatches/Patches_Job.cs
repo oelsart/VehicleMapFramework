@@ -639,7 +639,7 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
     if (pawn?.Map is null)
       return false;
 
-    var map = ignoreThing?.Map ?? pawn.TargetMapOrThingMap;
+    var map = ignoreThing?.Map ?? pawn.ThingTargetMap;
     if (map is null)
       return true;
     if (pawn.Map != map && pawn.GroundMap == map.GroundMap)
@@ -1158,7 +1158,7 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
 
   private static Map ThingMapOrTargetMapOrPawnMap(Pawn pawn, LocalTargetInfo target)
   {
-    var map = target.Thing?.MapHeld ?? pawn.TargetMapOrPawnMap;
+    var map = target.Thing?.MapHeld ?? pawn.PawnTargetMap;
     return !target.Cell.InBounds(map) ? map.BaseMap() : map;
   }
 }

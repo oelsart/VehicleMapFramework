@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -178,23 +177,33 @@ public static class GenSightOnVehicle
   public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, AsAboveSoBelow.TargetBand? sourceBand,
     bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
   {
-    var flag = false;
-    if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+    var targetBand = AsAboveSoBelow.GetTargetBand(t);
+    if (t.def.size == IntVec2.One)
     {
-      start = start.ToBaseMapCoord(vehicle);
-      map = vehicle.Map;
-      flag = true;
+      Log.Message($"{start.ToBaseMapCoord(map)}, {t.PositionOnBaseMap}, {map}");
+      return LineOfSight(start.ToBaseMapCoord(map), t.PositionOnBaseMap, map.GroundMap, sourceBand, targetBand, skipFirstCell, validator);
+    }
+    foreach (var c in t.MovedOccupiedRect())
+    {
+      if (LineOfSight(start.ToBaseMapCoord(map), c, map.GroundMap, sourceBand, targetBand, skipFirstCell, validator))
+        return true;
     }
 
-    var targetBand = AsAboveSoBelow.GetTargetBand(t);
-    return t.def.size == IntVec2.One
-      ? LineOfSight(start, t.PositionOnBaseMapSpawned, map, sourceBand, targetBand, skipFirstCell, validator)
-      : t.OccupiedRect().Select(end => flag ? end.ToBaseMapCoord(vehicle) : end)
-        .Any(end2 => LineOfSight(start, end2, map, sourceBand, targetBand, skipFirstCell, validator));
+    return false;
   }
 
   public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map)
   {
+    if (map.IsVehicleMapOf(out var vehicle))
+    {
+      if (vehicle.Spawned)
+      {
+        start = start.ToBaseMapCoord(vehicle);
+        end = end.ToBaseMapCoord(vehicle);
+        map = vehicle.Map;
+      }
+      else return LineOfSightVehicleToVehicle(start, end, map, null, null);
+    }
     return LineOfSight(start, end, map, CellRect.SingleCell(start), CellRect.SingleCell(end));
   }
 
@@ -207,17 +216,6 @@ public static class GenSightOnVehicle
   public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect,
     AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand, Func<IntVec3, bool> validator = null)
   {
-    if (map.IsVehicleMapOf(out var vehicle))
-    {
-      if (vehicle.Spawned)
-      {
-        start = start.ToBaseMapCoord(vehicle);
-        end = end.ToBaseMapCoord(vehicle);
-        map = vehicle.Map;
-      }
-      else return LineOfSightVehicleToVehicle(start, end, map, sourceBand, targetBand, false, validator);
-    }
-
     if (!start.InBounds(map) || !end.InBounds(map)) return false;
 
     bool flag;

@@ -9,63 +9,6 @@ using static VehicleMapFramework.ModCompat.VanillaTemperatureExpanded;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatchCategory(PatchCategories.VTE)]
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_VTEPlaceWorkers_DrawGhost
-{
-  private static IEnumerable<MethodBase> TargetMethods()
-  {
-    yield return AccessTools.Method("VanillaTemperatureExpanded.Placeworker_AcUnit:DrawGhost");
-    yield return AccessTools.Method("VanillaTemperatureExpanded.PlaceWorker_HeaterWithOffset:DrawGhost");
-    yield return AccessTools.Method("VanillaTemperatureExpanded.PlaceWorker_TwoCellCooler:DrawGhost");
-    yield return AccessTools.Method("VanillaTemperatureExpanded.PlaceWorker_TwoCellHeater:DrawGhost");
-  }
-
-  // Find.CurrentMap -> thing?MapHeld ?? VehicleMapUtility.CurrentMap
-  // GenDraw.DrawFieldEdges -> GenDrawOnVehicle.DrawFieldEdges
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-  {
-    return new CodeMatcher(instructions, generator)
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
-      .SetOperandAndAdvance(CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
-      .CreateLabel(out var label)
-      .InsertAndAdvance(
-        CodeInstruction.LoadArgument(5),
-        new CodeInstruction(OpCodes.Brfalse_S, label),
-        CodeInstruction.LoadArgument(5),
-        new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld),
-        new CodeInstruction(OpCodes.Brfalse_S, label),
-        new CodeInstruction(OpCodes.Pop),
-        CodeInstruction.LoadArgument(5),
-        new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld))
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges2))
-      .Repeat(c => c
-        .InsertAndAdvance(CodeInstruction.LoadLocal(0))
-        .Operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges2)
-      .InstructionEnumeration();
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.VTE)]
-[HarmonyPatch("ProxyHeat.CompTemperatureSource", "PostDrawExtraSelectionOverlays")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_CompTemperatureSource_PostDrawExtraSelectionOverlays
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return new CodeMatcher(instructions)
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges2))
-      .Repeat(c => c
-        .InsertAndAdvance(
-          CodeInstruction.LoadArgument(0),
-          CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)),
-          new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld))
-        .SetOperandAndAdvance(CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges2))
-      .InstructionEnumeration();
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.VTE)]
 [HarmonyPatch("ProxyHeat.CompTemperatureSource", "TempTick")]
 [PatchLevel(Level.Safe)]
 public static class Patch_CompTemperatureSource_TempTick

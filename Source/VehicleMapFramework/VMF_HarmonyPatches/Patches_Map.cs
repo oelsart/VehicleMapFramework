@@ -461,19 +461,15 @@ public static class Patch_SoundStarter_PlayOneShot
 }
 
 [HarmonyPatch(typeof(Room), nameof(Room.DrawFieldEdges))]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Safe)]
 public static class Patch_Room_DrawFieldEdges
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static void Prefix(Room __instance, ref Command_FocusVehicleMap.FocusVehicleScope __state)
   {
-    return PatchHelper.CreateCodeMatcherFast(instructions)
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges2))
-      .InsertAndAdvance(
-        CodeInstruction.LoadArgument(0),
-        AccessTools.PropertyGetter(typeof(Room), nameof(Room.Map)).CallvirtInstruction)
-      .SetOperandAndAdvance(CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges2)
-      .InstructionEnumeration();
+    __state = new Command_FocusVehicleMap.FocusVehicleScope(__instance.Map.ParentVehicle);
   }
+  
+  public static void Finalizer(Command_FocusVehicleMap.FocusVehicleScope __state) => __state.Dispose();
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]

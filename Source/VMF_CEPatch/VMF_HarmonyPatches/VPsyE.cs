@@ -54,7 +54,7 @@ public static class Patch_VanillaPsycastExpanded_AOE_CheckIntercept
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
       return instructions.MethodReplacer(
-        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap),
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap),
         (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
   }
@@ -75,7 +75,7 @@ public static class Patch_VanillaPsycastExpanded_Hediff_Overshield_InterceptChec
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
     }
   }
 }
@@ -108,7 +108,7 @@ public static class Patch_VanillaPsycastExpanded_ImpactSomething
 
   private static Vector3 ExactPositionVehicleMapCoord(ProjectileCE instance)
   {
-    return instance.TargetMapOrThingMap.IsVehicleMapOf(out var vehicle)
+    return instance.ThingTargetMap.IsVehicleMapOf(out var vehicle)
       ? instance.ExactPosition.ToVehicleMapCoord(vehicle)
       : instance.ExactPosition;
   }

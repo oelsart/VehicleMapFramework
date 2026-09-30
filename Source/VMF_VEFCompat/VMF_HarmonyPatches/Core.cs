@@ -116,14 +116,15 @@ public static class Patch_PipeNet_Merge
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith))]
-[PatchLevel(Level.Safe)]
 public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
 {
+  [PatchLevel(Level.Safe)]
   public static void Prefix(ref IntVec3 c, Thing parent)
   {
     Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
   }
 
+  [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, ((Delegate)MapModified).Method);
