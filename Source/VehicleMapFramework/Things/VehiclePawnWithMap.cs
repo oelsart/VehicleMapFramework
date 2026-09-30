@@ -1318,6 +1318,25 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     base.DrawGUIOverlay();
     var map = CurrentLevel;
     DebugDrawHelper.DebugOnGUI(map.debugDrawer, map);
+
+    var viewRect = Find.CameraDriver.CurrentViewRect;
+    var currentMap = Find.CurrentMap == map;
+    var bounds = viewRect.ToBounds();
+    foreach (var thing in map.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay))
+    {
+      // CurrentMapのviewRectがPositionを含むThingについてはバニラメソッドで既に描画されている
+      if ((!currentMap || !viewRect.Contains(thing.Position)) && bounds.Contains(thing.DrawPos.Yto0()))
+      {
+        try
+        {
+          thing.DrawGUIOverlay();
+        }
+        catch (Exception ex)
+        {
+          Log.Error($"Exception drawing ThingOverlay for {thing}: {ex}");
+        }
+      }
+    }
   }
 
   public override string GetInspectString()

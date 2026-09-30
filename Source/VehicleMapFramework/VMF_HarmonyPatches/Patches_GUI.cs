@@ -11,61 +11,79 @@ using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-[HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
-[PatchLevel(Level.Safe)]
-public static class Patch_ThingOverlays_ThingOverlaysOnGUI
+[HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionOverlays))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_SelectionDrawer_DrawSelectionOverlays
 {
-  public static bool Prefix()
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    if (Event.current.type != EventType.Repaint) return true;
-    var bounds = Find.CameraDriver.CurrentViewRect.ToBounds();
-    var flag = Find.CurrentMap.IsVehicleMapOf(out var vehicle);
-    var vehicles = flag ? GetVehicles() : VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
-    foreach (var vehicle2 in vehicles)
-    {
-      if (!flag && bounds.Contains(vehicle2.DrawPos.Yto0()))
-      {
-        try
-        {
-          vehicle2.DrawGUIOverlay();
-        }
-        catch (Exception ex)
-        {
-          Log.Error($"Exception drawing ThingOverlay for {vehicle2}: {ex}");
-        }
-      }
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchStartForward(CodeMatch.Calls(
+        AccessTools.PropertyGetter(typeof(List<object>.Enumerator), nameof(List<>.Enumerator.Current))))
+      // FocusVehicleScopeはNullableでなければ、ループの1回目でdefaultがDisposeされてしまう
+      .DeclareLocal(typeof(Command_FocusVehicleMap.FocusVehicleScope?), out var scope)
+      .InsertAfterAndAdvance(
+        new CodeInstruction(OpCodes.Dup),
+        new CodeInstruction(OpCodes.Ldloca_S, scope),
+        ((Delegate)FocusOnVehicleMap).Method.CallInstruction)
+      .MatchStartForward(CodeMatch.Calls(
+        AccessTools.Method(typeof(List<object>.Enumerator), nameof(List<>.Enumerator.MoveNext))))
+      .Insert(
+        new CodeInstruction(OpCodes.Ldloc_S, scope),
+        ((Delegate)Dispose).Method.CallInstruction)
+      .InstructionEnumeration();
+  }
 
-      foreach (var thing in vehicle2.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay))
-      {
-        if (bounds.Contains(thing.DrawPos.Yto0()) /* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap)*/
-           ) //車両マップである時点でFoggedはスキップしていいはず
-        {
-          try
-          {
-            thing.DrawGUIOverlay();
-          }
-          catch (Exception ex)
-          {
-            Log.Error($"Exception drawing ThingOverlay for {thing}: {ex}");
-          }
-        }
-      }
-    }
+  private static void FocusOnVehicleMap(object obj, ref Command_FocusVehicleMap.FocusVehicleScope? __state)
+  {
+    var map = obj switch { Zone zone => zone.Map, Plan plan => plan.Map, Thing thing => thing.Map, _ => null };
+    __state = new Command_FocusVehicleMap.FocusVehicleScope(map.ParentVehicle);
+  }
+  
+  private static void Dispose(Command_FocusVehicleMap.FocusVehicleScope? __state) => __state?.Dispose();
+}
 
-    return !flag;
+//thingがIsOnVehicleMapだった場合回転の初期値num4にベースvehicleのAngleを与え、posはRotatePointで回転
+[HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
+[PatchLevel(Level.Safe)]
+public static class Patch_SelectionDrawer_DrawSelectionBracketFor
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    var codes = instructions.ToList();
+    var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 9);
+    var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+    var label = generator.DefineLabel();
 
-    IEnumerable<VehiclePawnWithMap> GetVehicles()
-    {
-      if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
-      {
-        foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>())
-          yield return vehicle2;
-      }
-      else
-      {
-        yield return vehicle;
-      }
-    }
+    codes[pos].labels.Add(label);
+    codes.InsertRange(pos,
+    [
+      CodeInstruction.LoadLocal(2),
+      new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+      CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
+      new CodeInstruction(OpCodes.Brfalse_S, label),
+      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+      CachedMethodInfo.m_FullAngle.CallInstruction,
+      new CodeInstruction(OpCodes.Conv_I4),
+      new CodeInstruction(OpCodes.Add),
+    ]);
+
+    var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 18);
+    var label2 = generator.DefineLabel();
+
+    codes[pos2].labels.Add(label2);
+    codes.InsertRange(pos2,
+    [
+      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+      new CodeInstruction(OpCodes.Brfalse_S, label2),
+      CodeInstruction.LoadLocal(2),
+      CachedMethodInfo.g_Thing_DrawPos.CallvirtInstruction,
+      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+      CachedMethodInfo.m_FullAngle.CallInstruction,
+      new CodeInstruction(OpCodes.Neg),
+      CachedMethodInfo.m_RotatePoint.CallInstruction
+    ]);
+    return codes;
   }
 }
 
