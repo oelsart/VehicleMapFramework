@@ -8,6 +8,8 @@ public class CompGangplank : CompVehicleEnterSpot
   private const int RateTicks = 30;
   private int ticks;
   private Vector3 pairDrawPos;
+  private Region regionA;
+  private Region regionB;
   
   public new CompProperties_Gangplank Props => (CompProperties_Gangplank)props;
   
@@ -20,6 +22,12 @@ public class CompGangplank : CompVehicleEnterSpot
   protected override TargetInfo AccessSpot => Pair ?? TargetInfo.Invalid;
 
   public override float MovePerTick(Pawn pawn) => 0.5f / pawn.TicksPerMoveCardinal;
+
+  public override void PostSpawnSetup(bool respawningAfterLoad)
+  {
+    base.PostSpawnSetup(respawningAfterLoad);
+    regionA = parent.GetRegion();
+  }
 
   public override void CompTickInterval(int delta)
   {
@@ -44,6 +52,7 @@ public class CompGangplank : CompVehicleEnterSpot
         {
           var anchor =
             GenSpawn.Spawn(VMF_DefOf.VMF_GangplankAnchor, pos.ToVehicleMapCoord(vehicle2).ToIntVec3(), vehicle2.VehicleMap);
+          regionB = anchor.GetRegion();
           Pair = anchor;
           anchor.TryGetComp<CompGangplank>()?.Pair = parent;
           pairDrawPos = anchor.DrawPos;
@@ -55,9 +64,21 @@ public class CompGangplank : CompVehicleEnterSpot
     {
       if ((Pair.DrawPos - pairDrawPos).MagnitudeHorizontalSquared() > 0.5f)
       {
+        Find.World.GetComponent<CrossMapRegionLinks>()?.RemoveLink(regionA, regionB);
         if (!Pair.Destroyed) Pair.Destroy();
         Pair = null;
       }
+    }
+  }
+
+  public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
+  {
+    base.PostDeSpawn(map, mode);
+    if (Pair is { Destroyed: false } && Pair.def == VMF_DefOf.VMF_GangplankAnchor)
+    {
+      Find.World.GetComponent<CrossMapRegionLinks>()?.RemoveLink(regionA, regionB);
+      Pair.Destroy();
+      Pair = null;
     }
   }
 }

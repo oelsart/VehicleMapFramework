@@ -11,7 +11,7 @@ public static class RegionTraverserAcrossMaps
   {
     private readonly Queue<Region> open = [];
 
-    private readonly HashSet<Region> close = [];
+    private readonly HashSet<int> close = [];
 
     private int numRegionsProcessed;
 
@@ -26,7 +26,7 @@ public static class RegionTraverserAcrossMaps
     private void QueueNewOpenRegion(Region region)
     {
       open.Enqueue(region);
-      close.Add(region);
+      close.Add(region.id);
     }
 
     private void FinalizeSearch()
@@ -44,6 +44,7 @@ public static class RegionTraverserAcrossMaps
       Clear();
       numRegionsProcessed = 0;
       QueueNewOpenRegion(root);
+      var linkComponent = Find.World.GetComponent<CrossMapRegionLinks>();
       while (open.Count > 0)
       {
         var region = open.Dequeue();
@@ -102,6 +103,16 @@ public static class RegionTraverserAcrossMaps
           }
         }
 
+        if (linkComponent is not null)
+        {
+          var links = linkComponent.GetConnectedRegions(region);
+          foreach (var region2 in links)
+          {
+            if (ValidateRegion(region, region2))
+              QueueNewOpenRegion(region2);
+          }
+        }
+
         if (region.Map.IsVehicleMapOf(out var vehicle))
         {
           if (vehicle.Map is { Disposed: false })
@@ -114,11 +125,11 @@ public static class RegionTraverserAcrossMaps
             }
           }
 
-          foreach (var def in EnterSpotDefs)
+          foreach (var def in GroundToVehicleAccessDefs)
           {
             foreach (var thing in region.ListerThings.ThingsOfDef(def))
             {
-              if (thing.TryGetComp<CompVehicleEnterSpot>() is not
+              if (thing.TryGetComp<CompGroundToVehicleAccess>() is not
                   { AvailableAccessSpot: { IsValid: true, Map.Disposed: false } accessSpot })
                 continue;
               
@@ -135,7 +146,7 @@ public static class RegionTraverserAcrossMaps
 
       bool ValidateRegion(Region from, Region to)
       {
-        return to != null && !close.Contains(to) &&
+        return to != null && !close.Contains(to.id) &&
                (to.type & traversableRegionTypes) != RegionType.None &&
                (entryCondition == null || entryCondition(from, to));
       }
@@ -148,10 +159,17 @@ public static class RegionTraverserAcrossMaps
 
   public static readonly RegionEntryPredicate PassAll;
 
+  // TODO 1.7: Remove
   public static List<ThingDef> EnterSpotDefs { get; } =
   [
     .. DefDatabase<ThingDef>.AllDefs
       .Where(d => d.HasComp<CompVehicleEnterSpot>())
+  ];
+  
+  private static List<ThingDef> GroundToVehicleAccessDefs { get; } =
+  [
+    .. DefDatabase<ThingDef>.AllDefs
+      .Where(d => d.HasComp<CompGroundToVehicleAccess>())
   ];
 
   public static District FloodAndSetDistricts(Region root, Map map, District existingRoom)

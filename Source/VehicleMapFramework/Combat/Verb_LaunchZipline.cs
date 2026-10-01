@@ -32,6 +32,10 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
 
   public override bool CanHitTargetFrom(IntVec3 root, LocalTargetInfo targ)
   {
+    if ((targ.Thing?.Map ?? caster.TargetMap) is { } map &&
+        targ.Cell.InBounds(map) && targ.Cell.GetTerrain(map) is { dangerous: true })
+      return false;
+    
     return targ.Thing switch
     {
       { } thing when thing == caster => targetParams.canTargetSelf,

@@ -12,7 +12,7 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
   private float maxDistance;
   private float maxDistSquared;
   private IntVec3 root;
-  private ThingRequest req;
+  private CrossMapRegionLinks linkComponent;
 
   public void SetParameters(TraverseParms _traverseParams, float _maxDistance, IntVec3 _root,
     bool ignoreEntirelyForbiddenRegions, ThingRequest req, PathEndMode peMode, Func<Thing, float> priorityGetter,
@@ -27,7 +27,7 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
     maxDistance = _maxDistance;
     root = _root;
     maxDistSquared = _maxDistance * _maxDistance;
-    this.req = req;
+    linkComponent = Find.World.GetComponent<CrossMapRegionLinks>();
   }
 
   public new void Clear()
@@ -41,15 +41,43 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
     if (to.Room is null || !to.Allows(traverseParams, false)) return false;
 
     // 車両マップからベースマップのdangerousなterrainに降りるのを禁止
-    if (traverseParams.avoidPersistentDanger &&
-        from.Map != to.Map && from.Map.IsVehicleMapOf(out var vehicle) && !to.Map.IsVehicleMap &&
-        vehicle.Position.GetTerrain(vehicle.Map) is not { dangerous: false })
+    if (traverseParams.avoidPersistentDanger && !CanDescendToSafeTerrain(from, to))
       return false;
 
     if (maxDistance > 5000f) return true;
 
     var rootCell = to.Map.IsVehicleMapOf(out var vehicle2) ? root.ToVehicleMapCoord(vehicle2) : root;
     return to.extentsClose.ClosestDistSquaredTo(rootCell) < maxDistSquared;
+  }
+
+  private bool CanDescendToSafeTerrain(Region from, Region to)
+  {
+    if (linkComponent is not null)
+    {
+      foreach (var link in linkComponent.GetConnectedRegions(from))
+      {
+        if (link.id == to.id)
+          return true;
+      }
+    }
+    if (from.Map == to.Map || !from.Map.IsVehicleMapOf(out var vehicle) || to.Map.IsVehicleMap)
+      return true;
+
+    var cachedMapEdgeCells = vehicle.CachedMapEdgeCells;
+    var cachedWalkableMapEdgeCells = vehicle.CachedWalkableMapEdgeCells;
+    for (var i = 0; i < cachedMapEdgeCells.Count; i++)
+    {
+      var c = cachedMapEdgeCells[i];
+      if (cachedWalkableMapEdgeCells.TryGetValue(c, out var district) &&
+          district == from.District &&
+          vehicle.GetCachedEnterPosition(i) is { IsValid: true } c2 &&
+          c2.GetTerrain(to.Map) is { dangerous: false })
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   protected override bool RegionProcessor(Region reg)

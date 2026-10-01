@@ -7,6 +7,9 @@ namespace VehicleMapFramework;
 
 public class CompZipline : CompVehicleEnterSpot
 {
+  private Region regionA;
+  private Region regionB;
+  
   public new CompProperties_Zipline Props => (CompProperties_Zipline)props;
 
   public Verb_LaunchZipline LaunchVerb
@@ -57,6 +60,23 @@ public class CompZipline : CompVehicleEnterSpot
   {
     base.PostSpawnSetup(respawningAfterLoad);
     IsZiplineEnd = parent is ZiplineEnd;
+    if (!IsZiplineEnd) return;
+    LongEventHandler.ExecuteWhenFinished(() =>
+    {
+      if (Find.World.GetComponent<CrossMapRegionLinks>() is not { } component ||
+          Pair is not { Spawned: true })
+        return;
+      
+      regionA = parent.GetRegion();
+      regionB = Pair.GetRegion();
+      component.AddLink(regionA, regionB);
+    });
+  }
+
+  public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
+  {
+    base.PostDeSpawn(map, mode);
+    Find.World.GetComponent<CrossMapRegionLinks>()?.RemoveLink(regionA, regionB);
   }
 
   public override void PostDraw()
