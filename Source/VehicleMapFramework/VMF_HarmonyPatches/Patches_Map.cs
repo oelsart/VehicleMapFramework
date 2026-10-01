@@ -211,9 +211,9 @@ public static class Patch_ResourceCounter_UpdateResourceCounts
 {
   public static void Postfix(Map ___map, Dictionary<ThingDef, int> ___countedAmounts)
   {
-    foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
+    foreach (var map in ___map.BaseMapAndVehicleMaps(false))
     {
-      var allGroupsListForReading = vehicle.VehicleMap.haulDestinationManager.AllGroupsListForReading;
+      var allGroupsListForReading = map.haulDestinationManager.AllGroupsListForReading;
       foreach (var t in allGroupsListForReading)
       {
         foreach (var outerThing in t.HeldThings)
