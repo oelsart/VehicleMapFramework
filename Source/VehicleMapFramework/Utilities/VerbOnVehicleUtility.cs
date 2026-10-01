@@ -19,8 +19,8 @@ public static class VerbOnVehicleUtility
       bool ignoreRange = false)
     {
       resultingLine = default;
-      var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned;
-      var flag2 = targ.Thing.IsOnVehicleMapOf(out var vehicle2) && vehicle2.Spawned;
+      var flag = verb.caster.IsOnVehicleMapOf(out var vehicle);
+      var flag2 = targ.Thing.IsOnVehicleMapOf(out var vehicle2);
       VehiclePawnWithMap vehicle3 = null;
       var flag3 = verb.caster.PawnOrThingTargetMap is { } map && map.IsVehicleMapOf(out vehicle3);
       //if (!flag && !flag2 && !flag3)

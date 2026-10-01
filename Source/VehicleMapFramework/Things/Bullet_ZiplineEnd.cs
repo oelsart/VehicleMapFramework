@@ -55,7 +55,6 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
         {
             var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(ZipLineData.ZiplineEndDef);
             ziplineEnd.launchVerb = launchVerb;
-            ziplineEnd.rotation = ExactRotation.eulerAngles.y;
             ziplineEnd.ZipLineData = ZipLineData;
             GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, destMap);
         }

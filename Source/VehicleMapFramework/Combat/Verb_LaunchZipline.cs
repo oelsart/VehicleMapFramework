@@ -32,26 +32,12 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
 
   public override bool CanHitTargetFrom(IntVec3 root, LocalTargetInfo targ)
   {
-
-    if (targ.Thing is { } thing && thing == caster)
-      return targetParams.canTargetSelf;
-
-    if ((targ.Pawn is null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) &&
-        !ApparelPreventsShooting())
+    return targ.Thing switch
     {
-      if (caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned &&
-          caster.PawnOrThingTargetMap is { } map && caster.Map != map)
-      {
-        var sourceBand = AsAboveSoBelow.GetTargetBand(caster);
-        var targetBand = AsAboveSoBelow.GetTargetBand(targ.Thing);
-        return GenSightOnVehicle.LineOfSightVehicleToVehicle(
-          caster.PositionOnBaseMap, targ.TargetCellOnBaseMap(caster), caster.Map, sourceBand, targetBand);
-      }
-
-      return this.TryFindShootLineFromToOnVehicle(root, targ, out _);
-    }
-
-    return false;
+      { } thing when thing == caster => targetParams.canTargetSelf,
+      _ => (targ.Pawn is null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) &&
+           !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _)
+    };
   }
 
   protected override bool TryCastShot()
@@ -88,9 +74,12 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
 
     var drawPos = caster.DrawPos;
     var offset = caster.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
+    var source = resultingLine.Source;
     if (caster.IsOnNonFocusedVehicleMapOf(out var vehicle))
     {
       offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
+      if (!vehicle.Spawned)
+        source = source.ToVehicleMapCoord(vehicle);
     }
 
     drawPos += offset;
@@ -107,7 +96,8 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
       }
     }
 
-    GenSpawn.Spawn(projectile2, resultingLine.Source, caster.GroundMap);
+    
+    GenSpawn.Spawn(projectile2, source, caster.GroundMap);
     if (verbProps.ForcedMissRadius > 0.5f)
     {
       var num = verbProps.ForcedMissRadius;

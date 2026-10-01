@@ -6,11 +6,7 @@ namespace VehicleMapFramework;
 
 public class Building_TurretGunForcedTargetOnly : Building_TurretGun
 {
-  private bool canSetForcedTargetThisTick;
-
-  // ターゲッターによりTargetMapがセットされGUI上で不必要にターゲットにオフセットがかかることを防ぐ
-  protected override bool CanSetForcedTarget =>
-    canSetForcedTargetThisTick || !forcedTarget.IsValid && interactableComp is not CompInteractableRocketswarmLauncher;
+  protected override bool CanSetForcedTarget => Faction == Faction.OfPlayer;
 
   public new LocalTargetInfo ForcedTarget
   {
@@ -31,9 +27,7 @@ public class Building_TurretGunForcedTargetOnly : Building_TurretGun
       return;
     }
 
-    canSetForcedTargetThisTick = true;
     base.Tick();
-    canSetForcedTargetThisTick = false;
   }
 
   protected override void TickInterval(int delta)

@@ -335,8 +335,7 @@ public static class VehicleMapUtility
            tDef.graphic is not Graphic_Single and not Graphic_Collection ||
            tDef.hasInteractionCell ||
            tDef.drawerType == DrawerType.MapMeshOnly ||
-           tDef.drawerType == DrawerType.MapMeshAndRealTime ||
-           tDef.size.x != tDef.size.z;
+           tDef.drawerType == DrawerType.MapMeshAndRealTime;
   }
 
   public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)

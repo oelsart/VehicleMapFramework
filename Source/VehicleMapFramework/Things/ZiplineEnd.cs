@@ -7,8 +7,6 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 {
   public Verb_LaunchZipline launchVerb;
 
-  public float rotation;
-
   public CustomZipline.ZipLineData ZipLineData { get; set; }
 
   public override void SpawnSetup(Map map, bool respawningAfterLoad)
@@ -53,7 +51,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
   {
     if (def.drawerType == DrawerType.RealtimeOnly && launchVerb is { caster.Spawned: true })
     {
-      rotation = (drawLoc - launchVerb.caster.DrawPos).AngleFlat();
+      var rotation = (drawLoc - launchVerb.caster.DrawPos).AngleFlat();
       Graphic.Draw(drawLoc, Rot4.North, this, rotation);
     }
 
@@ -66,6 +64,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
   public void DrawZipline(Vector3 drawLoc)
   {
+    var rotation = (drawLoc - launchVerb.caster.DrawPos).AngleFlat();
     DrawZipline(drawLoc, rotation, launchVerb, ZipLineData);
   }
 
@@ -80,7 +79,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     {
       if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle))
       {
-        offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
+        offset = offset.RotatedBy(vehicle.ExtraAngle);
       }
 
       launcherPos += offset.ToVector3();
@@ -114,7 +113,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     if (Scribe.mode == LoadSaveMode.PostLoadInit)
     {
       var customZipline = launchVerb?.verbProps?.defaultProjectile?.GetModExtension<CustomZipline>();
-      if (customZipline != null)
+      if (customZipline is not null)
       {
         ZipLineData = customZipline.zipLineData;
       }

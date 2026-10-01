@@ -341,7 +341,7 @@ public static class Patch_Graphic_Draw
 {
   public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
   {
-    if (thing is { def.category: ThingCategory.Item or ThingCategory.Ethereal })
+    if (thing is not { def.category: ThingCategory.Building })
       return;
     
     if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly)
@@ -362,7 +362,7 @@ public static class Patch_Graphic_Draw
 
       if (thing is not Building_Bookcase || thing.Graphic == __instance)
       {
-        if (def.size.x != def.size.z || thing is Building_SupportedDoor || def.rotatable ||
+        if (def.size != IntVec2.One || thing is Building_SupportedDoor || def.rotatable ||
             def.graphicData is { drawRotated: true, Linked: false } && !SameMaterialByRot())
         {
           rot.AsInt += baseRotInt;
