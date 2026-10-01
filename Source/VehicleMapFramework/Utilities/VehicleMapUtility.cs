@@ -251,8 +251,13 @@ public static class VehicleMapUtility
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public static bool TryGetVehicleMap(this IntVec3 c, Map map, out VehiclePawnWithMap vehicle)
   {
+    if (!c.InBounds(map))
+    {
+      vehicle = null;
+      return false;
+    }
     vehicle = MapComponentCache<VehicleMapGrid>.GetComponent(map).VehicleAt(c);
-    return vehicle != null;
+    return vehicle is not null;
   }
 
   //thingが車両マップ上にあったらthingの中心を基準として位置と回転を下の車両基準に回転するわよ

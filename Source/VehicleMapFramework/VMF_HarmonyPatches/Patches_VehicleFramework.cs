@@ -1125,7 +1125,7 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
         }
       }
     }
-    else if (cell.InBounds(Find.CurrentMap) && cell.TryGetVehicleMap(Find.CurrentMap, out vehicle2) || vehicle.IsOnNonFocusedVehicleMapOf(out _))
+    else if (cell.TryGetVehicleMap(Find.CurrentMap, out vehicle2) || vehicle.IsOnNonFocusedVehicleMapOf(out _))
     {
       var dest = vehicle2 != null ? cell.ToVehicleMapCoord(vehicle2) : cell;
       map = vehicle2 != null ? vehicle2.VehicleMap : Find.CurrentMap;

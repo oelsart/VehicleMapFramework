@@ -197,7 +197,7 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 {
   public static void PrefixCommon(ref sbyte? __state)
   {
-    if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) ||
+    if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle ||
         UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle))
     {
       __state = Current.Game.currentMapIndex;

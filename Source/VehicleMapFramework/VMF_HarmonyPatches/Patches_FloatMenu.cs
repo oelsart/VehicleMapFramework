@@ -417,7 +417,6 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
   public static bool Prefix(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, bool reachable,
     ref IntVec3 __result)
   {
-    VehiclePawnWithMap vehicle = null;
     VehiclePawnWithMap vehicle2 = null;
     if (searcher.TryGetTargetMap(out var map))
     {
@@ -428,8 +427,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
         return false;
       }
     }
-    else if ((root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle)) ||
-             searcher.IsOnNonFocusedVehicleMapOf(out vehicle2))
+    else if (root.TryGetVehicleMap(Find.CurrentMap, out var vehicle) || searcher.IsOnNonFocusedVehicleMapOf(out vehicle2))
     {
       if (vehicle is null && vehicle2 is not { Spawned: true })
         UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle, VehicleMapFlag.None);

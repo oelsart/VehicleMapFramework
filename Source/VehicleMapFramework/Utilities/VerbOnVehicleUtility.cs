@@ -22,7 +22,7 @@ public static class VerbOnVehicleUtility
       var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned;
       var flag2 = targ.Thing.IsOnVehicleMapOf(out var vehicle2) && vehicle2.Spawned;
       VehiclePawnWithMap vehicle3 = null;
-      var flag3 = verb.caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out vehicle3);
+      var flag3 = verb.caster.PawnOrThingTargetMap is { } map && map.IsVehicleMapOf(out vehicle3);
       //if (!flag && !flag2 && !flag3)
       //{
       //    return verb.TryFindShootLineFromTo(root, targ, out resultingLine, ignoreRange);
@@ -38,12 +38,9 @@ public static class VerbOnVehicleUtility
       }
 
       // 車両マップの下から上や上から下への射線は通らないものとする
-      if (flag && !flag2 && targ.Cell.InBounds(casterBaseMap) &&
-          targ.Cell.TryGetVehicleMap(casterBaseMap, out var vehicle4) && vehicle4 == vehicle2 ||
-          !flag && flag2 && verb.caster.Position.TryGetVehicleMap(casterBaseMap, out vehicle4) &&
-          vehicle4 == vehicle ||
-          !flag && flag3 && verb.caster.Position.TryGetVehicleMap(casterBaseMap, out vehicle4) &&
-          vehicle4 == vehicle3)
+      if (flag && !flag2 && targ.Cell.TryGetVehicleMap(casterBaseMap, out var vehicle4) && vehicle4 == vehicle2 ||
+          !flag && flag2 && verb.caster.Position.TryGetVehicleMap(casterBaseMap, out vehicle4) && vehicle4 == vehicle ||
+          !flag && flag3 && verb.caster.Position.TryGetVehicleMap(casterBaseMap, out vehicle4) && vehicle4 == vehicle3)
       {
         resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
         return false;

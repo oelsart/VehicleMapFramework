@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using SmashTools;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
@@ -33,12 +32,26 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
 
   public override bool CanHitTargetFrom(IntVec3 root, LocalTargetInfo targ)
   {
-    return targ.Thing switch
+
+    if (targ.Thing is { } thing && thing == caster)
+      return targetParams.canTargetSelf;
+
+    if ((targ.Pawn is null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) &&
+        !ApparelPreventsShooting())
     {
-      { } t when t == caster => targetParams.canTargetSelf,
-      _ => (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) &&
-           !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _)
-    };
+      if (caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned &&
+          caster.PawnOrThingTargetMap is { } map && caster.Map != map)
+      {
+        var sourceBand = AsAboveSoBelow.GetTargetBand(caster);
+        var targetBand = AsAboveSoBelow.GetTargetBand(targ.Thing);
+        return GenSightOnVehicle.LineOfSightVehicleToVehicle(
+          caster.PositionOnBaseMap, targ.TargetCellOnBaseMap(caster), caster.Map, sourceBand, targetBand);
+      }
+
+      return this.TryFindShootLineFromToOnVehicle(root, targ, out _);
+    }
+
+    return false;
   }
 
   protected override bool TryCastShot()
@@ -171,9 +184,10 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
       return;
     }
 
-    if (target.IsValid && JumpUtility.ValidJumpTarget(caster, caster.Map, target.Cell))
+    if (target.IsValid && JumpUtility.ValidJumpTarget(caster, caster.TargetMap, target.Cell))
     {
-      GenDraw.DrawTargetHighlightWithLayer(target.CenterVector3, AltitudeLayer.MetaOverlays);
+      var vector3 = Patch_Verb_Jump_DrawHighlight.CenterVector3Offset(ref target, this);
+      GenDraw.DrawTargetHighlightWithLayer(vector3, AltitudeLayer.MetaOverlays);
     }
 
     GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white,

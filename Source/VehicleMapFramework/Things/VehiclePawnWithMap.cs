@@ -1043,12 +1043,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       Find.Selector.Deselect(zone);
     }
 
-    var crossMapHaulDestinationManager = Map.GetCachedMapComponent<CrossMapHaulDestinationManager>();
-    foreach (var haulDestination in interiorMap.haulDestinationManager.AllHaulDestinations)
-    {
-      crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);
-    }
-
     CrossMapReachabilityCache.ClearCacheFor(interiorMap);
     base.DeSpawn(mode);
   }

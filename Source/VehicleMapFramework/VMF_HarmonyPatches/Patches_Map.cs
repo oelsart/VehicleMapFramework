@@ -8,7 +8,6 @@ using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
-using SmashTools;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -470,36 +469,6 @@ public static class Patch_Room_DrawFieldEdges
   }
   
   public static void Finalizer(Command_FocusVehicleMap.FocusVehicleScope __state) => __state.Dispose();
-}
-
-[HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_HaulDestinationManager_AddHaulDestination
-{
-  public static void Postfix(Map ___map, IHaulDestination haulDestination)
-  {
-    ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulDestination(haulDestination);
-  }
-}
-
-[HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulDestination))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_HaulDestinationManager_RemoveHaulDestination
-{
-  public static void Postfix(Map ___map, IHaulDestination haulDestination)
-  {
-    ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulDestination(haulDestination);
-  }
-}
-
-[HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.Notify_HaulDestinationChangedPriority))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPriority
-{
-  public static void Postfix(Map ___map)
-  {
-    ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().Notify_HaulDestinationChangedPriority();
-  }
 }
 
 //極端に小さいマップではCeilToIntのせいで毎tick必ずどこかのセルの物が劣化する処理だったんでこれを車両マップ上では緩和

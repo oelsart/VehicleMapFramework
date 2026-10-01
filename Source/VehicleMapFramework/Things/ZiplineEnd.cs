@@ -49,15 +49,6 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     base.Notify_MyMapRemoved();
   }
 
-  public override void Print(SectionLayer layer)
-  {
-    Graphic.Print(layer, this, rotation);
-    foreach (var comp in AllComps)
-    {
-      comp.PostPrintOnto(layer);
-    }
-  }
-
   protected override void DrawAt(Vector3 drawLoc, bool flip = false)
   {
     if (def.drawerType == DrawerType.RealtimeOnly && launchVerb is { caster.Spawned: true })
@@ -75,8 +66,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
   public void DrawZipline(Vector3 drawLoc)
   {
-    var rot = rotation;
-    DrawZipline(drawLoc, rot, launchVerb, ZipLineData);
+    DrawZipline(drawLoc, rotation, launchVerb, ZipLineData);
   }
 
   public static void DrawZipline(Vector3 drawLoc, float rotation, Verb_LaunchZipline launchVerb,

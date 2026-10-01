@@ -447,7 +447,7 @@ public static class Patch_JumpUtility_ValidJumpTarget
     working = true;
     try
     {
-      if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+      if (map.IsVehicleMapOf(out var vehicle))
       {
         if (vehicle.Spawned)
         {

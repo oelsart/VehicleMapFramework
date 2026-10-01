@@ -171,10 +171,10 @@ public static class GenUIOnVehicle
     }
 
     if (thingsOnly) yield break;
-    var intVec = (convToVehicleMap && vehicle != null)
+    var intVec = (convToVehicleMap && vehicle is not null)
       ? clickPos.ToVehicleMapCoord(vehicle).ToIntVec3()
       : clickPos.ToIntVec3();
-    var map = (convToVehicleMap && vehicle != null) ? vehicle.VehicleMap : Find.CurrentMap;
+    var map = (convToVehicleMap && vehicle is not null) ? vehicle.VehicleMap : Find.CurrentMap;
     if (intVec.InBounds(map, clickParams.mapBoundsContractedBy) &&
         clickParams.CanTarget(new TargetInfo(intVec, map), source))
     {

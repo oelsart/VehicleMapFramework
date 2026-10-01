@@ -77,8 +77,6 @@ public class CompPipeConnector : ThingComp
       for (var i = 0; i < num; i++)
       {
         var c = pos + GenRadial.RadialPattern[i];
-        if (!c.InBounds(parent.Map)) continue;
-
         if (c.TryGetVehicleMap(parent.Map, out var vehicle))
         {
           var c2 = c.ToVehicleMapCoord(vehicle);
