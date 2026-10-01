@@ -16,7 +16,7 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
   public static bool Prefix(ref IEnumerable<object> __result)
   {
     var mouseMapPosition = UI.MouseMapPosition();
-    if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.All))
+    if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle))
     {
       return true;
     }
