@@ -483,29 +483,52 @@ public static class Patch_SubEffecter_Sprayer_MakeMote
 }
 
 [HarmonyPatch(typeof(PlaceWorker_SpectatorPreview), nameof(PlaceWorker_SpectatorPreview.DrawSpectatorPreview))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_SpectatorPreview_DrawSpectatorPreview
 {
-  [PatchLevel(Level.Safe)]
-  public static void Prefix(ref Rot4 rot)
-  {
-    if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
-      rot.AsInt += vehicle.FullRotation.RotForVehicleDraw().AsInt;
-  }
-
-  [PatchLevel(Level.Sensitive)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
-      .InsertAndAdvance(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction)
+      .MatchStartForward(CodeMatch.Calls(((Delegate)SpectatorCellFinder.AsRot4).Method))
       .Advance()
       .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
       .CreateLabel(out var label)
       .InsertAndAdvance(
         new CodeInstruction(OpCodes.Ldloca_S, vehicle),
         CachedMethodInfo.m_FocusedOnVehicleMap.CallInstruction,
-        new CodeInstruction(OpCodes.Brfalse_S, label))
-      .MultiplyExtraAngleQuat(vehicle)
+        new CodeInstruction(OpCodes.Brfalse_S, label),
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        ((Delegate)AddVehicleRot).Method.CallInstruction)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsAngle))
+      .Advance()
+      .CreateLabel(out var label2)
+      .InsertAndAdvance(
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Brfalse_S, label2),
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        CachedMethodInfo.m_ExtraAngle.CallInstruction,
+        new CodeInstruction(OpCodes.Add))
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
+      .Advance()
+      .CreateLabel(out var label3)
+      .Insert(
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Brfalse_S, label3),
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        CachedMethodInfo.m_ExtraAngle.CallInstruction,
+        CachedMethodInfo.g_Vector3_up.CallInstruction,
+        CachedMethodInfo.m_Quaternion_AngleAxis.CallInstruction,
+        CachedMethodInfo.o_Quaternion_Multiply.CallInstruction)
       .InstructionEnumeration();
   }
+
+  private static Rot4 AddVehicleRot(Rot4 rot, VehiclePawn vehicle) =>
+    new(rot.AsInt + vehicle.FullRotation.RotForVehicleDraw().AsInt);
+}
+
+[HarmonyPatch(typeof(SpectatorCellFinder), nameof(SpectatorCellFinder.GraphicOffsetForRect))]
+[PatchLevel(Level.Safe)]
+public static class Patch_SpectatorCellFinder_GraphicOffsetForRect
+{
+  public static void Postfix(ref Vector3 __result) => __result = __result.ToBaseMapCoord();
 }
