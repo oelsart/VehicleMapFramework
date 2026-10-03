@@ -69,9 +69,9 @@ public static class TargetMapUtility
       return result && map != null;
     }
 
-    public Map ThingTargetMap => thing.TargetMap ?? thing.Map;
+    public Map TargetMapOrMap => thing.TargetMap ?? thing.Map;
 
-    public Map PawnOrThingTargetMap => thing is Pawn pawn ? pawn.PawnTargetMap : thing.ThingTargetMap;
+    public Map PawnOrThingTargetMap => thing is Pawn pawn ? pawn.PawnTargetMap : thing.TargetMap;
 
     public IntVec3 PositionOnTargetMap
     {
@@ -100,14 +100,14 @@ public static class TargetMapUtility
 
   extension(Pawn pawn)
   {
-    public Map PawnTargetMap => pawn.TargetMap ?? pawn.CurJob?.globalTarget.Map ?? pawn.Map;
+    public Map PawnTargetMap => pawn.TargetMap ?? pawn.CurJob?.globalTarget.Map;
   }
 
   public static IntVec3 TargetCellOnBaseMap(this ref LocalTargetInfo targ, Thing thing)
   {
     return targ.HasThing
       ? targ.Thing.PositionOnBaseMap
-      : targ.Cell.ToBaseMapCoord(thing switch { Pawn pawn => pawn.PawnTargetMap, _ => thing.ThingTargetMap });
+      : targ.Cell.ToBaseMapCoord(thing.PawnOrThingTargetMap);
   }
 
   public static Map TargetMapOrMap(Map map, Thing thing)

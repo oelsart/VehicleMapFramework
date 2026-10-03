@@ -106,7 +106,7 @@ public static class Patch_Patch_JobDriver_HaulToCell_NoCellReservation_Prefix
       .InstructionEnumeration();
   }
 
-  private static Map TargetMap(Pawn pawn, JobDriver driver) => driver.job?.globalTarget.Map ?? pawn.ThingTargetMap;
+  private static Map TargetMap(Pawn pawn, JobDriver driver) => driver.job?.globalTarget.Map ?? pawn.TargetMapOrMap;
 }
 
 [HarmonyPatchCategory(PatchCategories.HaulersDream)]

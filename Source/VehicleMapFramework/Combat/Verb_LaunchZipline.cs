@@ -193,7 +193,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
   public override void OnGUI(LocalTargetInfo target)
   {
     if (!target.IsValid) return;
-    if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, caster.ThingTargetMap, target.Cell))
+    if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, caster.TargetMapOrMap, target.Cell))
     {
       base.OnGUI(target);
       return;

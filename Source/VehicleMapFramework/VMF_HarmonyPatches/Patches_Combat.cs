@@ -205,7 +205,7 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
 
   private static void VanillaIntercept(Projectile instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos)
   {
-    var list = instance.ThingTargetMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
+    var list = instance.TargetMapOrMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
     for (var i = 0; i < list.Count; i++)
     {
       if (Patch_CompProjectileInterceptor_CheckIntercept.CheckIntercept(

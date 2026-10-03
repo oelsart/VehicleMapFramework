@@ -101,7 +101,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_TargetMapOrMap = ((Delegate)TargetMapUtility.TargetMapOrMap).Method;
 
-    public readonly MethodInfo m_ThingTargetMap = ((Delegate)TargetMapUtility.get_ThingTargetMap).Method;
+    public readonly MethodInfo m_ThingTargetMap = ((Delegate)TargetMapUtility.get_TargetMapOrMap).Method;
 
     public readonly MethodInfo m_PawnTargetMap = ((Delegate)TargetMapUtility.get_PawnTargetMap).Method;
     
