@@ -847,12 +847,11 @@ public static class VehicleMapUtility
     {
       var rot = thing.Rotation;
 
-      if (VehicleSectionLayerManager.RotForPrint != Rot4.North && (thing.def.size.x != thing.def.size.z ||
-                                                                   (thing.def.rotatable ||
-                                                                    thing.def.graphicData is not
-                                                                      { drawRotated: true }) &&
-                                                                   thing.Graphic is Graphic_Multi &&
-                                                                   !SameMaterialByRot()))
+      if (VehicleSectionLayerManager.RotForPrint != Rot4.North &&
+          ((thing.def.size.x != thing.def.size.z ||
+           thing.def.rotatable || thing.def.graphicData is { drawRotated: true }) &&
+           thing.Graphic is Graphic_Multi &&
+           !SameMaterialByRot()))
       {
         rot.AsInt += VehicleSectionLayerManager.RotForPrint.AsInt;
       }

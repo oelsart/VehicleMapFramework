@@ -114,13 +114,12 @@ public static class Patch_Dialog_SplitCaravan_TrySplitCaravan
 
       foreach (var thing in transferable.things)
       {
-        if (thing.IsOnVehicleMapOf(out _))
+        if (thing.IsOnVehicleMap)
         {
           var count2 = Math.Min(count, thing.stackCount);
           count -= count2;
           var thing2 = thing.SplitOff(count2);
           ___caravan.AddPawnOrItem(thing2, false);
-          ___transferables.RemoveAt(i);
         }
       }
     }
