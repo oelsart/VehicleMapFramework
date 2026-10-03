@@ -108,7 +108,7 @@ public static class Patch_VanillaPsycastExpanded_ImpactSomething
 
   private static Vector3 ExactPositionVehicleMapCoord(ProjectileCE instance)
   {
-    return instance.ThingTargetMap.IsVehicleMapOf(out var vehicle)
+    return instance.TargetMapOrMap.IsVehicleMapOf(out var vehicle)
       ? instance.ExactPosition.ToVehicleMapCoord(vehicle)
       : instance.ExactPosition;
   }

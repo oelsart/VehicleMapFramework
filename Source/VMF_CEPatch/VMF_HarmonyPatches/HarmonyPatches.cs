@@ -549,7 +549,7 @@ public static class Patch_BlockerRegistry_CheckForCollisionBetweenCallback
 
   private static bool VanillaIntercept(ProjectileCE projectile, Vector3 from, Vector3 to)
   {
-    var list = projectile.ThingTargetMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
+    var list = projectile.TargetMapOrMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
     for (var i = 0; i < list.Count; ++i)
     {
       if (Patch_ProjectileCE_CheckIntercept.CheckIntercept(projectile, list[i], list[i].TryGetComp<CompProjectileInterceptor>()))

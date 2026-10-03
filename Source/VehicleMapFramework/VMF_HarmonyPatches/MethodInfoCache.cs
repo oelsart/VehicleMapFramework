@@ -191,8 +191,6 @@ public class MethodInfoCache
 
     public readonly MethodInfo o_Quaternion_Multiply = AccessTools.Method(typeof(Quaternion), "op_Multiply", [typeof(Quaternion), typeof(Quaternion)]);
 
-    public readonly MethodInfo m_GenDraw_DrawFillableBar = ((Delegate)GenDraw.DrawFillableBar).Method;
-
     public readonly MethodInfo g_Designator_Map = AccessTools.PropertyGetter(typeof(Designator), nameof(Designator.Map));
 
     public readonly MethodInfo g_Thing_Rotation = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Rotation));
