@@ -74,25 +74,26 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
     //    new CodeInstruction(OpCodes.Pop));
 
     //HaulToHopperJob(thing, intVec, map) -> HaulToHopperJob(thing, intVec, TargetMapManager.TargetMapOrMap(map, pawn))
+    var m_TargetMapOrMap = ((Delegate)TargetMapUtility.TargetMapOrMap).Method;
     var m_HaulToHopperJob = AccessTools.Method("PickUpAndHaul.WorkGiver_HaulToInventory:HaulToHopperJob");
     codes.MatchStartForward(CodeMatch.Calls(m_HaulToHopperJob));
     codes.Insert(
       CodeInstruction.LoadArgument(1),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetMapOrMap));
+      new CodeInstruction(OpCodes.Call, m_TargetMapOrMap));
 
     //CapacityAt(thing, storeTarget.cell, map) -> CapacityAt(thing, storeTarget.cell, TargetMapManager.TargetMapOrMap(map, pawn))
     var m_CapacityAt = AccessTools.Method("PickUpAndHaul.WorkGiver_HaulToInventory:CapacityAt");
     codes.MatchStartForward(CodeMatch.Calls(m_CapacityAt));
     codes.Insert(
       CodeInstruction.LoadArgument(1),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetMapOrMap));
+      new CodeInstruction(OpCodes.Call, m_TargetMapOrMap));
 
     //storeTarget.Position -> storeTarget.Position.ToBaseMapCoord(TargetMapManager.TargetMapOrThingMap(pawn))
     var g_Position = AccessTools.PropertyGetter("PickUpAndHaul.WorkGiver_HaulToInventory+StoreTarget:Position");
     codes.MatchStartForward(CodeMatch.Calls(g_Position));
     codes.InsertAfter(
       CodeInstruction.LoadArgument(1),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PawnTargetMap),
+      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PawnTargetMapOrMap),
       ((Func<IntVec3, Map, IntVec3>)VehicleMapUtility.ToBaseMapCoord).Method.CallInstruction);
     var num = 0;
     return codes.Instructions().Manipulator(c => c.Calls(CachedMethodInfo.g_Thing_Position),
@@ -155,7 +156,7 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
   [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMapOrMap);
   }
 }
 
@@ -166,7 +167,7 @@ public static class Patch_WorkGiver_HaulToInventory_Stackable
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap);
   }
 }
 

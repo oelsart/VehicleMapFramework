@@ -120,7 +120,7 @@ public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Prefix
         .Set(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing)
         .InstructionEnumeration()
         .MethodReplacer(
-          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap),
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap),
           (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
   }

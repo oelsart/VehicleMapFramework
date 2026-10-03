@@ -153,7 +153,7 @@ public static class Patch_Building_CIWS_FindBestTarget
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap);
     }
   }
 }

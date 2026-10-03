@@ -199,7 +199,7 @@ public static class Patch_Patch_HarmonyPatches_H_CheckForFreeInterceptBetween_Pr
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap);
     }
   }
 }

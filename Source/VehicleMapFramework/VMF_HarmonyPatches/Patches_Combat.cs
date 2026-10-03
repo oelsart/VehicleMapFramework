@@ -620,7 +620,7 @@ public static class Patch_Explosion_AffectCell
         .InstructionEnumeration()
         .MethodReplacer(
           (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnTargetMap),
-          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap));
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap));
     }
   }
 }

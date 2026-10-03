@@ -156,7 +156,7 @@ public static class Patch_HaulAIUtility_HaulToCellStorageJob
   [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMapOrMap);
   }
 
   [HarmonyBefore(StackGap.HarmonyId)]
@@ -195,7 +195,7 @@ public static class Patch_Toils_Haul_CarryHauledThingToCell
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMapOrMap);
   }
 }
 

@@ -54,7 +54,7 @@ public static class Patch_VanillaPsycastExpanded_AOE_CheckIntercept
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
       return instructions.MethodReplacer(
-        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap),
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap),
         (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
   }
@@ -75,7 +75,7 @@ public static class Patch_VanillaPsycastExpanded_Hediff_Overshield_InterceptChec
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap);
     }
   }
 }

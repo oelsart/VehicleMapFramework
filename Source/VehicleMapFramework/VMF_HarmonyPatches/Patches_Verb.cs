@@ -300,7 +300,7 @@ public static class Patch_JumpUtility_OrderJump
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap);
   }
 }
 
@@ -326,7 +326,7 @@ public static class Patch_JobDriver_CastJump_TryMakePreToilReservations
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMapOrMap);
   }
 }
 
@@ -348,7 +348,7 @@ public static class Patch_Verb_Jump_DrawHighlight
   {
     return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
-      .Set(OpCodes.Call, CachedMethodInfo.m_ThingTargetMap)
+      .Set(OpCodes.Call, CachedMethodInfo.m_TargetMapOrMap)
       .MatchStartForward(
         CodeMatch.Calls(AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3))))
       .InsertAndAdvance(CodeInstruction.LoadArgument(0))
@@ -403,7 +403,7 @@ public static class Patch_Verb_Jump_OnGUI
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap);
   }
 }
 
@@ -421,7 +421,7 @@ public static class Patch_Verb_Jump_ValidateTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMapOrMap);
   }
 }
 
@@ -498,7 +498,7 @@ public static class Patch_JumpUtility_DoJump
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMap);
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMapOrMap);
   }
 }
 

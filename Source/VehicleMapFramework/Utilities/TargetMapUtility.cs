@@ -101,6 +101,8 @@ public static class TargetMapUtility
   extension(Pawn pawn)
   {
     public Map PawnTargetMap => pawn.TargetMap ?? pawn.CurJob?.globalTarget.Map;
+
+    public Map PawnTargetMapOrMap => pawn.PawnTargetMap ?? pawn.Map;
   }
 
   public static IntVec3 TargetCellOnBaseMap(this ref LocalTargetInfo targ, Thing thing)

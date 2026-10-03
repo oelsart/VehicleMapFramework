@@ -99,11 +99,9 @@ public class MethodInfoCache
     
     public readonly MethodInfo m_BaseMap_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(GlobalTargetInfo).MakeByRefType()]);
 
-    public readonly MethodInfo m_TargetMapOrMap = ((Delegate)TargetMapUtility.TargetMapOrMap).Method;
+    public readonly MethodInfo m_TargetMapOrMap = ((Delegate)TargetMapUtility.get_TargetMapOrMap).Method;
 
-    public readonly MethodInfo m_ThingTargetMap = ((Delegate)TargetMapUtility.get_TargetMapOrMap).Method;
-
-    public readonly MethodInfo m_PawnTargetMap = ((Delegate)TargetMapUtility.get_PawnTargetMap).Method;
+    public readonly MethodInfo m_PawnTargetMapOrMap = ((Delegate)TargetMapUtility.get_PawnTargetMapOrMap).Method;
     
     public readonly MethodInfo m_LordMapOrMapHeld = ((Delegate)VehicleMapUtility.get_LordMapOrMapHeld).Method;
     

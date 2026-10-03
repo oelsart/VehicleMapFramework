@@ -95,7 +95,7 @@ public static class Patch_JobDriver_GrapplePawn_TickPreEnsnare
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_ThingTargetMap),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrMap),
       (CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap));
   }
