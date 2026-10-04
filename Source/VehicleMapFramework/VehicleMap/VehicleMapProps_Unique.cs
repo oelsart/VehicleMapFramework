@@ -9,24 +9,30 @@ namespace VehicleMapFramework
   {
     [Unsaved] public VehicleDef baseDef;
     public int placeholderCount = 32;
-    private static bool generated;
+    private static bool hotReload;
     
     public override void ResolveReferences(Def parentDef)
     {
       base.ResolveReferences(parentDef);
-      if (parentDef is not VehicleDef vehicleDef || generated) return;
-      generated = true;
+      if (parentDef is not VehicleDef vehicleDef) return;
       
       LongEventHandler.ExecuteWhenFinished(() =>
       {
+        if (hotReload && DefDatabase<VehicleDef>.GetNamedSilentFail($"{0.ToString()}_{parentDef.defName}") is not null)
+          return;
+        
         if (!UniqueVehicleManager.PlaceholderDefs.TryGetValue(vehicleDef, out var list))
           UniqueVehicleManager.PlaceholderDefs[vehicleDef] = list = [];
         list.Clear();
         for (var i = 0; i < placeholderCount; i++)
         {
-          var def = UniqueVehicleUtility.GenerateUniqueVehicleDef(vehicleDef, i);
+          var def = UniqueVehicleUtility.GenerateUniqueVehicleDef(vehicleDef, i, hotReload);
           list.Add(def);
         }
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+          hotReload = true;
+        });
       });
     }
   }

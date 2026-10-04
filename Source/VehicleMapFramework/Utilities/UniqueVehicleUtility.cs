@@ -61,12 +61,17 @@ public static class UniqueVehicleUtility
 
   private static string GetDefName(VehicleDef parentDef, int index) => $"{index.ToString()}_{parentDef.defName}";
 
-  public static VehicleDef GenerateUniqueVehicleDef(VehicleDef parentDef, int index)
+  public static VehicleDef GenerateUniqueVehicleDef(VehicleDef parentDef, int index, bool hotReload)
   {
     var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(GetDefName(parentDef, index));
-    if (vehicleDef is not null)
-      return vehicleDef;
-    vehicleDef = GenerateInner(parentDef, index);
+    if (hotReload)
+    {
+      VehicleMod.GenerateImpliedDefs(parentDef, true);
+      DefGenerator.AddImpliedDef(parentDef, true);
+      vehicleDef?.GetModExtension<VehicleMapProps_Unique>()?.baseDef = parentDef;
+      return parentDef;
+    }
+    vehicleDef ??= GenerateInner(parentDef, index);
 
     VehicleMod.GenerateImpliedDefs(vehicleDef, false);
     DefGenerator.AddImpliedDef(vehicleDef);
