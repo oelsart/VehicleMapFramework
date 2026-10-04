@@ -16,7 +16,6 @@ public class Patches_AutoApparelPickup
       {
         hashSet.Add(VMF_DefOf.VMF_GotoDestMap);
         hashSet.Add(VMF_DefOf.VMF_GotoAcrossMaps);
-        hashSet.Add(VMF_DefOf.VMF_BoardAcrossMaps);
       }
     }
   }

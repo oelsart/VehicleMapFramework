@@ -11,7 +11,7 @@ using Verse.AI.Group;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
+public class JobDriver_BoardToSeat : JobDriver
 {
   public override bool TryMakePreToilReservations(bool errorOnFailed)
   {
@@ -23,17 +23,17 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
     this.FailOnDespawnedOrNull(TargetIndex.A);
     this.FailOnForbidden(TargetIndex.A);
     //this.FailOnDowned(TargetIndex.A);
-    foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;
     yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.Touch);
     yield return BoardVehicle(pawn);
   }
 
   private static Toil BoardVehicle(Pawn pawnBoarding)
   {
-    Toil toil = new();
-    toil.initAction = delegate
+    var toil = ToilMaker.MakeToil();
+    toil.initAction = () =>
     {
-      var target = pawnBoarding.jobs.curJob.GetTarget(TargetIndex.A).Thing;
+      var curJob = pawnBoarding.CurJob;
+      var target = curJob.GetTarget(TargetIndex.A).Thing;
       if (target is not VehiclePawn vehiclePawn)
       {
         if (!target.IsOnVehicleMapOf(out var vehiclePawnWithMap))
@@ -43,6 +43,17 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
         }
 
         vehiclePawn = vehiclePawnWithMap;
+      }
+
+      var targetHandler = vehiclePawn.handlers.OfType<VehicleRoleHandlerBuildable>()
+        .FirstOrDefault(h => h.role is VehicleRoleBuildable buildable && buildable.upgradeComp.parent == target);
+      if (targetHandler is not null)
+      {
+        targetHandler.SetDirty();
+        if (curJob is { expiryInterval: > 0 } && target.TryGetComp<CompVehicleSeat>() is { } seatComp)
+        {
+          seatComp.expiryTicks[targetHandler.uniqueID] = GenTicks.TicksGame + curJob.expiryInterval;
+        }
       }
 
       var lord = pawnBoarding.GetLord();
@@ -57,10 +68,6 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
         vehiclePawn.BoardPawn(pawnBoarding);
         ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.type, toil.actor);
       }
-
-      var targetHandler = vehiclePawn.handlers.OfType<VehicleRoleHandlerBuildable>()
-        .FirstOrDefault(h => h.role is VehicleRoleBuildable buildable && buildable.upgradeComp.parent == target);
-      targetHandler?.SetDirty();
     };
     toil.defaultCompleteMode = ToilCompleteMode.Instant;
     return toil;

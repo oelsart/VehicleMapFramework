@@ -10,7 +10,8 @@ namespace VehicleMapFramework;
 
 public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
 {
-  private readonly List<(VehicleRoleHandler, VehicleUpgrade.RoleUpgrade)> handlers = [];
+  public readonly List<(VehicleRoleHandler handler, VehicleUpgrade.RoleUpgrade upgrade)> handlers = [];
+  public Dictionary<int, int> expiryTicks = [];
 
   Thing IAttackTarget.Thing => parent;
 
@@ -20,7 +21,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
 
   bool IAttackTarget.ThreatDisabled(IAttackTargetSearcher _)
   {
-    return !handlers.SelectMany(h => h.Item1.thingOwner.InnerListForReading).Any();
+    return !handlers.SelectMany(h => h.handler.thingOwner.InnerListForReading).Any();
   }
 
   string ILoadReferenceable.GetUniqueLoadID()
@@ -28,18 +29,42 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
     return parent.GetUniqueLoadID() + "_CompVehicleSeat";
   }
 
+  protected void TickShort()
+  {
+    if (!parent.IsOnVehicleMapOf(out var vehicle))
+      return;
+    
+    foreach (var handler in vehicle.Handlers)
+    {
+      if (expiryTicks.TryGetValue(handler.uniqueID, out var ticks) && Find.TickManager.TicksGame >= ticks)
+      {
+        for (var i = handler.thingOwner.Count - 1; i >= 0; i--)
+        {
+          vehicle.DisembarkPawn(handler.thingOwner[i]);
+        }
+        expiryTicks.Remove(handler.uniqueID);
+      }
+    }
+  }
+
+  protected void CleanupExpiryTicks()
+  {
+    if (!parent.IsOnVehicleMapOf(out var vehicle))
+      return;
+    
+    foreach (var handler in vehicle.Handlers)
+    {
+      if (expiryTicks.ContainsKey(handler.uniqueID) && handler.thingOwner.Count == 0)
+      {
+        expiryTicks.Remove(handler.uniqueID);
+      }
+    }
+  }
+
   public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn selPawn)
   {
-    if (parent.IsOnVehicleMapOf(out var vehicle) && selPawn.CanReach(parent,
-          PathEndMode.Touch,
-          Danger.Deadly,
-          false,
-          false,
-          TraverseMode.ByPawn,
-          parent.Map,
-          out var exitSpot,
-          out var enterSpot,
-          out var spotsQueue))
+    if (parent.IsOnVehicleMapOf(out var vehicle) &&
+        selPawn.CanReach(parent, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, parent.Map))
     {
       foreach (var floatMenuOption in from handler in vehicle.handlers
                where handler.AreSlotsAvailableAndReservable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID)
@@ -53,18 +78,19 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
                    (handler.role.Slots - (handler.thingOwner.Count + reservedCount)).ToString())
                  : "VF_BoardVehicleGroupFail".Translate(handler.role.label,
                    "VF_BoardFailureNonCombatant".Translate(selPawn.LabelShort))
-               select new FloatMenuOption(label,
-                 delegate
+               select new FloatMenuOption(label, () =>
+               {
+                 var job = JobMaker.MakeJob(VMF_DefOf.VMF_BoardAcrossMaps, parent);
+                 vehicle.GiveLoadJob(selPawn, handler);
+                 selPawn.jobs.TryTakeOrderedJob(job, JobTag.DraftedOrder);
+                 if (!selPawn.Spawned)
                  {
-                   var job = JobMaker.MakeJob(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot, spotsQueue);
-                   vehicle.GiveLoadJob(selPawn, handler);
-                   selPawn.jobs.TryTakeOrderedJob(job, JobTag.DraftedOrder);
-                   if (!selPawn.Spawned)
-                   {
-                     return;
-                   }
-                   reservationManager?.Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
-                 })
+                   return;
+                 }
+
+                 reservationManager?.Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, selPawn,
+                   selPawn.CurJob, handler);
+               })
                {
                  Disabled = !canOperate
                })
@@ -89,14 +115,13 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
                into handler
                where handler != null
                from Pawn pawn in handler.thingOwner
-               where !vehicle.Drafted || !handler.role.HandlingTypes.HasFlag(HandlingType.Movement) ||
-                     !vehicle.Spawned
+               where !vehicle.Drafted || !vehicle.Spawned || !handler.RequiredForMovement
                select new Command_ActionPawnDrawer
                {
                  defaultLabel = "VF_DisembarkSinglePawn".Translate((NamedArgument)pawn.LabelShort),
                  groupable = false,
                  pawn = pawn,
-                 action = delegate
+                 action = () =>
                  {
                    var caravan = pawn.GetCaravan();
                    caravan?.RemovePawn(pawn);
@@ -104,6 +129,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
                    {
                      Find.WorldPawns.RemovePawn(pawn);
                    }
+
                    vehicle.DisembarkPawn(pawn);
                  }
                })
@@ -112,6 +138,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
         {
           command_Action_PawnDrawer.Disable("VF_DisembarkNoExit".Translate());
         }
+
         yield return command_Action_PawnDrawer;
       }
 
@@ -129,11 +156,14 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
     {
       if (parent.IsOnVehicleMapOf(out var vehicle))
       {
+        vehicle.VehicleSeatComps.Add(this);
         vehicle.CompVehicleTurrets?.RecacheTurretPermissions();
         vehicle.RecachePawnCount();
         handlers.AddRange(vehicle.handlers.Where(h => handlerUniqueIDs.Any(i => h.uniqueID == i.id))
           .Select(h => (h, Props.upgrades.OfType<VehicleUpgrade>().SelectMany(u => u.roles)
             .FirstOrDefault(r => r?.key == h.role.key))));
+        vehicle.AddEvent(VehicleEventDefOf.ScanShort, TickShort);
+        vehicle.AddEvent(VehicleEventDefOf.PawnExited, CleanupExpiryTicks);
       }
     });
   }
@@ -142,21 +172,27 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
   {
     base.PostDeSpawn(map, mode);
     handlers.Clear();
+    if (map.IsVehicleMapOf(out var vehicle))
+    {
+      vehicle.VehicleSeatComps.Remove(this);
+      vehicle.RemoveEvent(VehicleEventDefOf.ScanShort, TickShort);
+    }
   }
 
   public override void PostDraw()
   {
     base.PostDraw();
-    if (!VehicleMapFramework.settings.drawPlanet && parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned && !handlers.NullOrEmpty())
+    if (!VehicleMapFramework.settings.drawPlanet && parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned &&
+        !handlers.NullOrEmpty())
     {
       foreach (var handler in handlers)
       {
-        if (handler.Item1.role.PawnRenderer != null)
+        if (handler.handler.role.PawnRenderer != null)
         {
-          foreach (var pawn in handler.Item1.thingOwner)
+          foreach (var pawn in handler.handler.thingOwner)
           {
-            var drawLoc = parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(parent.BaseRotation());
-            var value = handler.Item1.role.PawnRenderer.RotFor(parent.BaseRotation());
+            var drawLoc = parent.DrawPos + handler.upgrade.pawnRenderer.DrawOffsetFor(parent.BaseRotation());
+            var value = handler.handler.role.PawnRenderer.RotFor(parent.BaseRotation());
             pawn.Drawer.renderer.RenderPawnAt(drawLoc, value);
           }
         }
@@ -177,6 +213,14 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
              $" {(VehicleMapUtility.VehicleMapMass(vehicle) * VehicleMapFramework.settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
              $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
     }
+
     return null;
+  }
+
+  public override void PostExposeData()
+  {
+    base.PostExposeData();
+    Scribe_Collections.Look(ref expiryTicks, nameof(expiryTicks), LookMode.Value, LookMode.Value);
+    expiryTicks ??= [];
   }
 }

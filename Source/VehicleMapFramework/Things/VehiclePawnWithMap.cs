@@ -398,6 +398,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   public List<CompMapExpander> MapExpanderComps { get; } = [];
 
   public List<CompBuildableContainer> ContainerComps { get; } = [];
+  
+  public List<CompVehicleSeat> VehicleSeatComps { get; } = [];
 
   public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel
     ? base.DrawPos

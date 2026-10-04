@@ -17,9 +17,10 @@
 		<dropThingBeforeJob>false</dropThingBeforeJob>
 	</JobDef>
 	
+  <!-- TODO 1.7: Rename -->
 	<JobDef>
 		<defName>VMF_BoardAcrossMaps</defName>
-		<driverClass>VehicleMapFramework.JobDriver_BoardAcrossMaps</driverClass>
+		<driverClass>VehicleMapFramework.JobDriver_BoardToSeat</driverClass>
 		<reportString>Entering TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
 	</JobDef>

@@ -38,4 +38,18 @@
 		  <li>Manipulation</li>
 		</requiredCapacities>
 	</WorkGiverDef>
+	
+	<WorkGiverDef>
+		<defName>VMF_DriveVehicle</defName>
+		<label>drive</label>
+		<giverClass>VehicleMapFramework.WorkGiver_DriveVehicle</giverClass>
+		<workType>BasicWorker</workType>
+		<priorityInType>600</priorityInType>
+		<verb>drive at</verb>
+		<gerund>driving at</gerund>
+		<requiredCapacities>
+		  <li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+	
 </Defs>

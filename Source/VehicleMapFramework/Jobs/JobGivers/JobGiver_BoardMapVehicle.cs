@@ -14,7 +14,6 @@ public class JobGiver_BoardMapVehicle : ThinkNode_JobGiver
         pawn.Faction != vehicle.Faction ||
         vehicle.HasEnoughOperators) return null;
 
-    var reservationManager = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>();
     foreach (var handler in vehicle.Handlers)
     {
       if (!handler.AreSlotsAvailableAndReservable ||
@@ -24,13 +23,12 @@ public class JobGiver_BoardMapVehicle : ThinkNode_JobGiver
       var target = handler.role is VehicleRoleBuildable buildable
         ? buildable.upgradeComp.parent
         : vehicle;
-      if (pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Map,
-            out var exitSpot, out var enterSpot, out var spotsQueue))
+      if (pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Map))
       {
-        var job = JobMaker.MakeJob(VMF_DefOf.VMF_BoardAcrossMaps, target)
-          .SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, spotsQueue);
+        var job = JobMaker.MakeJob(VMF_DefOf.VMF_BoardAcrossMaps, target);
         vehicle.GiveLoadJob(pawn, handler);
-        reservationManager?.Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, pawn, job, handler);
+        vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>()?
+          .Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, pawn, job, handler);
         return job;
       }
     }
