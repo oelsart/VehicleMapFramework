@@ -10,7 +10,7 @@ namespace VehicleMapFramework;
 
 public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
 {
-  public List<ThingWithComps> children = [];
+  public readonly List<CompAdditionalGraphicsChild> children = [];
   private float opacity = 1f;
 
   private MaterialPropertyBlock propertyBlock;
@@ -59,17 +59,8 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
           doWindowFunc = () =>
           {
             Widgets.DrawWindowBackground(rect.AtZero(), GUI.color);
-            opacity = VMF_Widgets.HorizontalSlider(
-              new Rect(0f, 15f, rect.width, rect.height),
-              opacity,
-              0f,
-              1f,
-              false,
-              null,
-              "0%",
-              "100%",
-              -1,
-              GUI.color);
+            opacity = VMF_Widgets.HorizontalSlider(new Rect(0f, 15f, rect.width, rect.height), opacity, 0f, 1f,
+              false, null, "0%", "100%", -1, GUI.color);
             opacity = Mathf.Round(opacity * 100f) / 100f;
 
             var comps = Find.Selector.SelectedObjects
@@ -96,12 +87,9 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
     }
     foreach (var child in children)
     {
-      if (child.TryGetComp<CompAdditionalGraphicsChild>(out var childComp))
+      foreach (var data in child.Graphics)
       {
-        foreach (var data in childComp.Graphics)
-        {
-          Draw(data.Graphic);
-        }
+        Draw(data.Graphic);
       }
     }
     return;
@@ -139,7 +127,8 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
       var material = graphic.MatAt(rot, parent);
       loc.y -= loc.z * 0.00001f;
       loc.y -= loc.x * 0.000001f;
-      var drawColor = parent.DrawColor.WithAlpha(opacity);
+      var drawColor = graphic.Shader.SupportsMaskTex() ? parent.DrawColor : graphic.color;
+      drawColor = drawColor.WithAlpha(opacity);
       propertyBlock.SetColor(ShaderPropertyIDs.Color, drawColor);
       propertyBlock.SetColor(AdditionalShaderPropertyIDs.ColorOne, drawColor);
       propertyBlock.SetFloat(Graphic_VehicleOpacity.OpacityID, opacity);
@@ -154,7 +143,7 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
     for (var i = children.Count - 1; i >= 0; i--)
     {
       var child = children[i];
-      if (child.Spawned) child.DeSpawn(mode);
+      if (child.parent.Spawned) child.parent.DeSpawn(mode);
     }
   }
 
@@ -162,6 +151,5 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
   {
     base.PostExposeData();
     Scribe_Values.Look(ref opacity, nameof(opacity));
-    Scribe_Collections.Look(ref children, nameof(children), LookMode.Reference);
   }
 }

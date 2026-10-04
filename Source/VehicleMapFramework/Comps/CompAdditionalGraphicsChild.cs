@@ -15,21 +15,12 @@ public class CompAdditionalGraphicsChild : ThingComp
 
   public override void PostSpawnSetup(bool respawningAfterLoad)
   {
-    if (!respawningAfterLoad)
-    {
-      parentThing = parent.Position.GetFirstThingWithComp<CompDrawAdditionalGraphicsOpacity>(parent.Map);
-      parentThing?.GetComp<CompDrawAdditionalGraphicsOpacity>()?.children.Add(parent);
-    }
+    parentThing = parent.Position.GetFirstThingWithComp<CompDrawAdditionalGraphicsOpacity>(parent.Map);
+    parentThing?.GetComp<CompDrawAdditionalGraphicsOpacity>()?.children.Add(this);
   }
 
   public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
   {
-    parentThing?.GetComp<CompDrawAdditionalGraphicsOpacity>()?.children.Remove(parent);
-  }
-
-  public override void PostExposeData()
-  {
-    base.PostExposeData();
-    Scribe_References.Look(ref parentThing, "parentThing");
+    parentThing?.GetComp<CompDrawAdditionalGraphicsOpacity>()?.children.Remove(this);
   }
 }
