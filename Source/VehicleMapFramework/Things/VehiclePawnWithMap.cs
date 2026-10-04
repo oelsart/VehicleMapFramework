@@ -43,7 +43,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   public bool walkableCellsDirty = true;
   public bool enterPositionsDirty = true;
   private int vehicleCaravanOrStashedVehicleCachedTick;
-  private Vector3 lastRecachedDrawPos;
+  private TransformData lastRecachedData;
 
   internal bool resizeRequest;
 
@@ -1086,11 +1086,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public void RecacheDrawPos(Vector3 drawLoc)
   {
-    if (!UnityData.IsInMainThread || lastRecachedDrawPos == drawLoc) return;
-
-    lastRecachedDrawPos = drawLoc;
+    if (!UnityData.IsInMainThread) return;
     var rot = FullRotation;
     var transform = new TransformData(drawLoc + Transform.position, rot, Transform.rotation.FlipAngle(this));
+    if (lastRecachedData == transform) return;
+    lastRecachedData = transform;
     var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
     cachedDrawPos = result?.position ?? drawLoc;
     if (Spawned && Find.CurrentMap == CurrentLevel)
