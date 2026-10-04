@@ -9,12 +9,14 @@ namespace VehicleMapFramework
   {
     [Unsaved] public VehicleDef baseDef;
     public int placeholderCount = 32;
-
+    private static bool generated;
+    
     public override void ResolveReferences(Def parentDef)
     {
       base.ResolveReferences(parentDef);
-      if (parentDef is not VehicleDef vehicleDef) return;
-
+      if (parentDef is not VehicleDef vehicleDef || generated) return;
+      generated = true;
+      
       LongEventHandler.ExecuteWhenFinished(() =>
       {
         if (!UniqueVehicleManager.PlaceholderDefs.TryGetValue(vehicleDef, out var list))

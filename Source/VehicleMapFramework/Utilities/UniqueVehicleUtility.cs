@@ -64,12 +64,13 @@ public static class UniqueVehicleUtility
   public static VehicleDef GenerateUniqueVehicleDef(VehicleDef parentDef, int index)
   {
     var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(GetDefName(parentDef, index));
-    var hotReload = vehicleDef is not null;
-    vehicleDef ??= GenerateInner(parentDef, index);
+    if (vehicleDef is not null)
+      return vehicleDef;
+    vehicleDef = GenerateInner(parentDef, index);
 
-    VehicleMod.GenerateImpliedDefs(vehicleDef, hotReload);
-    DefGenerator.AddImpliedDef(vehicleDef, hotReload);
-    if (!hotReload) DefDatabase<ThingDef>.Add(vehicleDef);
+    VehicleMod.GenerateImpliedDefs(vehicleDef, false);
+    DefGenerator.AddImpliedDef(vehicleDef);
+    DefDatabase<ThingDef>.Add(vehicleDef);
     return vehicleDef;
   }
 

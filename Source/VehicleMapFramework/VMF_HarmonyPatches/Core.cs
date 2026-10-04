@@ -325,7 +325,7 @@ public static class LatePatchCore
         VMF_Log.Message(text);
       }
 
-      VMF_Log.DebugMessage($"{VMF_Harmony.Instance.GetPatchedMethodCount} patches applied.");
+      VMF_Log.DebugMessage($"[VehicleMapFramework] {VMF_Harmony.Instance.GetPatchedMethodCount} patches applied.");
     });
   }
 }
