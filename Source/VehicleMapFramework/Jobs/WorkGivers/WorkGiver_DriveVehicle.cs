@@ -11,7 +11,7 @@ namespace VehicleMapFramework;
 
 public class WorkGiver_DriveVehicle : WorkGiver_Scanner
 {
-  private const int ExpiryInterval = 600;
+  private const int ExpiryInterval = 900;
 
   public override bool ShouldSkip(Pawn pawn, bool forced = false) => !pawn.IsOnVehicleMap;
 
