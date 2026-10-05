@@ -846,7 +846,8 @@ public static class VehicleMapUtility
     public Rot4 RotationForPrint()
     {
       var rot = thing.Rotation;
-
+      if (thing.def.category != ThingCategory.Building)
+        return rot;
       if (VehicleSectionLayerManager.RotForPrint != Rot4.North &&
           ((thing.def.size.x != thing.def.size.z ||
            thing.def.rotatable || thing.def.graphicData is { drawRotated: true }) &&
