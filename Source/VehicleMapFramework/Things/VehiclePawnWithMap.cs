@@ -1167,45 +1167,35 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     var mapDrawer = map.mapDrawer;
     var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
     if (component is null) return;
-    var dirty = false;
     var scope = AsAboveSoBelow.Active ? AsAboveSoBelow.RectOfBand(map, AsAboveSoBelow.CurrentBand(map)) : default;
+    var rot = FullRotation;
+    var angle = this.FullAngle;
     foreach (var section in sections(mapDrawer))
     {
-      if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
-      {
-        VehicleMapUIRenderer.SetDirty(this);
-        VehicleMapGizmo.portrait.MarkDirty();
-        dirty = true;
-      }
-
       if (AsAboveSoBelow.Active && !scope.Overlaps(section.CellRect))
         continue;
       
-      DrawSection(section, drawPos, component);
+      DrawSection(section, drawPos, rot, angle, component);
     }
   }
 
-  protected virtual void DrawSection(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
+  protected virtual void DrawSection(Section section, Vector3 drawPos, Rot8 rot, float angle, VehicleSectionLayerManager component)
   {
-    var rot = FullRotation;
-    ((SectionLayer_TerrainOnVehicle)component.GetLayer(section, typeof(SectionLayer_TerrainOnVehicle), default))
-      .DrawLayer(drawPos);
-    ((SectionLayer_SnowOnVehicle)component.GetLayer(section, typeof(SectionLayer_SnowOnVehicle), default))
-      .DrawLayer(drawPos.WithYOffset(0.1f));
-    var angle = this.FullAngle;
-    VehicleSectionLayerManager.DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos, angle);
+    var extraAngle = this.ExtraAngle;
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_TerrainOnVehicle), drawPos, rot, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_SnowOnVehicle), drawPos.WithYOffset(0.1f), rot, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_ThingsGeneral), drawPos, rot, angle);
     VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos, rot, angle);
     VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0(), rot, angle);
     VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos, rot, angle);
     VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_Plans), drawPos.Yto0(), rot, angle);
-    ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
-      .DrawLayer(drawPos, Transform.rotation - Angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_SunShadowsOnVehicle), drawPos, rot, extraAngle);
     ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default))
       .DrawLayer(drawPos);
     
     if (OverlayDrawHandler.ShouldDrawPowerGrid)
     {
-      VehicleSectionLayerManager.DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsPowerGrid), rot), drawPos.Yto0(), angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_ThingsPowerGrid), drawPos.Yto0(), rot, angle);
     }
 
     if (OverlayDrawHandler.ShouldDrawZones)
@@ -1215,19 +1205,15 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     
     if (ModsConfig.OdysseyActive)
     {
-      ((SectionLayer_SubstructurePropsOnVehicle)component.GetLayer(section,
-        typeof(SectionLayer_SubstructurePropsOnVehicle), default))?.DrawLayer(rot, drawPos, Transform.rotation);
-      ((SectionLayer_GravshipHullOnVehicle)component.GetLayer(section, typeof(SectionLayer_GravshipHullOnVehicle),
-        default))?.DrawLayer(rot, drawPos, Transform.rotation);
+      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_SubstructurePropsOnVehicle), drawPos, rot, extraAngle);
+      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_GravshipHullOnVehicle), drawPos, rot, extraAngle);
     }
 
-    DrawModLayers(section, drawPos, component);
+    DrawModLayers(section, drawPos, rot, angle, component);
   }
 
-  protected virtual void DrawModLayers(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
+  protected virtual void DrawModLayers(Section section, Vector3 drawPos, Rot8 rot, float angle, VehicleSectionLayerManager component)
   {
-    var angle = this.FullAngle;
-    var rot = FullRotation;
     foreach (var compat in VehicleSectionLayerManager.CompatClassesForDrawLayers)
     {
       compat.DrawSectionLayers(component, section, drawPos, rot, angle);

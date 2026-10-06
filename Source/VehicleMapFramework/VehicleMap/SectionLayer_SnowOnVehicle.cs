@@ -27,22 +27,6 @@ public class SectionLayer_SnowOnVehicle(Section section) : SectionLayer_Snow(sec
       SnowMat.SetTexture(Shader.PropertyToID("_AlphaAddTex"), TexGame.AlphaAddTex);
     });
   }
-  
-  public void DrawLayer(Vector3 drawPos)
-  {
-    if (!Visible || !Map.IsVehicleMapOf(out var vehicle))
-      return;
-        
-    var rot = Quaternion.AngleAxis(vehicle.FullAngle, Vector3.up);
-    for (var i = 0; i < subMeshes.Count; i++)
-    {
-      var subMesh = subMeshes[i];
-      if (subMesh.finalized && !subMesh.disabled)
-      {
-        Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, subMesh.renderLayer);
-      }
-    }
-  }
 
   //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
   public override void DrawLayer()

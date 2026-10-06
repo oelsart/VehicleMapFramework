@@ -10,22 +10,6 @@ public class SectionLayer_TerrainOnVehicle(Section section) : SectionLayer_Terra
 
   private static readonly Dictionary<Material, Material> terrainMatCache = [];
 
-  public void DrawLayer(Vector3 drawPos)
-  {
-    if (!Visible || !Map.IsVehicleMapOf(out var vehicle))
-      return;
-
-    var rot = Quaternion.AngleAxis(vehicle.FullAngle, Vector3.up);
-    for (var i = 0; i < subMeshes.Count; i++)
-    {
-      var subMesh = subMeshes[i];
-      if (subMesh.finalized && !subMesh.disabled && subMesh.material != MatBases.ShadowMask)
-      {
-        Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, subMesh.renderLayer);
-      }
-    }
-  }
-
   //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
   public override void DrawLayer()
   {

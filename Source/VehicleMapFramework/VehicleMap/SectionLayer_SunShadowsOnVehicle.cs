@@ -22,24 +22,6 @@ public class SectionLayer_SunShadowsOnVehicle : SectionLayer
     relevantChangeTypes = subLayer.relevantChangeTypes;
   }
 
-  public void DrawLayer(Vector3 drawPos, float extraRotation)
-  {
-    if (!this.Visible)
-    {
-      return;
-    }
-
-    var rot = Quaternion.AngleAxis(extraRotation, Vector3.up);
-    for (var i = 0; i < subLayer.subMeshes.Count; i++)
-    {
-      var layerSubMesh = subLayer.subMeshes[i];
-      if (layerSubMesh.finalized && !layerSubMesh.disabled)
-      {
-        Graphics.DrawMesh(layerSubMesh.mesh, drawPos, rot, layerSubMesh.material, layerSubMesh.renderLayer);
-      }
-    }
-  }
-
   public override void Regenerate()
   {
     if (!Map.IsVehicleMapOf(out _))

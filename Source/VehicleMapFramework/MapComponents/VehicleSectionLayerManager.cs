@@ -15,7 +15,7 @@ namespace VehicleMapFramework
 
     private Rot4 lastGeneratedRots = Rot4.North;
 
-    internal static readonly List<Type> OrientedSectionLayerTypes =
+    internal static readonly HashSet<Type> OrientedSectionLayerTypes =
       [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Append(typeof(SectionLayer_SunShadowsOnVehicle))];
 
     public static readonly List<CompatBase> CompatClassesForDrawLayers = [];
@@ -64,7 +64,7 @@ namespace VehicleMapFramework
               }
               else
               {
-                layersByRot[section][type] = [layer];
+                layersByRot[section][type] = [layer, layer, layer, layer];
               }
             }
           }
@@ -76,8 +76,6 @@ namespace VehicleMapFramework
     {
       if (!layersByRot[section].TryGetValue(type, out var layers))
         return null;
-      if (!OrientedSectionLayerTypes.Contains(type))
-        return layers[0];
 
       var rot2 = rot.RotForVehicleDraw();
       var layer = layers[rot2.AsInt];
@@ -87,7 +85,10 @@ namespace VehicleMapFramework
         {
           CacheMode = true;
           RotForPrint = rot2;
-          DirtyAdaptiveStorageGraphics(section, rot2);
+          if ((layer.relevantChangeTypes & MapMeshFlagDefOf.Buildings) > 0UL)
+          {
+            DirtyAdaptiveStorageGraphics(section, rot2);
+          }
           layer.Regenerate();
           layer.RefreshSubMeshBounds();
         }
@@ -111,58 +112,21 @@ namespace VehicleMapFramework
       foreach (var section in VehiclePawnWithMap.sections(map.mapDrawer))
       {
         UpdateSection(section);
-
-        // LayerSubMeshを直接FinalizeしているためY圧縮をかける
-        if ((section.dirtyFlags & MapMeshFlagDefOf.Buildings) > 0UL)
-        {
-          var edgeShadowsLayer = GetLayer(section, typeof(SectionLayer_EdgeShadows), default);
-          FrameDelay.DelayOne(static layer => FinalizeVerts(layer), edgeShadowsLayer);
-        }
       }
     }
 
     private void UpdateSection(Section section)
     {
-      if (section.dirtyFlags == 0L)
-      {
-        return;
-      }
-
       foreach (var sectionLayers in layersByRot[section])
       {
-        if (!OrientedSectionLayerTypes.Contains(sectionLayers.Key)) continue;
-
         var northLayer = sectionLayers.Value[0];
-        northLayer.Dirty = northLayer.Dirty || (section.dirtyFlags & northLayer.relevantChangeTypes) > 0UL;
+        northLayer.Dirty = (section.dirtyFlags & northLayer.relevantChangeTypes) > 0UL;
         if (!northLayer.Dirty) continue;
-
-        // 北向きレイヤーはベースゲームのメソッドにより必ずRegenerateされるため先にやっておく
-        DirtyAdaptiveStorageGraphics(section, Rot4.North);
+        
         for (var i = 1; i < 4; i++)
         {
           sectionLayers.Value[i].Dirty = true;
         }
-      }
-    }
-
-    private static void TryRegenerate(SectionLayer layer, Rot4 rot)
-    {
-      try
-      {
-        CacheMode = true;
-        RotForPrint = rot;
-        layer.Regenerate();
-        layer.RefreshSubMeshBounds();
-      }
-      catch (Exception ex)
-      {
-        Log.Error($"Could not regenerate layer {layer.ToStringSafe()}: {ex}");
-      }
-      finally
-      {
-        CacheMode = false;
-        RotForPrint = Rot4.North;
-        layer.Dirty = false;
       }
     }
 
