@@ -56,6 +56,7 @@ public class CompGangplank : CompVehicleEnterSpot
           Pair = anchor;
           anchor.TryGetComp<CompGangplank>()?.Pair = parent;
           pairDrawPos = anchor.DrawPos;
+          Find.World.GetComponent<CrossMapRegionLinks>()?.AddLink(regionA, regionB);
           return;
         }
       }
