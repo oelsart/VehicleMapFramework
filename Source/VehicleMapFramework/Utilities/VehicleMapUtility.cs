@@ -845,7 +845,7 @@ public static class VehicleMapUtility
     public Rot4 RotationForPrint()
     {
       var rot = thing.Rotation;
-      if (thing.def.category != ThingCategory.Building)
+      if (thing.def.category is not (ThingCategory.Building or ThingCategory.Ethereal or ThingCategory.Item)) // BlueprintはEthereal
         return rot;
       if (VehicleSectionLayerManager.RotForPrint != Rot4.North &&
           ((thing.def.size.x != thing.def.size.z ||
