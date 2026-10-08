@@ -851,6 +851,6 @@ public static class Patch_QuestNode_PawnsArrive_RunInt
   {
     var slate = QuestGen.slate;
     if (slate.Get<Map>("map").IsVehicleMap && __instance.arrivalMode.GetValue(slate) is not { walkIn: false })
-      __instance.arrivalMode = VMF_DefOf.VMF_GroundMapEdgeWalkIn;
+      __instance.arrivalMode = VMF_DefOf.VMF_VehicleMapEdgeWalkIn;
   }
 }

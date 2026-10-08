@@ -3,8 +3,8 @@
   
   <!-- Fallback arrival mode for events targeting the vehicle map -->
   <PawnsArrivalModeDef>
-    <defName>VMF_GroundMapEdgeWalkIn</defName>
-    <workerClass>VehicleMapFramework.PawnsArrivalModeWorker_GroundMapEdgeWalkIn</workerClass>
+    <defName>VMF_VehicleMapEdgeWalkIn</defName>
+    <workerClass>VehicleMapFramework.PawnsArrivalModeWorker_VehicleMapEdgeWalkIn</workerClass>
     <selectionWeightCurve>
       <points>
         <li>(0, 0.1)</li>

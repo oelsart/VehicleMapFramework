@@ -7,7 +7,7 @@
       defName="ImmediateAttackSmart" or
       defName="StageThenAttack"]/arriveModes</xpath>
     <value>
-      <li>VMF_GroundMapEdgeWalkIn</li>
+      <li>VMF_VehicleMapEdgeWalkIn</li>
     </value>
   </Operation>
   
