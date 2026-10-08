@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VMF_RimefellerCompat", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_NUnit", "..\Test_NUnit\Test_NUnit.csproj", "{E9737EDB-A139-411E-98C3-6F5F5603ACE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_DevTools", "..\Test_DevTools\Test_DevTools.csproj", "{5F2B02BA-6C2D-4F32-922C-819915D9A587}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_VehicleMapFramework", "..\Test_VehicleMapFramework\Test_VehicleMapFramework.csproj", "{5F2B02BA-6C2D-4F32-922C-819915D9A587}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "..\VehicleMapAssets\Assembly-CSharp.csproj", "{17B7EDDD-EC89-2C63-9FD4-B4E190475100}"
 EndProject

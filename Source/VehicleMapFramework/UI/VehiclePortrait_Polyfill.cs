@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !DEV
+using System;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -8,7 +9,6 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-#if !DEV
 // Copyright (c) 2019-2025 Phil
 // Derived from Vehicle Framework - Modified and rewritten by OELS (2026)
 // Licensed under the MIT License.

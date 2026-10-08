@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Security;
 using HarmonyLib;
 
-namespace VehicleMapFramework.Test_CompatPatches;
+namespace VehicleMapFramework.Test_DevTools;
 
 [TestFixture]
 [Category("Local")]

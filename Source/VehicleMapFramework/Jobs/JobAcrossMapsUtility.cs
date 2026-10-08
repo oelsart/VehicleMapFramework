@@ -83,12 +83,27 @@ public static class JobAcrossMapsUtility
       driver.nextJob = nextJob;
       return job;
     }
+
+    public Job NextJobOrMe => job.GetCachedDriverDirect is JobDriver_GotoDestMap driver ? driver.nextJob ?? job : job;
   }
 
   public static Job NextJobOfGotoDestMapJob(Pawn pawn)
   {
     var driver = pawn.jobs.curDriver as JobDriver_GotoDestMap;
     return driver?.nextJob;
+  }
+
+
+  extension(Pawn pawn)
+  {
+    public Job NextJobOrCurJob
+    {
+      get
+      {
+        var driver = pawn.jobs.curDriver as JobDriver_GotoDestMap;
+        return driver?.nextJob ?? pawn.CurJob;
+      }
+    }
   }
 
   public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap, WorkGiverDef workGiver)

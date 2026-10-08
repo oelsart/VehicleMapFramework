@@ -5,10 +5,7 @@ using System.Runtime.InteropServices;
 // アセンブリに関する一般情報は以下を通して制御されます
 // 制御されます。アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyCopyright("Copyright ©OELS  2024-2025")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+[assembly: AssemblyCopyright("Copyright ©OELS  2024-2026")]
 [assembly: InternalsVisibleTo("VMF_AchtungPatch")]
 [assembly: InternalsVisibleTo("VMF_CEPatch")]
 [assembly: InternalsVisibleTo("VMF_DBHCompat")]
@@ -16,7 +13,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("VMF_PUAHPatch")]
 [assembly: InternalsVisibleTo("VMF_SmartFarmingPatch")]
 [assembly: InternalsVisibleTo("VMF_VEFCompat")]
-[assembly: InternalsVisibleTo("Test_DevTools")]
+[assembly: InternalsVisibleTo("Test_VehicleMapFramework")]
 [assembly: InternalsVisibleTo("MapVehiclesOcean")]
 
 // ComVisible を false に設定すると、このアセンブリ内の型は COM コンポーネントから

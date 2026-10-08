@@ -1,0 +1,45 @@
+﻿using DevTools.Testing;
+using RimWorld;
+using Vehicles.Testing;
+using Verse;
+
+namespace VehicleMapFramework.Test_DevTools;
+
+internal class Test_HaulMerge(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
+{
+
+  private Thing woodLog1;
+
+  private Thing woodLog2;
+
+  private Zone_Stockpile zone;
+
+  public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("HaulMerge");
+
+  public override void SetUp()
+  {
+    base.SetUp();
+    var map = GroundMap;
+    zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
+    map.zoneManager.RegisterZone(zone);
+    foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 3), FromRUCorner(map, 4)))
+    {
+      zone.AddCell(cell);
+    }
+    woodLog1 = GenSpawn.Spawn(ThingDefOf.WoodLog, FromRUCorner(map, 3), map);
+    woodLog2 = GenSpawn.Spawn(ThingDefOf.WoodLog, FromRUCorner(map, 4), map);
+  }
+
+  public override void TearDown()
+  {
+    Expect.IsTrue(woodLog1.Destroyed || woodLog2.Destroyed);
+    Expect.IsTrue(woodLog1.stackCount == 2 || woodLog2.stackCount == 2);
+    zone.Delete();
+    if (!woodLog1.Destroyed) woodLog1.Destroy();
+    if (!woodLog2.Destroyed) woodLog2.Destroy();
+    zone = null;
+    woodLog1 = null;
+    woodLog2 = null;
+    base.TearDown();
+  }
+}

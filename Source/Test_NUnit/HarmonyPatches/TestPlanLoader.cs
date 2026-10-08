@@ -5,7 +5,7 @@ using HarmonyLib;
 using ModAssemblyLoader;
 using YamlDotNet.Serialization;
 
-namespace VehicleMapFramework.Test_CompatPatches;
+namespace VehicleMapFramework.Test_DevTools;
 
 public static class TestPlanLoader
 {
