@@ -5,7 +5,7 @@
 	<VMF_RemoveVehicleSegment.gerund>を解体する</VMF_RemoveVehicleSegment.gerund>
 	<VMF_RemoveVehicleSegment.verb>を解体</VMF_RemoveVehicleSegment.verb>
 
-	<VMF_DriverVehicle.label>運転</VMF_DriverVehicle.label>
+	<VMF_DriveVehicle.label>運転</VMF_DriveVehicle.label>
 	<VMF_DriverVehicle.gerund>で運転する</VMF_DriverVehicle.gerund>
 	<VMF_DriverVehicle.verb>で運転</VMF_DriverVehicle.verb>
 

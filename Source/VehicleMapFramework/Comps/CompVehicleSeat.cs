@@ -38,9 +38,12 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
     {
       if (expiryTicks.TryGetValue(handler.uniqueID, out var ticks) && Find.TickManager.TicksGame >= ticks)
       {
-        for (var i = handler.thingOwner.Count - 1; i >= 0; i--)
+        if (!vehicle.Spawned || !vehicle.Drafted)
         {
-          vehicle.DisembarkPawn(handler.thingOwner[i]);
+          for (var i = handler.thingOwner.Count - 1; i >= 0; i--)
+          {
+            vehicle.DisembarkPawn(handler.thingOwner[i]);
+          }
         }
         expiryTicks.Remove(handler.uniqueID);
       }

@@ -17,7 +17,8 @@ public class WorkGiver_DriveVehicle : WorkGiver_Scanner
 
   public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
   {
-    if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.ParentHolder is VehicleCaravan { vehiclePather.Moving: true })
+    if (pawn.IsOnVehicleMapOf(out var vehicle) &&
+        vehicle.ParentHolder is VehicleCaravan { vehiclePather.Moving: true, NightResting: false })
       return vehicle.VehicleSeatComps.Select(s => s.parent);
     return [];
   }
