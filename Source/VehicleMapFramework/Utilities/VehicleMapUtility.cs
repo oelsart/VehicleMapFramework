@@ -762,11 +762,10 @@ public static class VehicleMapUtility
       return thing.BaseFullRotation().AsRot4Force();
     }
 
-    public Rot8 BaseFullRotationDoor()
+    public Rot4 BaseRotationForDoor()
     {
-      if (!thing.IsOnNonFocusedVehicleMapOf(out var vehicle)) return thing.Rotation;
-      var rot = new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
-      return rot.FacingCell.z < 0 ? rot.Opposite : rot;
+      var rot = thing.BaseRotationVehicleDraw();
+      return rot == Rot4.South ? Rot4.North : rot;
     }
     
     public bool TryGetDrawPos(ref Vector3 result)

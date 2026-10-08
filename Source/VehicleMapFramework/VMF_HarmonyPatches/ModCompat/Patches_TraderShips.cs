@@ -42,7 +42,12 @@ public static class Patch_CompShip_PostDraw
 
   private static float Rotation(ThingComp comp)
   {
-    return comp.parent.BaseFullRotationDoor().AsAngle;
+    var angle = 0f;
+    if (comp.parent.IsOnNonFocusedVehicleMapOf(out var vehicle))
+    {
+      angle = comp.parent.BaseRotationForDoor().AsAngle + vehicle.ExtraAngle;
+    }
+    return angle;
   }
 }
 

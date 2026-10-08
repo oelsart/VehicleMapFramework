@@ -72,7 +72,7 @@ public static class Patch_Building_Door_DrawMovers
       .MatchStartForward(asQuatMatch).Advance()
       .MultiplyExtraAngleQuat(vehicle)
       .InstructionEnumeration()
-      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationForDoor);
   }
 }
 

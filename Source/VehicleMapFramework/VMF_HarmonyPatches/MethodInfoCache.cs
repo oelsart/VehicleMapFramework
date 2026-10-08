@@ -159,6 +159,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_BaseRotationVehicleDraw = ((Delegate)VehicleMapUtility.BaseRotationVehicleDraw).Method;
 
+    public readonly MethodInfo m_BaseRotationForDoor = ((Delegate)VehicleMapUtility.BaseRotationForDoor).Method;
+
     public readonly MethodInfo m_BaseFullRotation_Thing = ((Func<Thing, Rot8>)VehicleMapUtility.BaseFullRotation).Method;
 
     public readonly MethodInfo m_BaseFullRotationSpawned_Thing = ((Func<Thing, Rot8>)VehicleMapUtility.BaseFullRotationSpawned).Method;
