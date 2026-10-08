@@ -9,23 +9,23 @@ namespace VehicleMapFramework;
 [UsedImplicitly]
 public class MapParent_Vehicle : PocketMapParent
 {
-    public VehiclePawnWithMap vehicle;
+  public VehiclePawnWithMap vehicle;
 
-    public override string Label => $"{vehicle.Label}{"VMF_VehicleMap".Translate()}";
+  public override string Label => $"{vehicle.Label}{"VMF_VehicleMap".Translate()}";
 
-    public override Material Material => BaseContent.ClearMat;
+  public override Material Material => BaseContent.ClearMat;
 
-    public override bool CanReformFoggedEnemies =>
-      Map.GroundMap?.Parent is not { } parent || parent == this || parent.CanReformFoggedEnemies;
+  public override bool CanReformFoggedEnemies =>
+    Map.GroundMap?.Parent is not { } parent || parent == this || parent.CanReformFoggedEnemies;
 
-    public override IEnumerable<FloatMenuOption> GetFloatMenuOptions(Caravan caravan)
-    {
-        return caravan.PawnsListForReading.Any(p => p is VehiclePawnWithMap) ? [] : base.GetFloatMenuOptions(caravan);
-    }
+  public override IEnumerable<FloatMenuOption> GetFloatMenuOptions(Caravan caravan)
+  {
+    return caravan.PawnsListForReading.Any(p => p is VehiclePawnWithMap) ? [] : base.GetFloatMenuOptions(caravan);
+  }
 
-    public override void ExposeData()
-    {
-        base.ExposeData();
-        Scribe_References.Look(ref vehicle, "vehicle");
-    }
+  public override void ExposeData()
+  {
+    base.ExposeData();
+    Scribe_References.Look(ref vehicle, "vehicle");
+  }
 }

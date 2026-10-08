@@ -10,17 +10,11 @@ namespace VehicleMapFramework;
 public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 {
   private readonly List<VehiclePawnWithMap> allVehicles = [];
-
   public (int lastCachedTick, HashSet<Map> includeItself, HashSet<Map> excludeItself) cachedBaseMapAndVehicleMaps = (-1, [], []);
-  
   public readonly Dictionary<Thing, Vector3> cachedDrawPos = [];
-
   public readonly Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
-
   public readonly Dictionary<Thing, IntVec3> cachedPosOnBaseMap = [];
-
   private int lastCachedFrame = -1;
-
   private int lastCachedTick = -1;
 
   public static bool CacheMode { get; set; }
@@ -29,11 +23,7 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
   public override void FinalizeInit()
   {
-    VehicleMapParentsComponent.SetCachedVehicle(map, map.Parent as MapParent_Vehicle);
-    if (MultiFloors.Active && VehicleMapParentsComponent.GetCachedVehicle(map) is null)
-    {
-      VehicleMapParentsComponent.SetCachedVehicle(map, MultiFloors.GroundMap(map)?.Parent as MapParent_Vehicle);
-    }
+    VehicleMapParentsComponent.SetCache(map);
   }
 
   public static void RegisterVehicle(VehiclePawnWithMap vehicle)
@@ -41,6 +31,7 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
     LongEventHandler.ExecuteWhenFinished(() =>
     {
       vehicle.Map?.GetComponent<VehiclePawnWithMapCache>()?.allVehicles.AddUnique(vehicle);
+      CrossMapMapPawnsCache.RecacheMask();
     });
     
     foreach (var map in Find.Maps)
@@ -54,6 +45,8 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
   public static void DeRegisterVehicle(VehiclePawnWithMap vehicle)
   {
+    LongEventHandler.ExecuteWhenFinished(CrossMapMapPawnsCache.RecacheMask);
+    
     foreach (var map in Find.Maps)
     {
       if (map.GetComponent<VehiclePawnWithMapCache>() is { } component)
@@ -118,8 +111,8 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
   public override void MapRemoved()
   {
-    VehicleMapParentsComponent.SetCachedVehicle(map, null);
+    VehicleMapParentsComponent.MapRemoved();
     CrossMapReachabilityCache.ClearCacheFor(map, true);
-    CrossMapMapPawnsCache.RemoveMap(map);
+    CrossMapMapPawnsCache.ClearAll();
   }
 }

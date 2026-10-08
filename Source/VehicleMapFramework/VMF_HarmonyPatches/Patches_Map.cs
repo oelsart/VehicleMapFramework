@@ -283,10 +283,7 @@ public static class Patch_MapPawns_AllPawns
   [PatchLevel(Level.Safe)]
   public static void Postfix(ref List<Pawn> __result, Map ___map)
   {
-    if (VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
-      return;
-
-    __result = cache.Get(___map, __result);
+    __result = (List<Pawn>)cache.Get(___map, __result);
   }
 
   [PatchLevel(Level.Mandatory)]
@@ -303,17 +300,15 @@ public static class Patch_MapPawns_AllPawnsSpawned
 {
   private static readonly CrossMapMapPawnsCache cache = new((instance, _) => AllPawnsSpawned(instance));
 
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public static void Postfix(ref IReadOnlyList<Pawn> __result, Map ___map)
   {
-    if (VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
-      return;
-
     __result = cache.Get(___map, __result);
   }
 
   [HarmonyReversePatch]
   [MethodImpl(MethodImplOptions.NoInlining)]
-  public static List<Pawn> AllPawnsSpawned(MapPawns instance) => throw new NotImplementedException();
+  public static IReadOnlyList<Pawn> AllPawnsSpawned(MapPawns instance) => throw new NotImplementedException();
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
@@ -324,10 +319,7 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
   [PatchLevel(Level.Safe)]
   public static void Postfix(ref List<Pawn> __result, Map ___map, Faction faction)
   {
-    if (VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
-      return;
-
-    __result = cache.Get(___map, __result, faction);
+    __result = (List<Pawn>)cache.Get(___map, __result, faction);
   }
 
   [PatchLevel(Level.Mandatory)]
@@ -345,10 +337,7 @@ public static class Patch_MapPawns_PrisonersOfColonySpawned
   [PatchLevel(Level.Safe)]
   public static void Postfix(ref List<Pawn> __result, Map ___map)
   {
-    if (VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
-      return;
-
-    __result = _cache.Get(___map, __result);
+    __result = (List<Pawn>)_cache.Get(___map, __result);
   }
   
   [PatchLevel(Level.Mandatory)]
@@ -379,21 +368,21 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
 [PatchLevel(Level.Safe)]
 public static class Patch_MapPawns_RegisterPawn
 {
-  public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
+  public static void Postfix() => CrossMapMapPawnsCache.DirtyAll();
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.DeRegisterPawn))]
 [PatchLevel(Level.Safe)]
 public static class Patch_MapPawns_DeRegisterPawn
 {
-  public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
+  public static void Postfix() => CrossMapMapPawnsCache.DirtyAll();
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.UpdateRegistryForPawn))]
 [PatchLevel(Level.Safe)]
 public static class Patch_MapPawns_UpdateRegistryForPawn
 {
-  public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
+  public static void Postfix() => CrossMapMapPawnsCache.DirtyAll();
 }
 
 [HarmonyPatch(typeof(PawnsFinder), nameof(PawnsFinder.AllMaps), MethodType.Getter)]

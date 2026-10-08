@@ -50,7 +50,7 @@ internal sealed class Test_CrossMapMapPawnsCache : IGenericTest
   }
 
   [Test]
-  public void Test_AllPawns()
+  public void AllPawns()
   {
     Expect.AreEqual(1, Test.Map.mapPawns.AllPawnsCount, "Before spawning pawn[0]");
     GenSpawn.Spawn(Group.pawns[0], CellFinder.RandomSpawnCellForPawnNear(Test.Map.Center, Test.Map), Test.Map);
@@ -61,7 +61,7 @@ internal sealed class Test_CrossMapMapPawnsCache : IGenericTest
   }
 
   [Test]
-  public void Test_AllPawnsSpawned()
+  public void AllPawnsSpawned()
   {
     Expect.AreEqual(1, Test.Map.mapPawns.AllPawnsSpawned.Count, "Before spawning pawn[0]");
     GenSpawn.Spawn(Group.pawns[0], CellFinder.RandomSpawnCellForPawnNear(Test.Map.Center, Test.Map), Test.Map);
@@ -72,7 +72,7 @@ internal sealed class Test_CrossMapMapPawnsCache : IGenericTest
   }
 
   [Test]
-  public void Test_FreeHumanlikesSpawnedOfFaction()
+  public void FreeHumanlikesSpawnedOfFaction()
   {
     Expect.AreEqual(0, Test.Map.mapPawns.FreeColonistsCount, "Before spawning pawn[0]");
     GenSpawn.Spawn(Group.pawns[0], CellFinder.RandomSpawnCellForPawnNear(Test.Map.Center, Test.Map), Test.Map);
@@ -85,7 +85,7 @@ internal sealed class Test_CrossMapMapPawnsCache : IGenericTest
   }
 
   [Test]
-  public void Test_PrisonersOfColonySpawned()
+  public void PrisonersOfColonySpawned()
   {
     Expect.AreEqual(0, Test.Map.mapPawns.PrisonersOfColonySpawnedCount, "Before spawning pawn[0]");
     GenSpawn.Spawn(Group.pawns[0], CellFinder.RandomSpawnCellForPawnNear(Test.Map.Center, Test.Map), Test.Map);

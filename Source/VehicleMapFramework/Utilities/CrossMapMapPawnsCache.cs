@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using SmashTools;
 using Verse;
@@ -8,14 +10,16 @@ namespace VehicleMapFramework;
 public class CrossMapMapPawnsCache
 {
   private readonly List<Map> tmpMaps = [with(128)];
-  private readonly Dictionary<(Map map, Faction faction), Cache> cacheDict = [];
   private readonly PawnsGetter GetPawns;
+  private Cache[] caches = new Cache[128];
+  private static ulong lowMask; // マップ上に車両が存在しない場合早期returnするためのマスク
+  private static ulong highMask;
 
-  internal int CacheCount => cacheDict.Count;
+  internal int CacheCount => caches.NonNull.Count();
   
   internal static List<CrossMapMapPawnsCache> AllInstances { get; } = [];
 
-  public delegate List<Pawn> PawnsGetter(MapPawns instance, Faction faction = null);
+  public delegate IReadOnlyList<Pawn> PawnsGetter(MapPawns instance, Faction faction = null);
 
   public CrossMapMapPawnsCache(PawnsGetter getter)
   {
@@ -29,22 +33,38 @@ public class CrossMapMapPawnsCache
     {
       foreach (var instance in AllInstances)
       {
-        instance.cacheDict.Clear();
+        Array.Clear(instance.caches, 0, instance.caches.Length);
       }
     };
   }
 
-  public List<Pawn> Get(Map map, IEnumerable<Pawn> result, Faction faction = null)
+  public IReadOnlyList<Pawn> Get(Map map, IReadOnlyList<Pawn> result, Faction faction = null)
   {
-    if (!cacheDict.TryGetValue((map, faction), out var cache))
+    var mapIndex = VehicleMapParentsComponent.GetMapIndex(map);
+    if (mapIndex < 64)
     {
-      cache = new Cache();
-      cacheDict.Add((map, faction), cache);
+      if ((lowMask & 1UL << mapIndex) == 0UL)
+        return result;
+    }
+    else
+    {
+      if ((highMask & 1UL << mapIndex - 64) == 0UL)
+        return result;
+    }
+    
+    
+    var index = ((faction?.loadID ?? 0) << 4) | (mapIndex & 0xFF);
+    if (caches.Length <= index)
+    {
+      Array.Resize(ref caches, Math.Max(caches.Length * 2, index + 1));
     }
 
-    if (cache.lastCachedTick != GenTicks.TicksGame)
+    ref var cache = ref caches[index];
+    cache ??= new Cache();
+
+    if (cache.dirty)
     {
-      cache.lastCachedTick = GenTicks.TicksGame;
+      cache.dirty = false;
       Sum(map, result, cache.cachedPawns, faction);
     }
 
@@ -63,11 +83,25 @@ public class CrossMapMapPawnsCache
     }
   }
 
-  public static void RemoveMap(Map map)
+  public static void RecacheMask()
   {
-    foreach (var instance in AllInstances)
+    lowMask = 0UL;
+    highMask = 0UL;
+    foreach (var map in Find.Maps)
     {
-      instance.cacheDict.RemoveAll(x => x.Key.map == map);
+      if (VehiclePawnWithMapCache.AllVehiclesOn(map).Count != 0 ||
+          map.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is not null)
+      {
+        var index = VehicleMapParentsComponent.GetMapIndex(map);
+        if (index < 64)
+        {
+          lowMask |= 1UL << index;
+        }
+        else
+        {
+          highMask |= 1UL << index - 64;
+        }
+      }
     }
   }
 
@@ -75,20 +109,24 @@ public class CrossMapMapPawnsCache
   {
     foreach (var instance in AllInstances)
     {
-      foreach (var cache in instance.cacheDict)
-        cache.Value.Clear();
+      Array.Clear(instance.caches, 0, instance.caches.Length);
+    }
+  }
+
+  public static void DirtyAll()
+  {
+    foreach (var instance in AllInstances)
+    {
+      foreach (var cache in instance.caches)
+      {
+        cache?.dirty = true;
+      }
     }
   }
 
   private class Cache
   {
-    public int lastCachedTick = -1;
+    public bool dirty = true;
     public readonly List<Pawn> cachedPawns = [];
-
-    public void Clear()
-    {
-      lastCachedTick = -1;
-      cachedPawns.Clear();
-    }
   }
 }

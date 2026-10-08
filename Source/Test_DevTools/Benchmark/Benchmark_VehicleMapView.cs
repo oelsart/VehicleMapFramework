@@ -8,7 +8,7 @@ using Verse;
 namespace VehicleMapFramework.Test_Logics;
 
 [BenchmarkClass("VehicleMapView", AllowedGameStates = AllowedGameStates.PlayingOnMap, RunAsync = false)]
-internal sealed class VehicleMapView_Draw
+internal sealed class Benchmark_VehicleMapView
 {
   [Prepare]
   private static void Prepare(ref VehicleMapViewContext context)

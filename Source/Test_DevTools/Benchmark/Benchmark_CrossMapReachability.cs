@@ -7,7 +7,7 @@ using Verse;
 namespace VehicleMapFramework.Test_Logics;
 
 [BenchmarkClass("CrossMapReachability", AllowedGameStates = AllowedGameStates.PlayingOnMap)]
-internal sealed class CrossMapReachability_AStar
+internal sealed class Benchmark_CrossMapReachability
 {
   [Prepare]
   private static void Prepare(ref ReachabilityContext context)
