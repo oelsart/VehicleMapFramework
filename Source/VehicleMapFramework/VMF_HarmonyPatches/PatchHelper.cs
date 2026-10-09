@@ -131,6 +131,18 @@ public static class PatchHelper
           new CodeInstruction(OpCodes.Add));
     }
 
+    public CodeMatcher MultiplyFullAngleQuat(LocalBuilder vehicle)
+    {
+      return codeMatcher
+        .CreateLabel(out var label)
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          new CodeInstruction(OpCodes.Brfalse_S, label),
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          CachedMethodInfo.m_FullAngleQuat.CallInstruction,
+          CachedMethodInfo.o_Quaternion_Multiply.CallInstruction);
+    }
+
     public CodeMatcher MultiplyExtraAngleQuat(LocalBuilder vehicle)
     {
       return codeMatcher

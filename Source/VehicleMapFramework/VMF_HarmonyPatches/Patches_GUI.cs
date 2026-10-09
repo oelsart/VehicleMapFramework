@@ -326,7 +326,7 @@ public static class Patch_GUI_VehicleMapOffset
         new CodeInstruction(OpCodes.Ldloca_S, vehicle),
         CachedMethodInfo.m_FocusedOnVehicleMap.CallInstruction,
         new CodeInstruction(OpCodes.Brfalse_S, label))
-      .MultiplyExtraAngleQuat(vehicle)
+      .MultiplyFullAngleQuat(vehicle)
       .InstructionEnumeration();
   }
 }
