@@ -44,15 +44,18 @@ internal sealed class Test_WorkGivers
       if (test.AfterPatchingType.MissingRequiredMods()) continue;
       var fixture = new NestedTestFixture(test.AfterPatchingType, $"AfterPatch: {test.WorkGiverDef?.defName}", test);
       yield return fixture.RunIndependent();
+      ClearPawnState(pawn);
     }
   }
 
   internal static void ClearPawnState(Pawn pawn)
   {
     pawn.jobs?.EndCurrentJob(JobCondition.Succeeded, false, false);
-    pawn.jobs?.ClearQueuedJobs(false);
+    pawn.jobs?.ClearQueuedJobs();
     pawn.ClearAllReservations(false);
     pawn.pather?.StopDead();
     pawn.RemoveTargetInfo();
+    pawn.carryTracker.innerContainer.Clear();
+    pawn.needs.AllNeeds.ForEach(static n => n.CurLevel = n.MaxLevel);
   }
 }

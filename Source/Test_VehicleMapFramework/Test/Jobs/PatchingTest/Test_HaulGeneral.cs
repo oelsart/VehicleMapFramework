@@ -34,18 +34,15 @@ internal class Test_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(group)
       GenSpawn.Spawn(parent.woodLog, Pawn.Position + new IntVec3(3, 0, 3), map);
       parent.zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
       map.zoneManager.RegisterZone(parent.zone);
-      parent.zone.AddCell(FromRUCorner(map, 3));
+      parent.zone.AddCell(FromRUCorner(map, 9));
     }
 
     public override IEnumerator RunBefore()
     {
       yield return base.RunBefore();
-      using (new TimeSpeedScope(TimeSpeed.Ultrafast))
-      {
-        yield return Pawn.WaitJob(Results[0].job.NextJobOrMe.def);
-      }
+      yield return Pawn.WaitUntilIdle();
       Expect.AreEqual(parent.woodLog.Map, Find.CurrentMap);
-      Expect.AreEqual(parent.woodLog.Position, FromRUCorner(Find.CurrentMap, 3));
+      Expect.AreEqual(parent.woodLog.Position, FromRUCorner(Find.CurrentMap, 9));
       if (parent.DisablePUAH) parent.puahDisabler.Dispose();
       Test_WorkGivers.ClearPawnState(Pawn);
       parent.woodLog.Destroy();
@@ -63,14 +60,11 @@ internal class Test_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(group)
       GenSpawn.Spawn(parent.woodLog, Pawn.Position - new IntVec3(3, 0, 3), map);
       parent.zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
       map.zoneManager.RegisterZone(parent.zone);
-      parent.zone.AddCell(FromRUCorner(map, 6));
+      parent.zone.AddCell(FromRUCorner(map, 9));
       Results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
       Assert.IsNotNull(Results[1].job);
-      Pawn.jobs.StartJob(Results[1].job, JobCondition.Succeeded);
-      using (new TimeSpeedScope(TimeSpeed.Ultrafast))
-      {
-        yield return Pawn.WaitJob(Results[1].job.NextJobOrMe.def);
-      }
+      Pawn.jobs.StartJob(Results[1].job, JobCondition.InterruptForced);
+      yield return Pawn.WaitUntilIdle();
       Assert.AreEqual(parent.woodLog.Map, Pawn.Map);
       Assert.IsTrue(parent.zone.AllContainedThings.Contains(parent.woodLog));
       
@@ -90,15 +84,10 @@ internal class Test_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(group)
 
       Results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
       Assert.IsNotNull(Results[1].job);
-      Pawn.jobs.StartJob(Results[1].job, JobCondition.Succeeded);
+      Pawn.jobs.StartJob(Results[1].job, JobCondition.InterruptForced);
       Expect.AreNotEqual(Results[0], Results[1]);
       Expect.AreEqual(Results[1].job.globalTarget.Map, Vehicle.VehicleMap, "Job target map set");
-
-      using (new TimeSpeedScope(TimeSpeed.Ultrafast))
-      {
-        yield return Pawn.WaitJob(Results[1].job.NextJobOrMe.def);
-        yield return Pawn.WaitJob(Pawn.NextJobOrCurJob.def);
-      }
+      yield return Pawn.WaitUntilIdle();
       yield return ExpectOrSuspend.AreEqual(parent.woodLog.Map, Vehicle.VehicleMap, "Wood log not hauled");
       yield return ExpectOrSuspend.AreEqual(parent.woodLog.Position, new IntVec3(1, 0, 1), "Wood log not hauled");
     }

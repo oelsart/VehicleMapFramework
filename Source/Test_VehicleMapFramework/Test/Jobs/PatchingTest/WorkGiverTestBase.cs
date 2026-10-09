@@ -410,7 +410,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     {
       Results[0] = RunWorkGiverBeforePatch(Pawn, WorkGiverDef);
       Expect.IsNotNull(Results[0].job);
-      Pawn.jobs.StartJob(Results[0].job, JobCondition.Succeeded);
+      Pawn.jobs.StartJob(Results[0].job, JobCondition.InterruptForced);
       Assert.AreEqual(Pawn.CurJob, Results[0].job);
       yield break;
     }
@@ -423,7 +423,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     {
       Results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
       Expect.AreEqual(Results[0], Results[1]);
-      Pawn.jobs.StartJob(Results[1].job);
+      Pawn.jobs.StartJob(Results[1].job, JobCondition.InterruptForced);
       yield break;
     }
 

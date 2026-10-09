@@ -319,24 +319,47 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
       pawn.TargetInfo = target;
       try
       {
+        using var _ = new VirtualTeleporter(pawn, targetMap, target.Cell, true);
+        var job = scanner.JobOnCell(pawn, target.Cell, forced);
+        var cell = job.targetA.HasThing
+          ? job.targetB.HasThing ? job.targetC.HasThing ? IntVec3.Invalid : job.targetC.Cell : job.targetB.Cell
+          : job.targetA.Cell;
+        if (!cell.IsValid)
+        {
+          cell = CellTargetFromQueue(job.targetQueueA);
+          if (!cell.IsValid) cell = CellTargetFromQueue(job.targetQueueB);
+        }
+        if (cell.IsValid)
+        {
+          Log.Message($"JobOnCellMap: {scanner.def.defName} job on cell {cell} in map {targetMap} for pawn {pawn} in map {map}");
+          job.globalTarget = new GlobalTargetInfo(cell, targetMap);
+          return job;
+        }
         var target2 = target.Cell.GetEdifice(targetMap) ?? (LocalTargetInfo)target.Cell;
         if (pawn.CanReach(target2, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
               TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot, out var spotsQueue))
         {
-          var cell2 = CellFinder.StandableCellNear(target.Cell, targetMap, 1.5f);
-          if (!cell2.IsValid) cell2 = target.Cell;
-          using var _ = new VirtualTeleporter(pawn, targetMap, cell2);
-          var job = scanner.JobOnCell(pawn, target.Cell, forced);
-          if (!JobAcrossMapsUtility.NoNeedWrapGotoDestMapJob(scanner))
-            job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
+          job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
           return job;
         }
-
         return null;
       }
       finally
       {
         pawn.RemoveTargetInfo();
+      }
+      
+      static IntVec3 CellTargetFromQueue(List<LocalTargetInfo> queue)
+      {
+        if (queue is null) return IntVec3.Invalid;
+        foreach (var queued in queue)
+        {
+          if (!queued.HasThing)
+          {
+            return queued.Cell;
+          }
+        }
+        return IntVec3.Invalid;
       }
     }
 

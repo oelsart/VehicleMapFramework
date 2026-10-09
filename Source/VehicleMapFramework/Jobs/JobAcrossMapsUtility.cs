@@ -111,11 +111,6 @@ public static class JobAcrossMapsUtility
     return pawnMap == targetMap || !pawnMap.CrossMapContext || DisabledCrossMapWorkGiverDefs.Contains(workGiver);
   }
 
-  public static bool NoNeedWrapGotoDestMapJob(WorkGiver_Scanner scanner)
-  {
-    return scanner is WorkGiver_PaintFloor;
-  }
-
   public static bool NeedWrapGotoDestMapJob(WorkGiver_Scanner scanner, Job job = null)
   {
     return scanner is WorkGiver_Merge or WorkGiver_HunterHunt or WorkGiver_Miner or VehicleWorkGiver ||

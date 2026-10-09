@@ -33,13 +33,9 @@ internal abstract class CrossMapWorkGiverTestBase(VehicleGroup group)
   {
     result = WorkGiverTestBase.RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
     Assert.IsNotNull(result.job, result.ToString());
-    Pawn.jobs.StartJob(result.job, JobCondition.Succeeded);
-    
+    Pawn.jobs.StartJob(result.job, JobCondition.InterruptForced);
     Expect.AreEqual(result.job.NextJobOrMe.def, Pawn.NextJobOrCurJob.def, $"job interrupted\n{result}\nbut curjob: {Pawn.NextJobOrCurJob}");
-    using (new TimeSpeedScope(TimeSpeed.Ultrafast))
-    {
-      yield return Pawn.WaitJob(result.job.NextJobOrMe.def);
-    }
+    yield return Pawn.WaitUntilIdle();
   }
 
   [TearDown]

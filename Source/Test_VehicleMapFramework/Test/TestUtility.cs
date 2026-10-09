@@ -1,4 +1,6 @@
 ﻿global using static VehicleMapFramework.Test_DevTools.TestUtility;
+using System.Collections;
+using DevTools.Testing;
 using RimWorld;
 using UnityEngine.Assertions;
 using Vehicles;
@@ -131,6 +133,19 @@ public static class TestUtility
   extension(Job job)
   {
     public Job ActualJob(Pawn pawn) => (job.GetCachedDriver(pawn) as JobDriver_GotoDestMap)?.nextJob ?? job;
+  }
+
+  extension(Pawn pawn)
+  {
+    public IEnumerator WaitUntilIdle()
+    {
+      pawn.jobs.jobQueue.EnqueueLast(JobMaker.MakeJob(JobDefOf.Wait));
+      yield return ExpectOrSuspend.AreNotEqual(JobDefOf.Wait, pawn.CurJobDef, "Pawn is already idle");
+      using (new TimeSpeedScope(TimeSpeed.Ultrafast))
+      {
+        yield return pawn.WaitJob(JobDefOf.Wait, 10000, waitJobType: WaitJobType.StartsJob);
+      }
+    }
   }
 
   public readonly struct AllowedAreaScope : IDisposable
