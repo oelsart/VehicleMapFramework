@@ -24,6 +24,7 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
   public override void FinalizeInit()
   {
     VehicleMapParentsComponent.SetCache(map);
+    CrossMapMapPawnsCache.RecacheMask();
   }
 
   public static void RegisterVehicle(VehiclePawnWithMap vehicle)

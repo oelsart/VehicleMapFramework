@@ -101,7 +101,7 @@ public static class Patch_Designator_SelectedUpdate
         flag |= VehicleMapFlag.ExpandableCells;
     }
 
-    if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, flag))
+    if (mousePos.TryGetVehicleMap(Find.CurrentMap.GroundMap, out var vehicle, flag))
     {
       Command_FocusVehicleMap.FocusedVehicle = vehicle;
     }
