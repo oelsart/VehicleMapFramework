@@ -659,7 +659,6 @@ public static class Patch_SelectionHelper_MultiSelectClicker
   }
 }
 
-//ポーンがVehicleRoleBuildableに割り当てられている時はその席へのCanReachにすり替える
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(CaravanFormation), "CheckForErrors")]
 [PatchLevel(Level.Sensitive)]
@@ -668,6 +667,19 @@ public static class Patch_CaravanFormation_CheckForErrors
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var matcher = PatchHelper.CreateCodeMatcherFast(instructions)
+      // 車両マップ上にポーンがいる場合キャラバンへの出発を許可する
+      .MatchEndForward(
+        CodeMatch.LoadsField(AccessTools.Field(typeof(CaravanFormation), nameof(CaravanFormation.formation))),
+        CodeMatch.LoadsField(AccessTools.Field(typeof(FormationInfo), nameof(FormationInfo.pawns))))
+      .InsertAfterAndAdvance(
+        CodeInstruction.LoadField(typeof(CaravanFormation), nameof(CaravanFormation.formation)),
+        ((Delegate)InsertVehicleMapPawns).Method.CallInstruction)
+      .MatchStartForward(CodeMatch.Calls(((Delegate)CaravanHelper.CanStartCaravan).Method))
+      .InsertAndAdvance(
+        CodeInstruction.LoadField(typeof(CaravanFormation), nameof(CaravanFormation.formation)),
+        ((Delegate)InsertVehicleMapPawns).Method.CallInstruction)
+      
+      //ポーンがVehicleRoleBuildableに割り当てられている時はその席へのCanReachにすり替える
       .MatchStartForward(CodeMatch.Calls(
         AccessTools.PropertyGetter(
           typeof(List<VehiclePawn>.Enumerator),
@@ -704,6 +716,9 @@ public static class Patch_CaravanFormation_CheckForErrors
       .InsertAfter(
         CodeInstruction.LoadLocal(pawnInd),
         ((Delegate)TargetThing).Method.CallInstruction)
+      
+      .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(FormationInfo), nameof(FormationInfo.vehicles))))
+      .InsertAfter(((Delegate)ExceptMapVehiclesList).Method.CallInstruction)
       .InstructionEnumeration();
 
     static int StlocIndex(CodeInstruction instruction)
@@ -719,6 +734,31 @@ public static class Patch_CaravanFormation_CheckForErrors
         _ => throw new Exception("Local variable not found.")
       };
     }
+  }
+  
+  private static List<Pawn> InsertVehicleMapPawns(List<Pawn> pawns, FormationInfo formation)
+  {
+    var result = new List<Pawn>(pawns);
+    foreach (var vehicle in formation.vehicles)
+    {
+      if (vehicle is VehiclePawnWithMap vehiclePawnWithMap)
+      {
+        foreach (var pawn in vehiclePawnWithMap.VehicleMap.mapPawns.FreeColonistsSpawned)
+        {
+          if (!result.Contains(pawn))
+            result.Add(pawn);
+        }
+      }
+    }
+  
+    return result;
+  }
+  
+  // unassignedVehicleの検索からはVehiclePawnWithMapは除外する。車両マップに十分なポーンが乗っていればよく、
+  // それはCanStartCaravanによってチェックされるため
+  private static List<VehiclePawn> ExceptMapVehiclesList(List<VehiclePawn> vehicles)
+  {
+    return [.. vehicles.Where(v => v is not VehiclePawnWithMap)];
   }
 
   private static Thing TargetThing(VehiclePawn vehicle, Pawn pawn)
