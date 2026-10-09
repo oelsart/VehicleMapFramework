@@ -16,7 +16,9 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
   private Rot4 lastGeneratedRots = Rot4.North;
 
   internal static readonly HashSet<Type> OrientedSectionLayerTypes =
-    [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Append(typeof(SectionLayer_SunShadowsOnVehicle))];
+    [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract()
+      .Append(typeof(SectionLayer_SunShadowsOnVehicle))
+      .Except(typeof(SectionLayer_ThingsPowerGrid))];
 
   public static readonly List<CompatBase> CompatClassesForDrawLayers = [];
 
@@ -35,39 +37,37 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
 
       layersByRot = [];
 
-      for (var i = 0; i < map.Size.x; i += 17)
+      foreach (var section in VehiclePawnWithMap.sections(map.mapDrawer))
       {
-        for (var j = 0; j < map.Size.z; j += 17)
+        layersByRot[section] = [];
+
+        foreach (var type in typeof(SectionLayer).AllSubclassesNonAbstract())
         {
-          var section = map.mapDrawer.SectionAt(new IntVec3(i, 0, j));
-          layersByRot[section] = [];
+          var layer = section.GetLayer(type);
+          if (layer == null) continue;
 
-          foreach (var type in typeof(SectionLayer).AllSubclassesNonAbstract())
+          if (OrientedSectionLayerTypes.Contains(type))
           {
-            var layer = section.GetLayer(type);
-            if (layer == null) continue;
-
-            if (OrientedSectionLayerTypes.Contains(type))
+            layersByRot[section][type] =
+            [
+              layer,
+              (SectionLayer)Activator.CreateInstance(type, section),
+              (SectionLayer)Activator.CreateInstance(type, section),
+              (SectionLayer)Activator.CreateInstance(type, section),
+            ];
+            for (var k = 0; k < 4; k++)
             {
-              layersByRot[section][type] =
-              [
-                layer,
-                (SectionLayer)Activator.CreateInstance(type, section),
-                (SectionLayer)Activator.CreateInstance(type, section),
-                (SectionLayer)Activator.CreateInstance(type, section),
-              ];
-              for (var k = 0; k < 4; k++)
-              {
-                var layer2 = layersByRot[section][type][k];
-                layer2.Dirty = true;
-              }
-            }
-            else
-            {
-              layersByRot[section][type] = [layer, layer, layer, layer];
+              var layer2 = layersByRot[section][type][k];
+              layer2.Dirty = true;
             }
           }
+          else
+          {
+            layersByRot[section][type] = [layer, layer, layer, layer];
+          }
         }
+
+        section.dirtyFlags |= MapMeshFlagDefOf.PowerGrid;
       }
     });
   }
@@ -120,6 +120,7 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
     foreach (var sectionLayers in layersByRot[section])
     {
       var northLayer = sectionLayers.Value[0];
+      if (northLayer.Dirty) continue;
       northLayer.Dirty = (section.dirtyFlags & northLayer.relevantChangeTypes) > 0UL;
       if (!northLayer.Dirty) continue;
       
@@ -128,6 +129,8 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
         sectionLayers.Value[i].Dirty = true;
       }
     }
+
+    section.dirtyFlags = 0UL;
   }
 
   private void DirtyAdaptiveStorageGraphics(Section section, Rot4 rot)
@@ -178,12 +181,11 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
     subMesh.mesh.SetVertices(subMesh.verts);
   }
 
-  public static void DrawLayer(VehicleSectionLayerManager component, Section section, Type layerType, Vector3 drawPos,
-    Rot8 rot, float angle)
+  public void DrawLayer(Section section, Type layerType, Vector3 drawPos, Rot8 rot, float angle)
   {
     if (layerType is null) return;
 
-    var layer = component.GetLayer(section, layerType, rot);
+    var layer = GetLayer(section, layerType, rot);
     if (layer is null) return;
 
     DrawLayer(layer, drawPos, angle);

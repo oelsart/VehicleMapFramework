@@ -344,12 +344,12 @@ public static class ModCompat
         var mode = CompProperties_Pipe_mode(compProperties);
         if (sewagePipeOverlay is not null & SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
         {
-          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_SewagePipeOverlay, drawPos.Yto0(), rot, angle);
+          component.DrawLayer(section, SectionLayer_SewagePipeOverlay, drawPos.Yto0(), rot, angle);
         }
 
         if (airDuctOverlay is not null && SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
         {
-          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_AirDuctOverlay, drawPos.Yto0(), rot, angle);
+          component.DrawLayer(section, SectionLayer_AirDuctOverlay, drawPos.Yto0(), rot, angle);
         }
 
         if (Time.frameCount % 120 == 0)
@@ -359,8 +359,8 @@ public static class ModCompat
         }
       }
 
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_Irrigation, drawPos.Yto0(), rot, angle);
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_FertilizerGrid, drawPos.Yto0(), rot, angle);
+      component.DrawLayer(section, SectionLayer_Irrigation, drawPos.Yto0(), rot, angle);
+      component.DrawLayer(section, SectionLayer_FertilizerGrid, drawPos.Yto0(), rot, angle);
     }
   }
 
@@ -407,7 +407,7 @@ public static class ModCompat
         var mode = CompProperties_Pipe_mode(compProperties);
         if (sewagePipeOverlay != null & SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
         {
-          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_SewagePipe, drawPos.Yto0(), rot, angle);
+          component.DrawLayer(section, SectionLayer_SewagePipe, drawPos.Yto0(), rot, angle);
         }
 
         if (Time.frameCount % 120 == 0)
@@ -416,9 +416,9 @@ public static class ModCompat
         }
       }
 
-      VehicleSectionLayerManager.DrawLayer(component, section, XSectionLayer_Napalm, drawPos, rot, angle);
-      VehicleSectionLayerManager.DrawLayer(component, section, XSectionLayer_OilSpill, drawPos, rot, angle);
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ThingsPipe, drawPos, rot, angle);
+      component.DrawLayer(section, XSectionLayer_Napalm, drawPos, rot, angle);
+      component.DrawLayer(section, XSectionLayer_OilSpill, drawPos, rot, angle);
+      component.DrawLayer(section, SectionLayer_ThingsPipe, drawPos, rot, angle);
     }
   }
 
@@ -459,7 +459,7 @@ public static class ModCompat
           thingDef.HasComp(CompDefenseConduit) ||
           Designator_DeconstructConduit.IsInstanceOfType(selDesignator))
       {
-        VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_DefenseGridOverlay, drawPos.Yto0(), rot, angle);
+        component.DrawLayer(section, SectionLayer_DefenseGridOverlay, drawPos.Yto0(), rot, angle);
       }
     }
   }
@@ -695,7 +695,7 @@ public static class ModCompat
     public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
       Rot8 rot, float angle)
     {
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ABBelowV2,
+      component.DrawLayer(section, SectionLayer_ABBelowV2,
         drawPos.WithYOffset(-Altitudes.AltInc * 20f / VehicleMapUtility.YCompress), rot, angle);
     }
 
@@ -786,7 +786,7 @@ public static class ModCompat
         foreach (var layer in SectionLayer_OverlayPipes)
         {
           if (mode == SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, rot)))
-            VehicleSectionLayerManager.DrawLayer(component, section, layer, drawPos, rot, angle);
+            component.DrawLayer(section, layer, drawPos, rot, angle);
         }
       }
       else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
@@ -798,12 +798,12 @@ public static class ModCompat
           foreach (var layer in SectionLayer_OverlayPipes)
           {
             if (mode == SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, rot)))
-              VehicleSectionLayerManager.DrawLayer(component, section, layer, drawPos, rot, angle);
+              component.DrawLayer(section, layer, drawPos, rot, angle);
           }
         }
       }
 
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ThingsPipe, drawPos, rot, angle);
+      component.DrawLayer(section, SectionLayer_ThingsPipe, drawPos, rot, angle);
     }
   }
 
@@ -859,7 +859,7 @@ public static class ModCompat
       Rot8 rot, float angle)
     {
       if (component.map.IsVehicleMapOf(out var vehicle) && vehicle.CurrentLevel != vehicle.VehicleMap)
-        VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_LowerLevel, drawPos, rot, angle);
+        component.DrawLayer(section, SectionLayer_LowerLevel, drawPos, rot, angle);
     }
   }
   

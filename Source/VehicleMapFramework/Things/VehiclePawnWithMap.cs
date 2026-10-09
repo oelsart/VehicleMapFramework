@@ -791,7 +791,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       Resize();
       if (Spawned)
       {
-        RecacheDrawPos(DrawPos + (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero));
+        if (Find.CurrentMap != CurrentLevel)
+        {
+          RecacheDrawPos(DrawPos + (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero));
+        }
         if (CompDelayedKill is { KillStarted: true })
         {
           CompDelayedKill.CompTick();
@@ -1120,20 +1123,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     //map.waterInfo.SetTextures();
     //map.avoidGrid.DebugDrawOnMap();
     //BreachingGridDebug.DebugDrawAllOnMap(map);
-    FrameDelay.DelayOne(static vehicle =>
-    {
-      try
-      {
-        var map = vehicle.CurrentLevel;
-        VehicleSectionLayerManager.CacheMode = true;
-        map.GetCachedMapComponent<VehicleSectionLayerManager>()?.UpdateAllSection();
-        map.mapDrawer.MapMeshDrawerUpdate_First();
-      }
-      finally
-      {
-        VehicleSectionLayerManager.CacheMode = false;
-      }
-    }, this);
     //map.powerNetGrid.DrawDebugPowerNetGrid();
     //DoorsDebugDrawer.DrawDebug();
     //map.mapDrawer.DrawMapMesh();
@@ -1141,7 +1130,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       ? -AsAboveSoBelow.RectOfBand(map, AsAboveSoBelow.CurrentBand(map)).Min.ToVector3()
       : Vector3.zero;
     var drawPos = origin.ToBaseMapCoord(this);
-    DrawVehicleMapMesh(drawPos, map);
+    var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
+    component?.UpdateAllSection();
+    DrawVehicleMapMesh(drawPos, map, component);
     DrawClippers();
 
     using (new Command_FocusVehicleMap.FocusVehicleScope(this))
@@ -1162,10 +1153,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     //MapEdgeClipDrawer.DrawClippers(__instance);
   }
 
-  internal void DrawVehicleMapMesh(Vector3 drawPos, Map map)
+  internal void DrawVehicleMapMesh(Vector3 drawPos, Map map, VehicleSectionLayerManager component)
   {
     var mapDrawer = map.mapDrawer;
-    var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
     if (component is null) return;
     var scope = AsAboveSoBelow.Active ? AsAboveSoBelow.RectOfBand(map, AsAboveSoBelow.CurrentBand(map)) : default;
     var rot = FullRotation;
@@ -1182,31 +1172,31 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   protected virtual void DrawSection(Section section, Vector3 drawPos, Rot8 rot, float angle, VehicleSectionLayerManager component)
   {
     var extraAngle = this.ExtraAngle;
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_TerrainOnVehicle), drawPos, rot, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_SnowOnVehicle), drawPos.WithYOffset(0.1f), rot, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_ThingsGeneral), drawPos, rot, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos, rot, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0(), rot, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos, rot, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_Plans), drawPos.Yto0(), rot, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_SunShadowsOnVehicle), drawPos, rot, extraAngle);
+    component.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos, rot, angle);
+    component.DrawLayer(section, typeof(SectionLayer_SnowOnVehicle), drawPos.WithYOffset(0.1f), rot, angle);
+    component.DrawLayer(section, typeof(SectionLayer_ThingsGeneral), drawPos, rot, angle);
+    component.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, rot, angle);
+    component.DrawLayer(section, typeof(SectionLayer_IndoorMask), drawPos.Yto0(), rot, angle);
+    component.DrawLayer(section, typeof(SectionLayer_EdgeShadows), drawPos, rot, angle);
+    component.DrawLayer(section, typeof(SectionLayer_Plans), drawPos.Yto0(), rot, angle);
+    component.DrawLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), drawPos, rot, extraAngle);
     ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default))
       .DrawLayer(drawPos);
     
     if (OverlayDrawHandler.ShouldDrawPowerGrid)
     {
-      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_ThingsPowerGrid), drawPos.Yto0(), rot, angle);
+      component.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos.Yto0(), rot, angle);
     }
 
     if (OverlayDrawHandler.ShouldDrawZones)
     {
-      VehicleSectionLayerManager.DrawLayer(component, section, t_SectionLayer_Zones, drawPos, rot, angle);
+      component.DrawLayer(section, t_SectionLayer_Zones, drawPos, rot, angle);
     }
     
     if (ModsConfig.OdysseyActive)
     {
-      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_SubstructurePropsOnVehicle), drawPos, rot, extraAngle);
-      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_GravshipHullOnVehicle), drawPos, rot, extraAngle);
+      component.DrawLayer(section, typeof(SectionLayer_SubstructurePropsOnVehicle), drawPos, rot, extraAngle);
+      component.DrawLayer(section, typeof(SectionLayer_GravshipHullOnVehicle), drawPos, rot, extraAngle);
     }
 
     DrawModLayers(section, drawPos, rot, angle, component);
