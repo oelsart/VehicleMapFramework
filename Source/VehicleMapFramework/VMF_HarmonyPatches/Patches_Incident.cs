@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
@@ -15,6 +16,16 @@ public static class Patch_StorytellerUtility_DefaultThreatPointsNow
     if (target is Map { ParentVehicle.ParentHolder: IIncidentTarget target2 })
       target = target2;
   }
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(
+      AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPocketMap)),
+      ((Delegate)IsPocketMapHasSource).Method);
+  }
+
+  private static bool IsPocketMapHasSource(Map map) =>
+    map is { IsPocketMap: true, PocketMapParent.sourceMap: not null };
 }
 
 [HarmonyPatch(typeof(Caravan), nameof(Caravan.PlayerWealthForStoryteller), MethodType.Getter)]
