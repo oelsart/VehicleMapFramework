@@ -3,7 +3,6 @@ Shader "VehicleMapFramework/LightOverlayInverseMultiply" {
 		_Color ("Color", Color) = (1, 1, 1, 1)
 		_RestoreFactor ("Recovery Factor", Range(0, 10)) = 1
 		_MaxRestore ("Max Recovery Limit", Range(0, 1)) = 0.5
-		_ColorPreservation ("Color Preservation", Range(0, 1)) = 0.3
 	}
 	SubShader {
 		Tags
@@ -41,7 +40,6 @@ Shader "VehicleMapFramework/LightOverlayInverseMultiply" {
 			float4 _Color;
 			float _RestoreFactor;
 			float _MaxRestore;
-			float _ColorPreservation;
 			sampler2D _GrabTexture;
 			
 			v2f vert(appdata v)

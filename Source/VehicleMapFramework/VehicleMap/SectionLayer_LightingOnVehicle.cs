@@ -18,15 +18,12 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
   private static MaterialPropertyBlock materialPropertyBlock = new();
   private static readonly int RestoreFactor = Shader.PropertyToID("_RestoreFactor");
   private static readonly int MaxRestore = Shader.PropertyToID("_MaxRestore");
-  private static readonly int ColorPreservation = Shader.PropertyToID("_ColorPreservation");
 
   [TweakValue("SectionLayer_LightingOnVehicle._RestoreFactor", 0f, 10f)] [UsedImplicitly]
-  private static float restoreFactor = 1.5f;
+  private static float restoreFactor = 1.6f;
 
   [TweakValue("SectionLayer_LightingOnVehicle._MaxRestore", 0f, 1f)] [UsedImplicitly]
   private static float maxRestore = 0.85f;
-
-  private const int MinGlow = 100;
 
   private readonly bool[] expand = new bool[4];
 
@@ -154,7 +151,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
           {
             var thing = innerArray[num10];
             var roofDef = roofGrid.RoofAt(num10);
-            if (roofDef != null && thing is not
+            if (roofDef is not null && thing is not
                   { def: { holdsRoof: true, altitudeLayer: not AltitudeLayer.DoorMoveable } })
             {
               canShowLight = true;
@@ -164,8 +161,10 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             {
               colorInt += map.glowGrid.VisualGlowAt(num10);
               num9++;
-              if (!canShowLight && Mathf.Max(colorInt.r, Mathf.Max(colorInt.g, colorInt.b)) > MinGlow)
-                canShowLight = true;
+              if (!canShowLight)
+              {
+                colorInt.a = Mathf.Min(colorInt.r + colorInt.g + colorInt.b, 255);
+              }
             }
           }
         }
@@ -253,8 +252,10 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         }
 
         var rect2 = rect;
-        rect2.maxX--;
-        rect2.maxZ--;
+        if (expand[0]) rect2.maxZ--;
+        if (expand[1]) rect2.maxX--;
+        if (expand[2]) rect2.minZ++;
+        if (expand[3]) rect2.minX++;
         for (var j = 0; j < 4; j++)
         {
           var rot = new Rot4(j);
@@ -331,7 +332,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
   private void MakeBaseGeometry(LayerSubMesh sm, float altitude)
   {
-    sectRect = new CellRect(section.botLeft.x, section.botLeft.z, 17, 17);
+    sectRect = [with(section.botLeft.x, section.botLeft.z, 17, 17)];
     sectRect.ClipInsideMap(Map);
     var min = sectRect.Min;
     var max = sectRect.Max;
@@ -410,5 +411,14 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
     topRight = ((num2 + 1) * (sectRect.Width + 1)) + num + 1;
     botRight = (num2 * (sectRect.Width + 1)) + num + 1;
     center = firstCenterInd + (num2 * sectRect.Width) + num;
+  }
+
+  [DebugAction(VehicleMapFramework.CategoryName)]
+  private static void RegenerateLightOverlayOnVehicle()
+  {
+    foreach (var map in Find.CurrentMap.BaseMapAndVehicleMaps(true))
+    {
+      map.mapDrawer.RegenerateLayerNow(typeof(SectionLayer_LightingOnVehicle));
+    }
   }
 }
