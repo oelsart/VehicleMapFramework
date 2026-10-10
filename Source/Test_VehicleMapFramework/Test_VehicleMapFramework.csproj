@@ -3,7 +3,7 @@
     <TargetFramework>net48</TargetFramework>
     <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>VehicleMapFramework.Test_Logics</RootNamespace>
+    <RootNamespace>VehicleMapFramework.Test_DevTools</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <Configurations>Dev;Release;Debug</Configurations>
     <Platforms>AnyCPU</Platforms>

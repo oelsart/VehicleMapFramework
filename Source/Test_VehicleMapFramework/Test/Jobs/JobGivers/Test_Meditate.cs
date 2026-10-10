@@ -96,6 +96,7 @@ internal sealed class Test_Meditate : IGenericTest
       Expect.AreEqual(job.targetA, throne, "targetA");
       Expect.AreEqual(job.targetC, throne, "targetC");
     }
+    throne.Destroy();
   }
   
   [Test]
@@ -138,12 +139,13 @@ internal sealed class Test_Meditate : IGenericTest
       Expect.AreEqual(job.def, JobDefOf.Meditate, "JobDef");
       Expect.AreNotEqual(job.targetA, LocalTargetInfo.Invalid, "targetA");
     }
+    meditationSpot.Destroy();
   }
 
   private struct RoomScope : IDisposable
   {
     private List<Thing> things;
-    public Room Room { get; private set; }
+    private Room Room { get; set; }
 
     [Obsolete("The constructor with no arguments is prohibited.", error: true)]
     public RoomScope()

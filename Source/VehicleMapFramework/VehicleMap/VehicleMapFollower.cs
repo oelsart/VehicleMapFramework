@@ -66,9 +66,10 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
     foreach (var c in tmpOccupiedCells)
     {
       component.Register(c, vehicle);
+      prevOccupiedCells.Add(c);
     }
 
-    component.OccupiedCells[vehicle] = tmpOccupiedCells;
+    component.OccupiedCells[vehicle] = prevOccupiedCells;
     prevCell = vehicle.Position;
     prevRot = vehicle.FullRotation;
   }
