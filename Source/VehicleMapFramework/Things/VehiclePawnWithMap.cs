@@ -1131,8 +1131,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       : Vector3.zero;
     var drawPos = origin.ToBaseMapCoord(this);
     var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
-    component?.UpdateAllSection();
     DrawVehicleMapMesh(drawPos, map, component);
+    component?.UpdateAllSection();
     DrawClippers();
 
     using (new Command_FocusVehicleMap.FocusVehicleScope(this))

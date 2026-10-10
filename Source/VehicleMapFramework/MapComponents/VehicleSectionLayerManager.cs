@@ -119,14 +119,10 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
   {
     foreach (var sectionLayers in layersByRot[section])
     {
-      var northLayer = sectionLayers.Value[0];
-      if (northLayer.Dirty) continue;
-      northLayer.Dirty = (section.dirtyFlags & northLayer.relevantChangeTypes) > 0UL;
-      if (!northLayer.Dirty) continue;
-      
-      for (var i = 1; i < 4; i++)
+      for (var i = 0; i < 4; i++)
       {
-        sectionLayers.Value[i].Dirty = true;
+        var layer = sectionLayers.Value[i];
+        layer.Dirty = layer.Dirty || (section.dirtyFlags & layer.relevantChangeTypes) > 0UL;
       }
     }
 
