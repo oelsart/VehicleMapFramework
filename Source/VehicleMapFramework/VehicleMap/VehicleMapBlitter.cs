@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using SmashTools.Rendering;
 using UnityEngine;
+using Vehicles;
 using Vehicles.Rendering;
 using Verse;
 
@@ -15,7 +16,7 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
   {
     LongEventHandler.ExecuteWhenFinished(() =>
     {
-      defaultMat = new Material(ShaderDatabase.Transparent);
+      defaultMat = new Material(VehicleShaderTypeDefOf.CutoutComplexRGB.Shader);
     });
   }
   
@@ -33,11 +34,11 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
 
   IEnumerable<RenderData> IBlitTarget.GetRenderData(Rect rect, BlitRequest request)
   {
-    var textureSize = ((IBlitTarget)this).TextureSize(in request);
-    var texture = VehicleMapUIRenderer.GetVehicleMapTexture(vehicle, request.rot.RotForVehicleDraw(),
-      (textureSize.width, textureSize.height));
-    defaultMat.mainTexture = texture;
     var renderRect = GetRenderRect(rect, request);
+    var width = Mathf.NextPowerOfTwo(Mathf.CeilToInt(renderRect.width)) * 16;
+    var height = Mathf.NextPowerOfTwo(Mathf.CeilToInt(renderRect.height)) * 16;
+    var texture = VehicleMapUIRenderer.GetVehicleMapTexture(vehicle, request.rot.RotForVehicleDraw(), (width, height));
+    defaultMat.mainTexture = texture;
     
     yield return new RenderData(renderRect, texture, defaultMat, null, 0.1f, 0f);
   }

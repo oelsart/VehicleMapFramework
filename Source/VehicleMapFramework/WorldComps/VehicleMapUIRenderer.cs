@@ -302,7 +302,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     }
     return new RenderTexture(size.width, size.height, 24)
     {
-      name = "VehicleMapTexture", useMipMap = false, filterMode = FilterMode.Bilinear
+      name = "VehicleMapTexture", useMipMap = false, filterMode = FilterMode.Trilinear
     };
   }
 
