@@ -327,6 +327,9 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
   [MethodImpl(MethodImplOptions.NoInlining)]
   public static List<Pawn> FreeHumanlikesSpawnedOfFaction(MapPawns instance, Faction faction) =>
     throw new NotImplementedException();
+
+  public static List<Pawn> FreeColonistsSpawned(MapPawns instance) =>
+    FreeHumanlikesSpawnedOfFaction(instance, Faction.OfPlayer);
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.PrisonersOfColonySpawned), MethodType.Getter)]
@@ -518,22 +521,6 @@ public static class Patch_QuestPart_SpawnThing_MapParent
   }
 }
 
-[HarmonyPatch(typeof(AreaSource), nameof(AreaSource.DataForArea))]
-[PatchLevel(Level.Safe)]
-public static class Patch_AreaSource_DataForArea
-{
-  public static void Prefix(ref AreaSource __instance, Area area, Map ___map)
-  {
-    if (area.Map != ___map)
-    {
-      __instance = areas(area.Map.pathFinder.MapData);
-    }
-  }
-
-  private static readonly AccessTools.FieldRef<PathFinderMapData, AreaSource> areas =
-    AccessTools.FieldRefAccess<PathFinderMapData, AreaSource>("areas");
-}
-
 [HarmonyPatch(typeof(QuestGen_TransportShip), nameof(QuestGen_TransportShip.AddShipJob_Arrive))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_QuestGen_TransportShip_AddShipJob_Arrive
@@ -711,14 +698,14 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
     if (UnitTestDetector.IsTestingContext) return instructions;
     var g_AreaRestrictionInPawnCurrentMap =
       AccessTools.PropertyGetter(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.AreaRestrictionInPawnCurrentMap));
-    var g_AreaRestrictionInPawnBaseMap = ((Delegate)get_AreaRestrictionInPawnBaseMap).Method;
+    var g_AreaRestrictionInPawnBaseMap = ((Delegate)get_AreaRestrictionInAreaMap).Method;
     var s_AreaRestrictionInPawnCurrentMap =
       AccessTools.PropertySetter(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.AreaRestrictionInPawnCurrentMap));
-    var s_AreaRestrictionInPawnBaseMap = ((Delegate)set_AreaRestrictionInPawnBaseMap).Method;
+    var s_AreaRestrictionInPawnBaseMap = ((Delegate)set_AreaRestrictionInAreaMap).Method;
     var m_AreaAllowedLabel = ((Delegate)AreaUtility.AreaAllowedLabel).Method;
-    var m_AreaAllowedLabelBaseMap = ((Delegate)AreaAllowedLabelBaseMap).Method;
+    var m_AreaAllowedLabelBaseMap = ((Delegate)AreaAllowedLabelAreaMap).Method;
     var m_MakeAllowedAreaListFloatMenu = ((Delegate)AreaUtility.MakeAllowedAreaListFloatMenu).Method;
-    var m_MakeAllowedAreaListFloatMenuBaseMap = ((Delegate)MakeAllowedAreaListFloatMenuBaseMap).Method;
+    var m_MakeAllowedAreaListFloatMenuBaseMap = ((Delegate)MakeAllowedAreaListFloatMenuCurrentMap).Method;
     return instructions.MethodReplacer(
       (g_AreaRestrictionInPawnCurrentMap, g_AreaRestrictionInPawnBaseMap),
       (s_AreaRestrictionInPawnCurrentMap, s_AreaRestrictionInPawnBaseMap),
@@ -728,15 +715,14 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
 
   extension(Pawn_PlayerSettings playerSettings)
   {
-    private Area AreaRestrictionInPawnBaseMap
+    private Area AreaRestrictionInAreaMap
     {
       get
       {
         var _pawn = pawn(playerSettings);
-        var mapHeldBaseMap = _pawn.MapHeldBaseMap();
-        if (Find.CurrentMap == mapHeldBaseMap && _pawn.MapHeld != mapHeldBaseMap)
+        if (_pawn.MapHeld != Find.CurrentMap)
         {
-          using var _ = new VirtualTeleporter(_pawn, mapHeldBaseMap, _pawn.PositionOnBaseMap, true);
+          using var _ = new VirtualTeleporter(_pawn, Find.CurrentMap);
           return playerSettings.AreaRestrictionInPawnCurrentMap;
         }
         return playerSettings.AreaRestrictionInPawnCurrentMap;
@@ -745,12 +731,12 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
       {
         var _pawn = pawn(playerSettings);
         var mapHeld = _pawn.MapHeld;
-        var mapHeldBaseMap = mapHeld.BaseMap();
-        if (Find.CurrentMap == mapHeldBaseMap && mapHeld != mapHeldBaseMap)
+        var areaMap = value.Map;
+        if (mapHeld != areaMap)
         {
-          using var _ = new VirtualTeleporter(_pawn, mapHeldBaseMap, _pawn.PositionOnBaseMap, true);
+          using var _ = new VirtualTeleporter(_pawn, areaMap);
           playerSettings.AreaRestrictionInPawnCurrentMap = value;
-          CrossMapReachabilityCache.ClearCacheFor(mapHeldBaseMap);
+          CrossMapReachabilityCache.ClearCacheFor(areaMap);
           return;
         }
         playerSettings.AreaRestrictionInPawnCurrentMap = value;
@@ -759,18 +745,17 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
     }
   }
 
-  private static string AreaAllowedLabelBaseMap(Pawn _pawn)
+  private static string AreaAllowedLabelAreaMap(Pawn _pawn)
   {
-    return AreaUtility.AreaAllowedLabel_Area(_pawn.playerSettings?.AreaRestrictionInPawnBaseMap);
+    return AreaUtility.AreaAllowedLabel_Area(_pawn.playerSettings?.AreaRestrictionInAreaMap);
   }
 
-  private static void MakeAllowedAreaListFloatMenuBaseMap(Action<Area> selAction,
+  private static void MakeAllowedAreaListFloatMenuCurrentMap(Action<Area> selAction,
     bool addNullAreaOption, bool addManageOption, Map map)
   {
-    var baseMap = map.GroundMap;
-    if (Find.CurrentMap == baseMap && map != baseMap)
+    if (map != Find.CurrentMap)
     {
-      AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, baseMap);
+      AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, Find.CurrentMap);
       return;
     }
     AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, map);
