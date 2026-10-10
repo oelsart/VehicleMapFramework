@@ -331,7 +331,6 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
         if (cell.IsValid)
         {
-          Log.Message($"JobOnCellMap: {scanner.def.defName} job on cell {cell} in map {targetMap} for pawn {pawn} in map {map}");
           job.globalTarget = new GlobalTargetInfo(cell, targetMap);
           return job;
         }

@@ -67,7 +67,7 @@ public static class Patch_GenThing_TrueCenter
       return;
     }
 
-    if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle &&
+    if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) &&
         !VehicleSectionLayerManager.CacheMode && !VehiclePawnWithMapCache.CacheMode)
     {
       __result = __result.ToBaseMapCoord(vehicle);
