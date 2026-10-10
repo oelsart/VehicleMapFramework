@@ -306,6 +306,10 @@ public class MethodInfoCache
     public readonly MethodInfo g_AllPawns = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawns));
 
     public readonly MethodInfo m_AllPawns_Reverse = ((Delegate)Patch_MapPawns_AllPawns.AllPawns).Method;
+    
+    public readonly MethodInfo g_FreeColonistsSpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.FreeColonistsSpawned));
+    
+    public readonly MethodInfo m_FreeColonistsSpawned_Reverse = ((Delegate)Patch_MapPawns_FreeHumanlikesSpawnedOfFaction.FreeColonistsSpawned).Method;
 
     public readonly MethodInfo g_Vector3_up = AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up));
     

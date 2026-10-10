@@ -64,3 +64,14 @@ public static class Patch_Alert_NeedColonistBeds_AvailableColonistBeds
     return buildings;
   }
 }
+
+[HarmonyPatch(typeof(Alert_ColonistsIdle), "IdleColonists", MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Alert_ColonistsIdle_IdleColonists
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_FreeColonistsSpawned,
+      CachedMethodInfo.m_FreeColonistsSpawned_Reverse);
+  }
+}
