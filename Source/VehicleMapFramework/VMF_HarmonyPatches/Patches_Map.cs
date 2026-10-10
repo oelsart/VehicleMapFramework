@@ -524,10 +524,9 @@ public static class Patch_AreaSource_DataForArea
 {
   public static void Prefix(ref AreaSource __instance, Area area, Map ___map)
   {
-    Map baseMap;
-    if (area.Map != ___map && area.Map == (baseMap = ___map.BaseMap()))
+    if (area.Map != ___map)
     {
-      __instance = areas(baseMap.pathFinder.MapData);
+      __instance = areas(area.Map.pathFinder.MapData);
     }
   }
 
