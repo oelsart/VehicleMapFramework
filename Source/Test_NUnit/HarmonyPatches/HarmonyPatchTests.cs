@@ -147,6 +147,7 @@ public class HarmonyPatchTests
   public void ExecutePatches(TestPlan plan)
   {
     const string Royalty = "VMF_Patches_Royalty";
+    const string Ideology = "VMF_Patches_Ideology";
     const string Biotech = "VMF_Patches_Biotech";
     const string Anomaly = "VMF_Patches_Anomaly";
     const string Odyssey = "VMF_Patches_Odyssey";
@@ -156,6 +157,7 @@ public class HarmonyPatchTests
     {
       PatchAllUncategorized();
       PatchCategory(Royalty);
+      PatchCategory(Ideology);
       PatchCategory(Biotech);
       PatchCategory(Anomaly);
       PatchCategory(Odyssey);

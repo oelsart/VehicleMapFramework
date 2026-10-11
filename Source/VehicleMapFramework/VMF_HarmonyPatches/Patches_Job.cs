@@ -1428,8 +1428,6 @@ public static class Patch_Region_Notify_AreaChanged
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PaintUtility_FindNearbyDyes
 {
-  private static readonly List<Thing> tmpList = [];
-
   private static IEnumerable<MethodBase> TargetMethods()
   {
     yield return AccessTools.Method(typeof(PaintUtility), nameof(PaintUtility.FindNearbyDyes));
@@ -1437,32 +1435,11 @@ public static class Patch_PaintUtility_FindNearbyDyes
     yield return AccessTools.Method(typeof(WorkGiver_PaintFloor), "ShouldPaintCell");
   }
 
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var parameters = original.GetParameters();
-    var isStatic = original.IsStatic ? 0 : 1;
-    var i_pawn = parameters.FirstIndexOf(p => p.ParameterType == typeof(Pawn)) + isStatic;
-    var i_forced = parameters.FirstIndexOf(p => p.ParameterType == typeof(bool)) + isStatic;
     return PatchHelper.CreateCodeMatcherFast(instructions)
-      .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(ListerThings), nameof(ListerThings.ThingsOfDef))))
-      .InsertAfter(
-        CodeInstruction.LoadArgument(i_pawn),
-        CodeInstruction.LoadArgument(i_forced),
-        ((Delegate)AddThingList).Method.CallInstruction)
+      .MakeThingsOfDefCrossMap()
       .InstructionEnumeration();
-  }
-
-  private static List<Thing> AddThingList(List<Thing> list, Pawn pawn, bool forced)
-  {
-    var map = pawn.Map;
-    tmpList.Clear();
-    tmpList.AddRange(list);
-    tmpList.AddRange(map.BaseMapAndVehicleMaps(false)
-      .SelectMany(m => m.listerThings.ThingsOfDef(ThingDefOf.Dye))
-      .Where(t => !t.IsForbidden(pawn) &&
-                  pawn.CanReserveAndReach(t, PathEndMode.ClosestTouch, Danger.Deadly,
-                    ignoreOtherReservations: forced)));
-    return tmpList;
   }
 }
 

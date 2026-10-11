@@ -3,6 +3,8 @@
 internal static class PatchCategories
 {
   public const string Royalty = "VMF_Patches_Royalty";
+  
+  public const string Ideology = "VMF_Patches_Ideology";
 
   public const string Biotech = "VMF_Patches_Biotech";
 

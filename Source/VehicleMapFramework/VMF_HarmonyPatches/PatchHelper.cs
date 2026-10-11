@@ -15,6 +15,9 @@ public static class PatchHelper
     AccessTools.FieldRefAccess<CodeMatcher, List<CodeInstruction>>("codes");
   private static readonly AccessTools.FieldRef<CodeMatcher, ILGenerator> generator =
     AccessTools.FieldRefAccess<CodeMatcher, ILGenerator>("generator");
+
+  private static readonly FieldInfo f_allBuildingsColonist =
+    AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
   
   public static CodeMatcher CreateCodeMatcherFast(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator = null)
   {
@@ -66,9 +69,6 @@ public static class PatchHelper
     return method is not null && ReadMethodBodyWrapper(method).Any(i =>
       i.Value is MethodBase operandMethod && targetMethods.Contains(operandMethod));
   }
-
-  private static readonly FieldInfo f_allBuildingsColonist =
-    AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
   
   extension(CodeMatcher codeMatcher)
   {
@@ -182,8 +182,38 @@ public static class PatchHelper
           CachedMethodInfo.m_ExtraAngle.CallInstruction,
           CachedMethodInfo.m_RotatedBy.CallInstruction);
     }
+
+    public CodeMatcher MakeThingsOfDefCrossMap()
+    {
+      return codeMatcher
+        .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(ListerThings), nameof(ListerThings.ThingsOfDef))))
+        .Set(OpCodes.Call, ((Delegate)ThingsOfDefCrossMap).Method)
+        .MatchStartBackwards(CodeMatch.LoadsField(AccessTools.Field(typeof(Map), nameof(Map.listerThings))))
+        .RemoveInstruction();
+    }
   }
 
+  [ThreadStatic] private static List<Thing> thingList;
+    
+  private static List<Thing> ThingsOfDefCrossMap(Map map, ThingDef def)
+  {
+    var list = map.listerThings.ThingsOfDef(def);
+    var maps = map.BaseMapAndVehicleMaps(false);
+    if (maps.Count == 0)
+    {
+      return list;
+    }
+
+    thingList ??= [];
+    thingList.Clear();
+    thingList.AddRange(list);
+    foreach (var map2 in maps)
+    {
+      thingList.AddRange(map2.listerThings.ThingsOfDef(def));
+    }
+
+    return thingList;
+  }
 
   extension(MethodInfo methodInfo)
   {
