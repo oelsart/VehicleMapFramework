@@ -85,9 +85,9 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
       {
         CacheMode = true;
         RotForPrint = rot2;
-        if ((layer.relevantChangeTypes & (MapMeshFlagDefOf.Buildings | MapMeshFlagDefOf.Things)) > 0UL)
+        if (type == typeof(SectionLayer_ThingsGeneral))
         {
-          DirtyAdaptiveStorageGraphics(section, rot2);
+          DirtyAdaptiveStorageGraphics(section);
         }
         layer.Regenerate();
         layer.RefreshSubMeshBounds();
@@ -129,16 +129,14 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
     section.dirtyFlags = 0UL;
   }
 
-  private void DirtyAdaptiveStorageGraphics(Section section, Rot4 rot)
+  private void DirtyAdaptiveStorageGraphics(Section section)
   {
-    if (!AdaptiveStorage.Active || rot == lastGeneratedRots) return;
+    if (!AdaptiveStorage.Active) return;
 
-    lastGeneratedRots = rot;
     foreach (var intVec in section.CellRect)
     {
       var list = map.thingGrid.ThingsListAt(intVec);
-      var count = list.Count;
-      for (var i = 0; i < count; i++)
+      for (var i = 0; i < list.Count; i++)
       {
         var thing = list[i];
         if (AdaptiveStorage.IsAdaptiveStorageClass(thing.def.thingClass) &&
