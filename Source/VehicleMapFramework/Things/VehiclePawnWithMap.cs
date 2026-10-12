@@ -472,7 +472,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     yield return new Command_Toggle
     {
       isActive = () => allowEnter,
-      toggleAction = () => allowEnter = !allowEnter,
+      toggleAction = () =>
+      {
+        allowEnter = !allowEnter;
+        CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+      },
       defaultLabel = "VMF_AllowEnter".Translate(),
       defaultDesc = "VMF_AllowEnterDesc".Translate(),
       icon = iconAllowEnter.Texture
@@ -481,7 +485,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     yield return new Command_Toggle
     {
       isActive = () => allowExit,
-      toggleAction = () => allowExit = !allowExit,
+      toggleAction = () =>
+      {
+        allowExit = !allowExit;
+        CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+      },
       defaultLabel = "VMF_AllowsGetOff".Translate(),
       defaultDesc = "VMF_AllowsGetOffDesc".Translate(),
       icon = iconAllowExit.Texture

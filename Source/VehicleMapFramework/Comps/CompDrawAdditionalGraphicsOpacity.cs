@@ -142,6 +142,7 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
     base.PostDeSpawn(map, mode);
     for (var i = children.Count - 1; i >= 0; i--)
     {
+      if (i >= children.Count) continue;
       var child = children[i];
       if (child.parent.Spawned) child.parent.DeSpawn(mode);
     }
