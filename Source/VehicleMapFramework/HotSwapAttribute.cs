@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace VehicleMapFramework;
+﻿namespace VehicleMapFramework;
 
 public sealed class HotSwapAllAttribute : Attribute { }
 

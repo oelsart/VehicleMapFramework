@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using RimWorld.Planet;
+﻿using RimWorld.Planet;
 using Vehicles;
 using Verse;
 

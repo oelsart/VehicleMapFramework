@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using HarmonyLib;
+﻿using HarmonyLib;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

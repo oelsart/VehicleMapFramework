@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/ThingDef[defName="MiniPilotConsole"]/comps</xpath>
+		<value>
+			<li Class="VehicleMapFramework.CompProperties_BuildableUpgrades">
+				<compClass>VehicleMapFramework.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleMapFramework.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleMapFramework.RoleUpgradeBuildable">
+								<key>pilot</key>
+								<editKey>pilot</editKey>
+								<label>Pilot</label>
+								<handlingTypes>Movement</handlingTypes>
+								<slots>1</slots>
+								<slotsToOperate>1</slotsToOperate>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,-1)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,1)</drawOffsetSouth>
+									<drawOffsetEast>(-1,0,0)</drawOffsetEast>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</value>
+	</Operation>
+
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/ThingDef[defName="SmallPilotConsole"]/comps</xpath>
+		<value>
+			<li Class="VehicleMapFramework.CompProperties_BuildableUpgrades">
+				<compClass>VehicleMapFramework.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleMapFramework.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleMapFramework.RoleUpgradeBuildable">
+								<key>pilot</key>
+								<editKey>pilot</editKey>
+								<label>Pilot</label>
+								<handlingTypes>Movement</handlingTypes>
+								<slots>1</slots>
+								<slotsToOperate>1</slotsToOperate>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,-1)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,1)</drawOffsetSouth>
+									<drawOffsetEast>(-1,0,0)</drawOffsetEast>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</value>
+	</Operation>
+	
+</Patch>

@@ -1,31 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
     <RootNamespace>VehicleMapFramework</RootNamespace>
-    <LangVersion>preview</LangVersion>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <Configurations>Debug;Release;Dev</Configurations>
-    <Platforms>AnyCPU</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\1.6\_VanillaExpandedFramework\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    <IntermediateOutputPath>C:\Users\ppss2\AppData\Local\Temp\vs8B2B.tmp\Debug\</IntermediateOutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\1.6\_VanillaExpandedFramework\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-    <IntermediateOutputPath>C:\Users\ppss2\AppData\Local\Temp\vs8B2B.tmp\Release\</IntermediateOutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\_VanillaExpandedFramework\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-    <IntermediateOutputPath>C:\Users\ppss2\AppData\Local\Temp\vs8B2B.tmp\Release\</IntermediateOutputPath>
+    <OutDir>$(ModDir)\1.7\_VanillaExpandedFramework\Assemblies\</OutDir>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -37,77 +13,42 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Update="System">
-      <Private>False</Private>
-    </Reference>
-    <Reference Update="System.Core">
-      <Private>False</Private>
-    </Reference>
-    <Reference Update="System.Xml.Linq">
-      <Private>False</Private>
-    </Reference>
     <Reference Include="PipeSystem">
-      <HintPath>$(SteamWorkshopRoot)\2023507013\1.6\Assemblies\PipeSystem.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\2023507013\1.7\Assemblies\PipeSystem.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VEF">
-      <HintPath>$(SteamWorkshopRoot)\2023507013\1.6\Assemblies\VEF.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Update="System.Data">
-      <Private>False</Private>
-    </Reference>
-    <Reference Update="System.Xml">
+      <HintPath>$(SteamWorkshopRoot)\2023507013\1.7\Assemblies\VEF.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
     <Reference Include="SmashTools">
-      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.7\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.7\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'or'$(Configuration)'=='Debug'">
     <Reference Include="SmashTools">
-      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.7\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.7\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.2"/>
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.7.*" />
+    <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">
       <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Drawing">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.IO.Compression.FileSystem">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Numerics">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Runtime.Serialization">
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
 </Project>

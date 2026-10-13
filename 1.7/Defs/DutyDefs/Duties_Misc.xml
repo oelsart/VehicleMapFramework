@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <DutyDef>
+    <defName>VMF_ExitMapWithMapVehicle</defName>
+    <thinkNode Class="ThinkNode_Priority">
+      <subNodes>
+        <li Class="VehicleMapFramework.JobGiver_ExitWithMapVehicle" />
+        <li Class="VehicleMapFramework.JobGiver_BoardMapVehicle" />
+        <li Class="JobGiver_FleeImmediateThreat" />
+        <li Class="JobGiver_WanderAnywhere" />
+      </subNodes>
+    </thinkNode>
+  </DutyDef>
+  
+  <DutyDef>
+    <defName>VMF_ExitMapBest</defName>
+    <thinkNode Class="Vehicles.ThinkNode_ConditionalVehicle">
+      <subNodes>
+        <li Class="Vehicles.JobGiver_ExitMapBest" />
+        <!-- Idle rather than continue to humanlike nodes -->
+        <li Class= "Vehicles.JobGiver_AwaitOrders"/>
+      </subNodes>
+    </thinkNode>
+  </DutyDef>
+  
+  <DutyDef>
+    <defName>VMF_Kidnap</defName>
+    <thinkNode Class="VehicleMapFramework.JobGiver_KidnapToMapVehicles" />
+  </DutyDef>
+
+  <DutyDef>
+    <defName>VMF_Steal</defName>
+    <thinkNode Class="VehicleMapFramework.JobGiver_StealToMapVehicles" />
+  </DutyDef>
+  
+</Defs>

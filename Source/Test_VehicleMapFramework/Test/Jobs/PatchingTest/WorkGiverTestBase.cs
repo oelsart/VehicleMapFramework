@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 using Verse.AI;
 

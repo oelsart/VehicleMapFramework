@@ -1,134 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
-    <LangVersion>preview</LangVersion>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RootNamespace>VehicleMapFramework</RootNamespace>
-    <PlatformTarget>x64</PlatformTarget>
-    <Configurations>Debug;Release;Dev</Configurations>
-    <Platforms>AnyCPU</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\1.6\_Achtung\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    <PreferNativeArm64>true</PreferNativeArm64>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\1.6\_Achtung\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-    <PreferNativeArm64>true</PreferNativeArm64>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\_Achtung\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-    <PreferNativeArm64>true</PreferNativeArm64>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>..\..\1.6\_Achtung\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>..\..\1.6\_Achtung\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|x64'">
-    <OutputPath>..\..\1.6\_Achtung\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
-  </PropertyGroup>
-  <PropertyGroup>
-    <VFUnstableFolder Condition="'$(CIBuild)' == 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
-    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\Vehicle-Framework</VFUnstableFolder>
+    <OutDir>$(ModDir)\1.7\_Achtung\Assemblies\</OutDir>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="Achtung">
-      <HintPath>$(SteamWorkshopRoot)\730936602\1.6\Assemblies\Achtung.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\730936602\1.7\Assemblies\Achtung.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.2"/>
+    <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Core">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Data">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Drawing">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.IO.Compression.FileSystem">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Numerics">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Runtime.Serialization">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Xml">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Xml.Linq">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
     <Reference Include="SmashTools">
-      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.7\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.7\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'or'$(Configuration)'=='Debug'">
     <Reference Include="SmashTools">
-      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.7\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.7\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Vehicles;
+﻿using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;

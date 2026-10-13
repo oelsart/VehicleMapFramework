@@ -1,7 +1,6 @@
 ﻿using DevTools.Testing;
 using RimWorld;
-using VehicleMapFramework.Test_DevTools;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 
 namespace VehicleMapFramework.Test_DevTools;

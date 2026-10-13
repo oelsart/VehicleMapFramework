@@ -55,18 +55,18 @@ public class CompVehicleDrawOffset : VehicleComp
       }
       if (rot == Rot8.SouthEast)
       {
-        return DrawOffset(Rot4.South).RotatedBy(-45f);;
+        return DrawOffset(Rot4.South).RotatedBy(-45f);
       }
     }
     if (westDiagonalRotated)
     {
       if (rot == Rot8.NorthWest)
       {
-        return DrawOffset(Rot4.North).RotatedBy(-45f);;
+        return DrawOffset(Rot4.North).RotatedBy(-45f);
       }
       if (rot == Rot8.SouthWest)
       {
-        return DrawOffset(Rot4.South).RotatedBy(45f);;
+        return DrawOffset(Rot4.South).RotatedBy(45f);
       }
     }
     return DrawOffset(rot);

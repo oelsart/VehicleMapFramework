@@ -1,32 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
     <RootNamespace>VehicleMapFramework</RootNamespace>
     <AssemblyName>VehicleMapFramework</AssemblyName>
-    <LangVersion>preview</LangVersion>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <Configurations>Debug;Release;Dev</Configurations>
-    <Platforms>AnyCPU</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>..\..\1.6\Assemblies\</OutputPath>
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\1.6\Assemblies\</OutputPath>
-    <Optimize>True</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\Assemblies\</OutputPath>
-    <Optimize>True</Optimize>
+    <OutDir>$(ModDir)\1.7\Assemblies\</OutDir>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref"/>
     <PackageReference Include="Lib.Harmony.Ref"/>
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers">
       <PrivateAssets>all</PrivateAssets>
@@ -43,35 +23,31 @@
     </PackageReference>
   </ItemGroup>
 
-  <PropertyGroup>
-    <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
-  </PropertyGroup>
-  <PropertyGroup>
-    <VFUnstableFolder Condition="'$(CIBuild)' == 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
-    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\Vehicle-Framework</VFUnstableFolder>
-  </PropertyGroup>
-
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
+    <Reference Include="AnimationKit">
+      <HintPath>$(VFUnstableFolder)\1.7\Assemblies\AnimationKit.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="CoreLib">
-      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\CoreLib.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.7\Assemblies\CoreLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SmashTools">
-      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.7\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.7\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'or'$(Configuration)'=='Debug'">
     <Reference Include="SmashTools">
-      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.7\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.7\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -94,11 +70,12 @@
     <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;"/>
   </Target>
   <Target Name="CopyToDev" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Dev'">
-    <Exec Command="(robocopy ../../1.5 ../../../VehicleMapFrameworkDev/1.5 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
-    <Exec Command="(robocopy ../../1.6 ../../../VehicleMapFrameworkDev/1.6 /MIR /E /XD Assemblies /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../1.5 ../../../VehicleMapFrameworkDev/1.5 /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../1.6 ../../../VehicleMapFrameworkDev/1.6 /MIR /E /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../1.7 ../../../VehicleMapFrameworkDev/1.7 /MIR /E /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
     <Exec Command="(robocopy ../../Common ../../../VehicleMapFrameworkDev/Common /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
     <Exec Command="(robocopy ../../Dev/About ../../../VehicleMapFrameworkDev/About /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
-    <Exec Command="(robocopy ../../Dev/AssetBundles ../../../VehicleMapFrameworkDev/1.6/AssetBundles /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+    <Exec Command="(robocopy ../../Dev/AssetBundles ../../../VehicleMapFrameworkDev/2022.3/AssetBundles /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
     <Exec Command="(robocopy ../../Dev/ ../../../VehicleMapFrameworkDev LoadFolders.xml) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
     <Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
   </Target>

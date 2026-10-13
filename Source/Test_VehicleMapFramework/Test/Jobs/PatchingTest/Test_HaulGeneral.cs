@@ -2,7 +2,7 @@
 using DevTools.Testing;
 using RimWorld;
 using UnityEngine.Assertions;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 using Verse.AI;
 

@@ -3,7 +3,7 @@ using RimWorld;
 using SmashTools;
 using UnityEngine;
 using UnityEngine.Assertions;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 
 namespace VehicleMapFramework.Test_DevTools;

@@ -2,7 +2,7 @@
 using HarmonyLib;
 using RimWorld;
 using VehicleMapFramework.VMF_HarmonyPatches;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 
 namespace VehicleMapFramework.Test_DevTools;

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
@@ -15,6 +11,7 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI;
+using MethodInvoker = HarmonyLib.MethodInvoker;
 
 namespace VehicleMapFramework;
 
@@ -309,7 +306,7 @@ public static class ModCompat
         Patch_JobGiver_Work_PawnCanUseWorkGiver.NoNeedVirtualMapTransferList.Add(
           GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.WorkGiver_PlaceFertilizer", nameof(DubsBadHygiene)));
 
-        LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
+        LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null)!;
         if (LiteMode) return;
 
         SectionLayer_ThingsSewagePipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", nameof(DubsBadHygiene));

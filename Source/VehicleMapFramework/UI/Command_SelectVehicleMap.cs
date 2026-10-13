@@ -1,5 +1,4 @@
-﻿using System.IO;
-using HarmonyLib;
+﻿using HarmonyLib;
 using LudeonTK;
 using RimWorld;
 using SmashTools;
@@ -7,6 +6,7 @@ using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles.Rendering;
 using Verse;
+using Object = UnityEngine.Object;
 #if DEV
 #endif
 
@@ -50,7 +50,7 @@ public class Command_SelectVehicleMap(VehiclePawnWithMap vehicle) : Command_Togg
     var renderTexture = (RenderTexture)g_RenderTexture.Invoke(vehicle.VehicleMapGizmo.portrait, []);
     
     var active = RenderTexture.active;
-    var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
+    var texture = new Texture2D(renderTexture!.width, renderTexture.height, TextureFormat.RGB24, false);
 
     RenderTexture.active = renderTexture;
     texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);

@@ -5,7 +5,7 @@ using RimWorld;
 using SmashTools;
 using UnityEngine.Assertions;
 using Vehicles;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 using Verse.AI;
 

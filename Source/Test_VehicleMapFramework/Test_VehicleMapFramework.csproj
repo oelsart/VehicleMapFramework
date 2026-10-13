@@ -1,22 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <LangVersion>preview</LangVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>VehicleMapFramework.Test_DevTools</RootNamespace>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <Configurations>Dev;Release;Debug</Configurations>
-    <Platforms>AnyCPU</Platforms>
+    <OutDir>$(ModDir)\1.7\Assemblies\</OutDir>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
-    <DebugType>full</DebugType>
-    <OutputPath>..\..\..\VehicleMapFrameworkDev\Test\Assemblies\</OutputPath>
-    <Optimize>True</Optimize>
-    <DefineConstants>UNITY_ASSERTIONS</DefineConstants>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">
       <Private>False</Private>
@@ -25,28 +12,27 @@
 
   <ItemGroup>
     <Reference Include="DevTools">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\DevTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.7\Assemblies\DevTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.7\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Test_SmashTools">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Test_SmashTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.7\Assemblies\Test_SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Test_Vehicles">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Test_Vehicles.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.7\Assemblies\Test_Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.7\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
     <PackageReference Include="PolySharp" Version="1.16.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

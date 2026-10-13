@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security;
 using HarmonyLib;
+using static VehicleMapFramework.Test_DevTools.TestPlanLoader;
 
 namespace VehicleMapFramework.Test_DevTools;
 
@@ -106,7 +107,7 @@ public class HarmonyPatchTests
 
   [Test]
   [Order(1)]
-  [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetLoadTestPlans))]
+  [TestCaseSource(typeof(TestPlanLoader), nameof(GetLoadTestPlans))]
   public void LoadAssemblies(TestPlan plan)
   {
     using (Assert.EnterMultipleScope())
@@ -121,7 +122,7 @@ public class HarmonyPatchTests
       List<Assembly> assemblies2 = null;
       using (Assert.EnterMultipleScope())
       {
-        Assert.DoesNotThrow(() => assemblies2 = TestPlanLoader.Loader.LoadModFolder(TestPlanLoader.WorkshopIds[mod]));
+        Assert.DoesNotThrow(() => assemblies2 = Loader.LoadModFolder(WorkshopIds[mod]));
         Assert.That(assemblies2, Is.Not.Empty);
       }
       assemblies.AddRange(assemblies2);
@@ -131,11 +132,11 @@ public class HarmonyPatchTests
 
   [Test]
   [Order(2)]
-  [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetModCompatTestPlans))]
+  [TestCaseSource(typeof(TestPlanLoader), nameof(GetModCompatTestPlans))]
   public void InitializeModCompatClass(Type type)
   {
     RuntimeHelpers.RunClassConstructor(type.TypeHandle);
-    var threadLocal = (ThreadLocal<Exception>)AccessTools.PropertyGetter(TestPlanLoader.ModCompatType, "CctorException").Invoke(null, null);
+    var threadLocal = (ThreadLocal<Exception>)AccessTools.PropertyGetter(ModCompatType, "CctorException").Invoke(null, null);
     var exception = threadLocal!.Value;
     threadLocal.Value = null;
     Assert.That(exception, Is.Null);
@@ -143,7 +144,7 @@ public class HarmonyPatchTests
   
   [Test]
   [Order(3)]
-  [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetPatchTestPlans))]
+  [TestCaseSource(typeof(TestPlanLoader), nameof(GetPatchTestPlans))]
   public void ExecutePatches(TestPlan plan)
   {
     const string Royalty = "VMF_Patches_Royalty";
@@ -174,7 +175,7 @@ public class HarmonyPatchTests
 
     void PatchCategory(string category)
     {
-      TestPlanLoader.Types.Where(type =>
+      Types.Where(type =>
       {
         var attributes = type.GetCustomAttributesData();
         return
@@ -197,7 +198,7 @@ public class HarmonyPatchTests
 
     void PatchAllUncategorized()
     {
-      TestPlanLoader.Types.Where(type =>
+      Types.Where(type =>
       {
         var attributes = type.GetCustomAttributesData();
         return

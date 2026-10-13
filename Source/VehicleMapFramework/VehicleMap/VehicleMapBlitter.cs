@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using SmashTools.Rendering;
+﻿using SmashTools.Rendering;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;

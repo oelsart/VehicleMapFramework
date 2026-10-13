@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace VehicleMapFramework;
+﻿namespace VehicleMapFramework;
 
 [Obsolete("No longer used.")]
 public interface IWorkGiverAcrossMaps

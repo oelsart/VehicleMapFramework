@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using SmashTools;
+﻿using SmashTools;
 using Verse;
 using Verse.AI;
 
