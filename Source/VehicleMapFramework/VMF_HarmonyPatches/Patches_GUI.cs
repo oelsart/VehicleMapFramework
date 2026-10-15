@@ -164,7 +164,7 @@ public static class Patch_ColonistBarColonistDrawer_DrawGroupFrame
       var drawRect = new Rect(0f, rect.yMax - 5f, 50f, 50f);
       drawRect = drawRect.CenteredOnXIn(rect);
       var request = BlitRequest.For(vehicle);
-      vehicle.VehicleMapGizmo.portrait.Draw(drawRect, in request);
+      VehicleGui.DrawVehicleOnGUI(drawRect, in request);
     }
     return;
     
