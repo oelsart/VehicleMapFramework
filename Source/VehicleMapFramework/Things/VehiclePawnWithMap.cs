@@ -559,6 +559,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   {
     return new Command_SelectVehicleMap(this)
     {
+      portrait = new VehiclePortrait(new VehiclePortrait.Config
+      {
+        expiryTime = 5f
+      }),
       toggleAction = () =>
       {
         if (Find.CurrentMap == interiorMap && Spawned)

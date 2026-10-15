@@ -89,6 +89,8 @@ public static class VehicleResizeUtility
 
           formationComp.CenteredDrawPositions();
         }
+
+        FrameDelay.DelayOne(_vehicle => { _vehicle.VehicleMapGizmo.portrait.MarkDirty(); }, vehicle);
       }
     }
     catch (Exception ex)

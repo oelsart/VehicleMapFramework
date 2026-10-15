@@ -13,5 +13,12 @@
       </li>
     </value>
   </Operation>
+
+  <Operation Class="PatchOperationAdd">
+    <xpath>Defs/WorldObjectDef[defName="VehicleCaravan"]/inspectorTabs</xpath>
+    <value>
+      <li>VehicleMapFramework.WITab_Vehicle_Formation</li>
+    </value>
+  </Operation>
   
 </Patch>
