@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
+using UnityEngine;
 using Vehicles;
 using Verse;
 
@@ -87,7 +88,8 @@ public static class Patch_Designator_SelectedUpdate
 
   public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
   {
-    if (Command_FocusVehicleMap.FocusLockedVehicle != null) return;
+    if (Command_FocusVehicleMap.FocusLockedVehicle != null ||
+        Input.GetMouseButton(0)) return;
 
     Command_FocusVehicleMap.FocusedVehicle = null;
     var mousePos = UI.MouseMapPosition();
