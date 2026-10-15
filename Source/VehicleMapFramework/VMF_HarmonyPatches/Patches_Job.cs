@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
@@ -51,7 +48,7 @@ public static class Patch_Pawn_JobTracker_StartJob
       ___pawn.RemoveTargetInfo();
     }
     
-    if (___jobsGivenThisTick > 9 && newJob?.workGiverDef is { } workGiverDef)
+    if (___jobsGivenThisTick > 8 && newJob?.workGiverDef is { } workGiverDef)
     {
       var message = "A \"10 jobs in one tick\" error is about to occur. ";
       message += VehicleMapFramework.settings.crossMapJobProtect
@@ -90,7 +87,7 @@ public static class Patch_Pawn_JobTracker_DetermineNextJob
 {
   public static void Prefix(Pawn ___pawn, bool ignoreQueue)
   {
-    if (!ignoreQueue && ___pawn.jobs.jobQueue.Any()) return;
+    if (!ignoreQueue && ___pawn.jobs.jobQueue.Count != 0) return;
     ___pawn.RemoveTargetInfo();
   }
 }
@@ -1355,26 +1352,52 @@ public static class Patch_WorkGiver_ConstructDeliverResources_ResourceDeliverJob
   }
 }
 
+// デリゲートへのTranspilerが適用されない問題が発生したため、やむなくPostfixによる置き換えを選択した
 [HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_ToilFailConditions_FailOnForbidden_Delegate
+[PatchLevel(Level.Safe)]
+class Patch_ToilFailConditions_FailOnForbidden
 {
   private static MethodBase TargetMethod()
   {
-    return AccessTools.FindIncludingInnerTypes(typeof(ToilFailConditions), t =>
-    {
-      var type = t.IsGenericTypeDefinition ? t.MakeGenericType(typeof(Toil)) : t;
-      return type.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<FailOnForbidden>"));
-    });
+    return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnForbidden), null, [typeof(JobDriver)]);
   }
-
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  
+  static void Postfix(IJobEndable f, TargetIndex ind)
   {
-    return PatchHelper.CreateCodeMatcherFast(instructions)
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IsForbidden))
-      .InsertAndAdvance(CodeInstruction.LoadLocal(2))
-      .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden1)
-      .InstructionEnumeration();
+    switch (f)
+    {
+      case JobDriver jobDriver:
+        jobDriver.globalFailConditions.RemoveLast();
+        break;
+      case Toil toil:
+        toil.endConditions.RemoveLast();
+        break;
+    }
+
+    f.AddEndCondition(() =>
+    {
+      var actor = f.GetActor();
+      if (actor.Faction != Faction.OfPlayer || actor.jobs.curJob.ignoreForbidden)
+      {
+        return JobCondition.Ongoing;
+      }
+
+      var cell = actor.jobs.curJob.GetTarget(ind).Cell;
+      var thing = actor.jobs.curJob.GetTarget(ind).Thing;
+      var thingHolder = thing?.ParentHolder;
+      if (thingHolder is not Pawn_CarryTracker && thingHolder is not Pawn_InventoryTracker && cell.IsValid &&
+          cell.IsForbidden(actor, thing))
+      {
+        return JobCondition.Incompletable;
+      }
+
+      if (thing == null)
+      {
+        return JobCondition.Ongoing;
+      }
+
+      return !thing.IsForbidden(actor) ? JobCondition.Ongoing : JobCondition.Incompletable;
+    });
   }
 }
 

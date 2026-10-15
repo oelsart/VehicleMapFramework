@@ -1,28 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
     <RootNamespace>VehicleMapFramework</RootNamespace>
-    <LangVersion>preview</LangVersion>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <Configurations>Debug;Release;Dev</Configurations>
-    <Platforms>AnyCPU</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\1.6\_DubsBadHygiene\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\1.6\_DubsBadHygiene\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
-    <DebugType>none</DebugType>
-    <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\_DubsBadHygiene\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <OutDir>$(ModDir)\1.7\DubsBadHygiene\Assemblies\</OutDir>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -31,17 +10,17 @@
 
   <ItemGroup>
     <Reference Include="0DubCore">
-      <HintPath>$(SteamWorkshopRoot)\836308268\1.6\Assemblies\0DubCore.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\836308268\1.7\Assemblies\0DubCore.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BadHygiene">
-      <HintPath>$(SteamWorkshopRoot)\836308268\1.6\Assemblies\BadHygiene.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\836308268\1.7\Assemblies\BadHygiene.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.2"/>
+    <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">

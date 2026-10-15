@@ -1,5 +1,4 @@
-﻿using System;
-using RimWorld.Planet;
+﻿using RimWorld.Planet;
 
 namespace VehicleMapFramework;
 

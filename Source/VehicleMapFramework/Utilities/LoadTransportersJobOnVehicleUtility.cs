@@ -1,5 +1,4 @@
-﻿using System;
-using RimWorld;
+﻿using RimWorld;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;

@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using static VehicleMapFramework.ModCompat.PowerPoles;

@@ -1,6 +1,6 @@
 ﻿using DevTools.Testing;
 using Vehicles;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 
 namespace VehicleMapFramework.Test_DevTools;
@@ -54,9 +54,9 @@ internal sealed class Test_VehicleMapRenderTexture
     var texture = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, (128, 128));
     Expect.IsNotNull(texture, "GetVehicleMapTexture should return a non-null texture.");
     var texture2 = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, (128, 128));
-    Expect.AreEqual(texture2, texture, "Cache hit for GetVehicleMapTexture.");
+    Expect.ReferencesAreEqual(texture2, texture, "Cache hit for GetVehicleMapTexture.");
     var texture3 = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, (256, 256));
-    Expect.AreNotEqual(texture3, texture, "GetRenderTextures should return a different texture for a different size.");
+    Expect.ReferencesAreNotEqual(texture3, texture, "GetRenderTextures should return a different texture for a different size.");
 
     var overlay = vehiclePawnWithMap.DrawTracker.overlayRenderer.Overlays.FirstOrDefault();
     Expect.IsNotNull(overlay, $"The vehicle ({vehiclePawnWithMap.VehicleDef.defName}) should have at least one overlay.");

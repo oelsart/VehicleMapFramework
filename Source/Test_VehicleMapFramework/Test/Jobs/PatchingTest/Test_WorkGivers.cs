@@ -3,7 +3,7 @@ using DevTools.Testing;
 using RimWorld;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 using Verse.AI;
 

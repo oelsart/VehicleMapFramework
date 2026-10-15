@@ -1,4 +1,4 @@
-﻿namespace VehicleMapFramework.Test_DevTools;
+﻿namespace VehicleMapFramework.Test_HarmonyPatches;
 
 [Serializable]
 public class TestPlan

@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Security;
 using HarmonyLib;
+using static VehicleMapFramework.Test_HarmonyPatches.TestPlanLoader;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test_HarmonyPatches;
 
 [TestFixture]
 [Category("Local")]
@@ -17,30 +16,26 @@ public class HarmonyPatchTests
     AccessTools.PropertySetter("VehicleMapFramework.UnitTestDetector:IsTestingContext")
       .Invoke(null, [true]);
     harmony = new Harmony(HarmonyId);
-    harmony.Patch(
-      AccessTools.PropertyGetter("Verse.GenTypes:AllTypes"),
-      ((Delegate)AllTypes).Method);
-    
-    harmony.Patch(
-      AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
-      ((Delegate)TypeByName).Method);
-
-    harmony.Patch(
-      AccessTools.Method("Verse.GenTypes:AllSubclasses"),
-      ((Delegate)AllSubclasses).Method);
-
-    harmony.Patch(
-      AccessTools.Method("Verse.GenTypes:AllSubclassesNonAbstract"),
-      ((Delegate)AllSubclassesNonAbstract).Method);
-
+    // harmony.Patch(
+    //   AccessTools.PropertyGetter("Verse.GenTypes:AllTypes"),
+    //   ((Delegate)AllTypes).Method);
+    //
+    // harmony.Patch(
+    //   AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
+    //   ((Delegate)TypeByName).Method);
+    //
+    // harmony.Patch(
+    //   AccessTools.Method("Verse.GenTypes:AllSubclasses"),
+    //   ((Delegate)AllSubclasses).Method);
+    //
+    // harmony.Patch(
+    //   AccessTools.Method("Verse.GenTypes:AllSubclassesNonAbstract"),
+    //   ((Delegate)AllSubclassesNonAbstract).Method);
+    //
     harmony.Patch(
       AccessTools.Method("VehicleMapFramework.VMF_HarmonyPatches.PatchHelper:MethodReplacer",
         [typeof(IEnumerable<CodeInstruction>), typeof((MethodBase, MethodBase)[])]),
       postfix: ((Delegate)AssertReplaced).Method);
-
-    harmony.Patch(
-      AccessTools.Method("Verse.GenCollection:FirstOrDefault").MakeGenericMethod(typeof(object)),
-      ((Delegate)FirstOrDefault).Method);
   }
 
   [OneTimeTearDown]
@@ -105,8 +100,7 @@ public class HarmonyPatchTests
   }
 
   [Test]
-  [Order(1)]
-  [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetLoadTestPlans))]
+  [TestCaseSource(typeof(TestPlanLoader), nameof(GetLoadTestPlans))]
   public void LoadAssemblies(TestPlan plan)
   {
     using (Assert.EnterMultipleScope())
@@ -121,7 +115,7 @@ public class HarmonyPatchTests
       List<Assembly> assemblies2 = null;
       using (Assert.EnterMultipleScope())
       {
-        Assert.DoesNotThrow(() => assemblies2 = TestPlanLoader.Loader.LoadModFolder(TestPlanLoader.WorkshopIds[mod]));
+        Assert.DoesNotThrow(() => assemblies2 = Loader.LoadModFolder(WorkshopIds[mod]));
         Assert.That(assemblies2, Is.Not.Empty);
       }
       assemblies.AddRange(assemblies2);
@@ -130,20 +124,20 @@ public class HarmonyPatchTests
   }
 
   [Test]
-  [Order(2)]
-  [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetModCompatTestPlans))]
+  [DependsOnTest("LoadAssemblies")]
+  [TestCaseSource(typeof(TestPlanLoader), nameof(GetModCompatTestPlans))]
   public void InitializeModCompatClass(Type type)
   {
     RuntimeHelpers.RunClassConstructor(type.TypeHandle);
-    var threadLocal = (ThreadLocal<Exception>)AccessTools.PropertyGetter(TestPlanLoader.ModCompatType, "CctorException").Invoke(null, null);
+    var threadLocal = (ThreadLocal<Exception>)AccessTools.PropertyGetter(ModCompatType, "CctorException").Invoke(null, null);
     var exception = threadLocal!.Value;
     threadLocal.Value = null;
     Assert.That(exception, Is.Null);
   }
   
   [Test]
-  [Order(3)]
-  [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetPatchTestPlans))]
+  [DependsOnTest("InitializeModCompatClass")]
+  [TestCaseSource(typeof(TestPlanLoader), nameof(GetPatchTestPlans))]
   public void ExecutePatches(TestPlan plan)
   {
     const string Royalty = "VMF_Patches_Royalty";
@@ -174,7 +168,7 @@ public class HarmonyPatchTests
 
     void PatchCategory(string category)
     {
-      TestPlanLoader.Types.Where(type =>
+      Types.Where(type =>
       {
         var attributes = type.GetCustomAttributesData();
         return
@@ -197,7 +191,7 @@ public class HarmonyPatchTests
 
     void PatchAllUncategorized()
     {
-      TestPlanLoader.Types.Where(type =>
+      Types.Where(type =>
       {
         var attributes = type.GetCustomAttributesData();
         return
@@ -218,16 +212,7 @@ public class HarmonyPatchTests
 
     void HandleException(Exception ex)
     {
-      switch (ex)
-      {
-        // デバッガーがアタッチされている時はReadMethodBody時ECallメソッドのSecurityExceptionが出ない
-        // そのためSecurityExceptionのスキップをスキップする
-        case not null when Debugger.IsAttached:
-        case HarmonyException { InnerException: not SecurityException }:
-        case not SecurityException and not HarmonyException:
-          Assert.Fail(ex?.ToString() ?? "");
-          break;
-      }
+      Assert.Fail(ex?.ToString() ?? "");
     }
   }
 }

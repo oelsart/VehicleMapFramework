@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
@@ -1132,8 +1129,8 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
           Messages.Message(text, baseMap.Parent, MessageTypeDefOf.RejectInput, false);
         }
         jobSuccess = vehicle.jobs?.TryTakeOrderedJob(job, JobTag.Misc) ?? false;
-        if (jobSuccess)
-          vehicle.vehiclePather.SetEndRotation(rot);
+        // if (jobSuccess)
+        //   vehicle.vehiclePather.SetEndRotation(rot);
       }
     }
     if (jobSuccess)

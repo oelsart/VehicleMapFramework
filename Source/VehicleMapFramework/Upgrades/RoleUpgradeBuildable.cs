@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using SmashTools;
+﻿using SmashTools;
 using Vehicles;
 using Verse;
 using PawnOverlayRenderer = Vehicles.PawnOverlayRenderer;

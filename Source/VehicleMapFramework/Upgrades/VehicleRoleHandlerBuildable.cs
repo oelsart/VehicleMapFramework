@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using HarmonyLib;
+﻿using HarmonyLib;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;

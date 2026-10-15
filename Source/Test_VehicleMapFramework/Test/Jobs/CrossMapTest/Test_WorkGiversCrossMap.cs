@@ -3,7 +3,7 @@ using DevTools.Testing;
 using RimWorld;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 
 namespace VehicleMapFramework.Test_DevTools;
@@ -14,6 +14,7 @@ public sealed class Test_WorkGiversCrossMap
   [Test]
   private IEnumerator TestCrossMapWorkGivers()
   {
+    VMF_Harmony.DynamicPatchAllNow(Level.All);
     using var vehicleGroup = VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings
     {
       vehicleDef = DefDatabase<VehicleDef>.GetNamed("MV_Crawler"), drivers = 1
@@ -26,7 +27,6 @@ public sealed class Test_WorkGiversCrossMap
     GenSpawn.Spawn(pawn, vehicle.VehicleMap.Center, vehicle.VehicleMap);
 
     using var dynamicPatchEnabler = new DynamicPatchEnabler();
-    VMF_Harmony.DynamicPatchAllNow(Level.All);
     TestUtils.ForceSpawn(vehicle);
     vehicle.Map.weatherManager.curWeather = WeatherDefOf.Clear;
     foreach (var test in workGiverTests)

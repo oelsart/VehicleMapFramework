@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Diagnostics;
 using HarmonyLib;
 using RimWorld;
@@ -27,7 +25,7 @@ public static class UniqueVehicleUtility
 #if DEV
   private static readonly FastInvokeHandler CreatePathData;
   private static readonly Func<VehiclePathingSystem, PathFinderManager> PathFinderManager;
-  private static readonly AccessTools.FieldRef<PathDataContainer, VehiclePathingSystem.VehiclePathData[]> pathDatas;
+  private static readonly AccessTools.FieldRef<PathDataContainer, PathData[]> pathDatas;
   private static readonly Type PathFinderImpl;
   private static readonly AccessTools.FieldRef<PathFinderManager, IList> pathFinders;
   private static bool Active { get; }
@@ -40,7 +38,7 @@ public static class UniqueVehicleUtility
     var g_PathFinderManager = AccessTools.PropertyGetter(typeof(VehiclePathingSystem), "PathFinderManager");
     if (g_PathFinderManager is not null)
       PathFinderManager = AccessTools.MethodDelegate<Func<VehiclePathingSystem, PathFinderManager>>(g_PathFinderManager);
-    pathDatas = AccessTools.FieldRefAccess<PathDataContainer, VehiclePathingSystem.VehiclePathData[]>("pathDatas");
+    pathDatas = AccessTools.FieldRefAccess<PathDataContainer, PathData[]>("pathDatas");
     PathFinderImpl = GenTypes.GetTypeInAnyAssembly("Vehicles.PathFinderManager+PathFinderImpl");
     pathFinders = AccessTools.FieldRefAccess<PathFinderManager, IList>("pathFinders");
     if (CreatePathData is null || PathFinderManager is null || pathDatas is null || PathFinderImpl is null ||
@@ -146,7 +144,7 @@ public static class UniqueVehicleUtility
       if (map.IsVehicleMap) continue;
         
       var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-      var pathData = (VehiclePathingSystem.VehiclePathData)CreatePathData.Invoke(component.PathData,
+      var pathData = (PathData)CreatePathData.Invoke(component.PathData,
         Params<(object, object, object)>.Get((calculator, def, component.PathFinder)));
       pathDatas(component.PathData)[def.DefIndex] = pathData;
       var pathFinderManager = PathFinderManager(component);

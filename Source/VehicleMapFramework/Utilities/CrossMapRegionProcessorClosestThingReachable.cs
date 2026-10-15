@@ -1,5 +1,4 @@
-﻿using System;
-using VehicleMapFramework.VMF_HarmonyPatches;
+﻿using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
 

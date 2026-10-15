@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using HarmonyLib;
+﻿using HarmonyLib;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.ModCompat.Aquariums;

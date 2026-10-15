@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using RimWorld;
+﻿using RimWorld;
 using SmashTools.Rendering;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;

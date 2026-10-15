@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using JetBrains.Annotations;
 using LudeonTK;
@@ -85,11 +82,6 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     camera.transform.position = new Vector3(0f, 5f, 0f);
     camera.nearClipPlane = 0f;
     camera.farClipPlane = 5.5f;
-    commandBuffer = new CommandBuffer
-    {
-      name = "VehicleMapDrawBuffer"
-    };
-    camera.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, commandBuffer);
   }
 
   public static Texture GetVehicleMapTexture(VehiclePawnWithMap vehicle, Rot4 rot, TexSize texSize,
@@ -123,7 +115,6 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     camera.orthographicSize = orthoSize;
     camera.aspect = texAspect;
     camera.targetTexture = cache.RenderTexture;
-    component.commandBuffer.Clear();
     component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin, rot);
     camera.Render();
     camera.targetTexture = null;
@@ -218,9 +209,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         var subMesh = layer.subMeshes[i];
         if (subMesh.finalized && !subMesh.disabled)
         {
-          commandBuffer.DrawMesh(subMesh.mesh,
-            Matrix4x4.TRS(drawPos, rotation, Vector3.one),
-            subMesh.material);
+          Graphics.DrawMesh(subMesh.mesh, drawPos, rotation, subMesh.material, VEHICLE_MAP_LAYER);
         }
       }
     }

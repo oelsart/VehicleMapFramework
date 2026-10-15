@@ -1,8 +1,5 @@
 ﻿global using static VehicleMapFramework.MethodInfoCache;
 global using static VehicleMapFramework.ModCompat;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Verse;
@@ -153,34 +150,14 @@ public static class VMF_Harmony
     {
       LongEventHandler.QueueLongEvent(() =>
       {
-        PrevPatchLevel = CurrentPatchLevel;
-        CurrentPatchLevel = patchLevel;
-        var patchCountBefore = Instance.GetPatchedMethodCount;
-        PatchAllUncategorized();
-        foreach (var category in Categories)
-        {
-          PatchCategory(category);
-        }
-
-        var patchCountAfter = Instance.GetPatchedMethodCount;
-        VMF_Log.DebugMessage($"Dynamic patches applied: {(patchCountAfter - patchCountBefore).ToString()} Total: {patchCountAfter.ToString()}");
+        DynamicPatchAllNow(patchLevel);
       }, "VMF_ApplyingDynamicPatches", false, null, false);
     }
     else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
     {
       LongEventHandler.QueueLongEvent(() =>
       {
-        PrevPatchLevel = CurrentPatchLevel;
-        CurrentPatchLevel = patchLevel;
-        var patchCountBefore = Instance.GetPatchedMethodCount;
-        UnpatchAllUncategorized();
-        foreach (var category in Categories)
-        {
-          UnpatchCategory(category);
-        }
-
-        var patchCountAfter = Instance.GetPatchedMethodCount;
-        VMF_Log.DebugMessage($"Dynamic patches unapplied: {(patchCountBefore - patchCountAfter).ToString()} Total: {patchCountAfter.ToString()}");
+        DynamicPatchAllNow(patchLevel);
       }, "VMF_UnpatchingDynamicPatches", false, null, false);
     }
   }
@@ -310,8 +287,8 @@ public static class LatePatchCore
   {
     LongEventHandler.ExecuteWhenFinished(() =>
     {
-      var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version
-        ?.Split('.');
+      var version = Assembly.GetExecutingAssembly()
+        .GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version.Split('.');
       if (version != null)
       {
         var major = version.ElementAtOrDefault(0) ?? "0";

@@ -1,7 +1,6 @@
 ﻿using DevTools.Testing;
 using RimWorld;
-using VehicleMapFramework.Test_DevTools;
-using Vehicles.Testing;
+using Vehicles.Tests;
 using Verse;
 
 namespace VehicleMapFramework.Test_DevTools;
@@ -16,7 +15,7 @@ internal sealed class Test_CrossMapMapPawnsCache : IGenericTest
   [OneTimeSetUp]
   public void OneTimeSetUp()
   {
-    Group = VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings()
+    Group = VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings
     {
       vehicleDef = Crawler, passengers = 2
     });
