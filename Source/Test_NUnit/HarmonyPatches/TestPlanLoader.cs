@@ -5,7 +5,7 @@ using HarmonyLib;
 using ModAssemblyLoader;
 using YamlDotNet.Serialization;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test_HarmonyPatches;
 
 public static class TestPlanLoader
 {
@@ -48,7 +48,7 @@ public static class TestPlanLoader
     // VMFロードと型キャッシュ
     var assemblies = Configurations.UseWorkshopVersion
       ? Loader.LoadModFolder(WorkshopIds["VehicleMapFramework"])
-      : Loader.LoadModFolder("VehicleMapFramework");
+      : Loader.LoadModFolder("VehicleMapFrameworkDev");
     Types =
     [
       .. assemblies

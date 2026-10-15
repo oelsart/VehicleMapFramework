@@ -76,16 +76,16 @@
 - Name: ProjectRimFactory
 - Name: PickUpAndHaul
 - Name: ReGrowth
-- Name: RimWorldOfMagic
-  Mods:
-    - JecsLite
-    - RimWorldOfMagic
-- Name: SmarterConstruction
+#- Name: RimWorldOfMagic
+#  Mods:
+#    - JecsLite
+#    - RimWorldOfMagic
+#- Name: SmarterConstruction
 - Name: SmartPistol
 - Name: StackGap
 - Name: TabulaRasa
 - Name: TraderShips
-- Name: ViviRace
+#- Name: ViviRace
 - Name: WhileYoureUp
 - Name: YayosCombat3
 - Name: SmartFarming

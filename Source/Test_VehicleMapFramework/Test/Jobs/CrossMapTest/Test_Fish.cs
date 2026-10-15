@@ -22,7 +22,7 @@ internal class Test_Fish(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
     cell = FromRUCorner(map, 4);
     zone.AddCell(cell);
     map.terrainGrid.SetTerrain(cell, TerrainDefOf.WaterShallow);
-    cell.GetWaterBody(map).Population = 20;
+    cell.GetWaterBody(map).Population = 200;
   }
 
   public override void TearDown()

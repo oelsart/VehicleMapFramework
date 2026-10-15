@@ -15,7 +15,7 @@ internal sealed class Test_CrossMapMapPawnsCache : IGenericTest
   [OneTimeSetUp]
   public void OneTimeSetUp()
   {
-    Group = VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings()
+    Group = VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings
     {
       vehicleDef = Crawler, passengers = 2
     });

@@ -1,9 +1,8 @@
-﻿namespace VehicleMapFramework.Test_DevTools;
+﻿namespace VehicleMapFramework.Test_HarmonyPatches;
 
-public class Configurations
+public static class Configurations
 {
-
-  public const string Version = "1.6";
+  public const string Version = "1.7";
 
   public const string SteamWorkshopRoot = BuildConstants.SteamWorkshopRoot;
 
@@ -19,5 +18,5 @@ public class Configurations
 
   public static readonly bool UseWorkshopVersion = Environment.GetEnvironmentVariable("UseWorkshopVersion") == "true";
 
-  public static readonly string RimWorldAssemblyFolder = IsRemote ? TestProjectRoot + "/Stubs" : LocalModsRoot + "/../RimWorldWin64_Data/Managed";
+  public static readonly string RimWorldAssemblyFolder = IsRemote ? TestProjectRoot + "/Stubs" : LocalModsRoot + "/../";
 }
