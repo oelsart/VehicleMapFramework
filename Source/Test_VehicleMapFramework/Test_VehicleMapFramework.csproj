@@ -32,10 +32,6 @@
       <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Test_SmashTools">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Test_SmashTools.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Test_Vehicles">
       <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Test_Vehicles.dll</HintPath>
       <Private>False</Private>

@@ -60,6 +60,8 @@ public class NestedTestFixture : ITestFixture
 
   public virtual string Name { get; }
 
+  public string FullName => $"{Type.FullName}.{Name}";
+
   public Status Status { get; set; } = Status.NotRun;
 
   public bool OneTimeSetUp(object instance)
