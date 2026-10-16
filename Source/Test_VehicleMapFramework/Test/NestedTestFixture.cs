@@ -42,8 +42,6 @@ public class NestedTestFixture : ITestFixture
 
   string ITestFixture.SaveFile => "";
 
-  string ITestCase.Key => $"{Type.FullName}.{Name}";
-
   public IEnumerable<ITestFunction> TestFunctions => tests;
 
   public MetaDataContainer MetaData { get; } = new();
