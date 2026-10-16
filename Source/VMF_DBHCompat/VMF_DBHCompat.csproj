@@ -19,57 +19,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" />
+    <PackageReference Include="Krafs.Rimworld.Ref" />
+    <PackageReference Include="Lib.Harmony.Ref" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">
       <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Core">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Data">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Drawing">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.IO.Compression.FileSystem">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Numerics">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Runtime.Serialization">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Xml">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Xml.Linq">
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
 </Project>

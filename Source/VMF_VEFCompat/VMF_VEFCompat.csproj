@@ -43,12 +43,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.7.*" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">
       <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Krafs.Rimworld.Ref" />
+    <PackageReference Include="Lib.Harmony" />
   </ItemGroup>
 </Project>

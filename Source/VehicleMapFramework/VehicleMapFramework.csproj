@@ -7,17 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony.Ref"/>
-    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="BannedSymbols.txt"/>
+    <PackageReference Include="Krafs.Rimworld.Ref" />
+    <PackageReference Include="Lib.Harmony" />
     <PackageReference Include="Nerdbank.GitVersioning">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="PolySharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -48,16 +40,6 @@
     </Reference>
     <Reference Include="Vehicles">
       <HintPath>$(SteamWorkshopRoot)\3014915404\1.7\Assemblies\Vehicles.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Drawing">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.IO.Compression.FileSystem">
       <Private>False</Private>
     </Reference>
   </ItemGroup>

@@ -15,8 +15,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" />
+    <PackageReference Include="Krafs.Rimworld.Ref" />
+    <PackageReference Include="Lib.Harmony.Ref" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">

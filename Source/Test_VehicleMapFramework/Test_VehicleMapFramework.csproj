@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>VehicleMapFramework.Test_DevTools</RootNamespace>
-    <OutDir>$(ModDir)\1.7\Assemblies\</OutDir>
+    <OutDir>$(ModDir)..\VehicleMapFrameworkDev\Test\Assemblies\</OutDir>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>
   
   <ItemGroup>
@@ -28,10 +29,9 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="PolySharp" Version="1.16.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Krafs.Rimworld.Ref" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
   </ItemGroup>
 </Project>
