@@ -40,7 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" />
-    <PackageReference Include="Lib.Harmony.Ref" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">

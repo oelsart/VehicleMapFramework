@@ -6,4 +6,7 @@
     <mapping directory="$PROJECT_DIR$/../../../Vehicle-Framework/DevTools" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../.." vcs="Git" />
   </component>
+  <component name="VcsProjectSettings">
+    <option name="detectVcsMappingsAutomatically" value="false" />
+  </component>
 </project>
