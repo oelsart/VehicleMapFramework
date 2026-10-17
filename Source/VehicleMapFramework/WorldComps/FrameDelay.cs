@@ -4,12 +4,10 @@ namespace VehicleMapFramework;
 
 public class FrameDelay(Game game) : GameComponent
 {
-
   private static List<IJob> currentJobs = [];
   private static List<IJob> nextJobs = [];
 
-  // ReSharper disable once ChangeFieldTypeToSystemThreadingLock
-  private static readonly object lockObj = new();
+  private static readonly Lock lockObj = new();
   private readonly Game game = game;
 
   public static void DelayOne<T>(Action<T> action, T state)

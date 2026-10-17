@@ -172,7 +172,7 @@ public static class ModCompat
     // ReSharper disable once StaticMemberInGenericType
     public static bool Active { get; protected set; }
     
-    protected static void Initialize(string packageId, Action initialize, params Span<string> alternativeIds)
+    protected static void Initialize(string packageId, Action initialize, params ReadOnlySpan<string> alternativeIds)
     {
       Active = IsModActive(packageId);
       if (!Active && !alternativeIds.IsEmpty)
