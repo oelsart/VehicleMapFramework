@@ -145,9 +145,13 @@ public static class Patch_Verb_LaunchProjectileCE_CanHitTargetFrom
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
+    var m_TryFindCEShootLineFromTo =
+      AccessTools.Method(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.TryFindCEShootLineFromTo),
+        [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine).MakeByRefType(), typeof(Vector3).MakeByRefType()]);
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
-      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (m_TryFindCEShootLineFromTo, ((Delegate)VerbOnVehicleCEUtility.TryFindCEShootLineFromToOnGroundMap).Method));
   }
 }
 
@@ -169,16 +173,20 @@ public static class Patch_Verb_LaunchProjectileCE_Retarget
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.TryCastShot))]
-[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_TryCastShot
 {
+  [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
+    var m_TryFindCEShootLineFromTo =
+      AccessTools.Method(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.TryFindCEShootLineFromTo),
+        [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine).MakeByRefType(), typeof(Vector3).MakeByRefType()]);
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
-      (CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps));
+      (CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps),
+      (m_TryFindCEShootLineFromTo, ((Delegate)VerbOnVehicleCEUtility.TryFindCEShootLineFromToOnGroundMap).Method));
   }
 }
 
@@ -293,53 +301,17 @@ public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
 }
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_VerbCIWS_TryFindNewTarget_Delegate
+[HarmonyPatch(typeof(Building_Turret_MultiVerbs), nameof(Building_Turret_MultiVerbs.TryFindNewTarget))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Building_Turret_MultiVerbs_TryFindNewTarget
 {
-  private static MethodBase TargetMethod()
+  public static void Prefix(Building_Turret_MultiVerbs __instance, ref VirtualTeleporter? __state)
   {
-    var m_ProjectilesAt = AccessTools.Method(typeof(ProjectileCE_CIWS), nameof(ProjectileCE_CIWS.ProjectilesAt));
-    return AccessTools.FindIncludingInnerTypes(typeof(VerbCIWS<ProjectileCE>),
-      t =>
-      {
-        if (!t.IsGenericTypeDefinition) return null;
-        return AccessTools.FirstMethod(t.MakeGenericType(typeof(ProjectileCE)),
-          m => m.Name.Contains("<TryFindNewTarget>") && m.CallsMethod(m_ProjectilesAt));
-      });
+    if (__instance.IsOnVehicleMap)
+      __state = new VirtualTeleporter(__instance, __instance.GroundMap, __instance.PositionOnBaseMapSpawned);
   }
 
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    var m_ProjectilesAt = AccessTools.Method(typeof(ProjectileCE_CIWS), nameof(ProjectileCE_CIWS.ProjectilesAt));
-    return new CodeMatcher(instructions)
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map), CodeMatch.Calls(m_ProjectilesAt))
-      .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
-      .InstructionEnumeration()
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.CombatExtended)]
-[HarmonyPatch(typeof(VerbCIWS<ProjectileCE>), nameof(VerbCIWS.TryFindCEShootLineFromTo))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_VerbCIWS_ProjectileCE_TryFindCEShootLineFromTo
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.CombatExtended)]
-[HarmonyPatch(typeof(VerbCIWSProjectile), nameof(VerbCIWSProjectile.Targets), MethodType.Getter)]
-[PatchLevel(Level.Cautious)]
-public static class Patch_VerbCIWSProjectile_Targets
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-  }
+  public static void Finalizer(VirtualTeleporter? __state) => __state?.Dispose();
 }
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]

@@ -15,15 +15,29 @@ public static class VerbOnVehicleCEUtility
 
   extension(Verb_LaunchProjectileCE verb)
   {
-    private Vector3 ShotSource()
+    private Vector3 ShotSource
     {
-      var drawPos = verb.caster.DrawPos;
-      var shotHeight = verb.ShotHeight;
-      if (verb.caster.IsOnVehicleMapOf(out var vehicle))
+      get
       {
-        shotHeight = shotHeight.YOffsetFull(vehicle);
+        var drawPos = verb.caster.DrawPos;
+        var shotHeight = verb.ShotHeight;
+        if (verb.caster.IsOnVehicleMapOf(out var vehicle))
+        {
+          shotHeight = shotHeight.YOffsetFull(vehicle);
+        }
+        return new Vector3(drawPos.x, shotHeight, drawPos.z);
       }
-      return new Vector3(drawPos.x, shotHeight, drawPos.z);
+    }
+
+    // TryFindCEShootLineFromToのVerbCIWSオーバーライドでジェネリクスにパッチを当てるとメソッドのILが破壊されたりした問題の対策
+    public bool TryFindCEShootLineFromToOnGroundMap(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)
+    {
+      if (verb is VerbCIWS { caster: { IsOnVehicleMap: true } caster })
+      {
+        using var teleporter = new VirtualTeleporter(caster, caster.GroundMap, caster.PositionOnBaseMapSpawned);
+        return verb.TryFindCEShootLineFromTo(root, targ, out resultingLine, out targetPos);
+      }
+      return verb.TryFindCEShootLineFromTo(root, targ, out resultingLine, out targetPos);
     }
 
     public bool TryFindCEShootLineFromToOnVehicle(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)
@@ -58,7 +72,7 @@ public static class VerbOnVehicleCEUtility
       }
 
       var shotSource = verb.caster.def.building is { IsTurret: true }
-        ? verb.ShotSource()
+        ? verb.ShotSource
         : root.ToVector3Shifted().WithY(verb.ShotHeight);
 
       var sourceBand = AsAboveSoBelow.GetTargetBand(verb.caster);
