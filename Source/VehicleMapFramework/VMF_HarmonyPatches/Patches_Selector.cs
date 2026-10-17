@@ -119,7 +119,7 @@ public static class Patch_CameraJumper_TryJumpInternal
         vehicle.CurrentLevel = map;
       }
 
-      if (VehicleMapFramework.settings.drawPlanet)
+      if (VehicleMapFramework.Settings.drawPlanet)
       {
         if (vehicle.Spawned)
         {

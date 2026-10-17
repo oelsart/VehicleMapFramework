@@ -658,7 +658,7 @@ public static class Patch_RoofGrid_Roofed
 {
   private static bool Prepare()
   {
-    return VehicleMapFramework.settings is { roofedPatch: true };
+    return VehicleMapFramework.Settings is { roofedPatch: true };
   }
 
   public static void Postfix(IntVec3 c, Map ___map, ref bool __result)

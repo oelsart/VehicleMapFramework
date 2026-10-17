@@ -443,6 +443,30 @@ public static class ModCompat
         mapComponent = AccessTools.FieldRefAccess<MapComponent>(t_InterceptorGrid, nameof(mapComponent));
         RepaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(RepaintGrid)));
         UnpaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(UnpaintGrid)));
+        VehiclePawnWithMap.ModCompatEvents += vehicle =>
+        {
+          vehicle.AddEvent(VehicleEventDefOf.PositionChanged, () => Repaint(vehicle));
+          vehicle.AddEvent(VehicleEventDefOf.Spawned, () => FrameDelay.DelayOne(Repaint, vehicle));
+          vehicle.AddEvent(VehicleEventDefOf.Despawned, () => Unpaint(vehicle));
+        };
+        return;
+
+        static void Repaint(VehiclePawnWithMap vehicle)
+        {
+          if (vehicle.Map?.GetComponent(InterceptorMapComponent) is not { } component) return;
+          foreach (var grid in grids(component))
+          {
+            UnpaintGrid(component, SingleParam.Get(grid));
+          }
+        }
+        static void Unpaint(VehiclePawnWithMap vehicle)
+        {
+          if (vehicle.Map?.GetComponent(InterceptorMapComponent) is not { } component) return;
+          foreach (var grid in grids(component))
+          {
+            UnpaintGrid(component, SingleParam.Get(grid));
+          }
+        }
       });
     }
 

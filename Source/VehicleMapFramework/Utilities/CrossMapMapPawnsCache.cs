@@ -87,7 +87,7 @@ public class CrossMapMapPawnsCache
     foreach (var map in Find.Maps)
     {
       if (VehiclePawnWithMapCache.AllVehiclesOn(map).Count != 0 ||
-          map.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is not null)
+          map.IsVehicleMapOf(out var vehicle) && vehicle.ParentVehicleWorldObject is not null)
       {
         var index = VehicleMapParentsComponent.GetMapIndex(map);
         if (index < 64)

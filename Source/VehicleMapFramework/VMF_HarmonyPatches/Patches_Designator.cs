@@ -15,7 +15,7 @@ public static class Patch_DesignatorManager_ProcessInputEvents
 {
   internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
   {
-    if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
+    if (FocusVehicleScope.FocusedVehicle is { } focused)
       __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
   }
   
@@ -62,7 +62,7 @@ public static class Patch_Designator_SelectedUpdate
 {
   internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
   {
-    if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
+    if (FocusVehicleScope.FocusedVehicle is { } focused)
       __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
   }
   
@@ -85,10 +85,10 @@ public static class Patch_Designator_SelectedUpdate
 
   public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
   {
-    if (Command_FocusVehicleMap.FocusLockedVehicle != null ||
+    if (FocusVehicleScope.FocusLockedVehicle != null ||
         Input.GetMouseButton(0)) return;
 
-    Command_FocusVehicleMap.FocusedVehicle = null;
+    FocusVehicleScope.FocusedVehicle = null;
     var mousePos = UI.MouseMapPosition();
     var flag = VehicleMapFlag.None;
     if (___selectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef })
@@ -102,7 +102,7 @@ public static class Patch_Designator_SelectedUpdate
 
     if (mousePos.TryGetVehicleMap(Find.CurrentMap.GroundMap, out var vehicle, flag))
     {
-      Command_FocusVehicleMap.FocusedVehicle = vehicle;
+      FocusVehicleScope.FocusedVehicle = vehicle;
     }
 
     if (___selectedDesignator is Designator_AreaAllowed)
@@ -129,9 +129,9 @@ public static class Patch_DesignatorManager_Deselect
 {
   public static void Postfix()
   {
-    if (Command_FocusVehicleMap.FocusLockedVehicle == null)
+    if (FocusVehicleScope.FocusLockedVehicle == null)
     {
-      Command_FocusVehicleMap.FocusedVehicle = null;
+      FocusVehicleScope.FocusedVehicle = null;
     }
   }
 }

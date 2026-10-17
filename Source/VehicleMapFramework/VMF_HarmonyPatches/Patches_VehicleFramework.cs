@@ -540,9 +540,7 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
   
   public static MapParent VehicleMapParentOrMe(MapParent mapParent)
   {
-    return Command_FocusVehicleMap.FocusedVehicle is not null
-      ? Command_FocusVehicleMap.FocusedVehicle.VehicleMap.Parent
-      : mapParent;
+    return FocusVehicleScope.FocusedVehicle?.VehicleMap.Parent ?? mapParent;
   }
 }
 
@@ -577,12 +575,12 @@ public static class Patch_LandingTargeter_TargeterUpdate
 {
   public static void Postfix()
   {
-    if (Command_FocusVehicleMap.FocusLockedVehicle != null) return;
+    if (FocusVehicleScope.FocusLockedVehicle is not null) return;
 
-    Command_FocusVehicleMap.FocusedVehicle = null;
+    FocusVehicleScope.FocusedVehicle = null;
     if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
     {
-      Command_FocusVehicleMap.FocusedVehicle = vehicle;
+      FocusVehicleScope.FocusedVehicle = vehicle;
     }
   }
 }
@@ -594,9 +592,9 @@ public static class Patch_LandingTargeter_StopTargeting
 {
   public static void Postfix()
   {
-    if (Command_FocusVehicleMap.FocusLockedVehicle is null)
+    if (FocusVehicleScope.FocusLockedVehicle is null)
     {
-      Command_FocusVehicleMap.FocusedVehicle = null;
+      FocusVehicleScope.FocusedVehicle = null;
     }
   }
 }
@@ -621,7 +619,7 @@ public static class Patch_LandingTargeter_GetPosState
 
   private static Map FocusedMapOrCurrentMap(Map map)
   {
-    return Command_FocusVehicleMap.FocusedVehicle is not null ? Command_FocusVehicleMap.FocusedVehicle.VehicleMap : map;
+    return FocusVehicleScope.FocusedVehicle?.VehicleMap ?? map;
   }
 }
 
@@ -797,12 +795,6 @@ public static class Patch_CaravanFormation_TryFindExitSpot
 [PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_Board_MakeNewToils
 {
-  // TODO VF Updates: The method will be renamed in the next update.
-  public static readonly Func<LordJob_FormAndSendVehicles, Pawn, AssignedSeat> GetAssignedSeat
-    = AccessTools.MethodDelegate<Func<LordJob_FormAndSendVehicles, Pawn, AssignedSeat>>(
-      AccessTools.Method(typeof(LordJob_FormAndSendVehicles), "GetAssignedSeat") ??
-      AccessTools.Method(typeof(LordJob_FormAndSendVehicles), "GetVehicleAssigned"));
-
   public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values)
   {
     foreach (var toil in values)
@@ -814,7 +806,7 @@ public static class Patch_JobDriver_Board_MakeNewToils
         {
           var actor = toil.actor;
           if (actor.GetLord()?.LordJob is LordJob_FormAndSendVehicles lordJob_FormAndSendVehicles &&
-              GetAssignedSeat(lordJob_FormAndSendVehicles, actor).handler?.role is VehicleRoleBuildable vehicleRoleBuildable)
+              lordJob_FormAndSendVehicles.GetAssignedSeat(actor)?.handler?.role is VehicleRoleBuildable vehicleRoleBuildable)
           {
             var dest = vehicleRoleBuildable.upgradeComp?.parent;
             if (ToilFailConditions.DespawnedOrNull(dest, actor))
@@ -1453,7 +1445,7 @@ public static class Patch_VehicleGhostUtility_DrawData_DrawPos
 
     Rot8 BaseRot(Rot8 rot, VehiclePawn vehicle)
     {
-      if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle2)
+      if (FocusVehicleScope.FocusedVehicle is { } vehicle2)
       {
         return rot.Rotated(vehicle2.FullRotation);
       }
@@ -1466,7 +1458,7 @@ public static class Patch_VehicleGhostUtility_DrawData_DrawPos
 
     Rot8 FocusedRot(Rot8 rot)
     {
-      if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle)
+      if (FocusVehicleScope.FocusedVehicle is { } vehicle)
       {
         return rot.Rotated(vehicle.FullRotation);
       }
@@ -1482,8 +1474,9 @@ public static class Patch_VehicleGhostUtility_DrawData_DrawPos
       __result = ___vehicle.TryGetTargetMap(out var map) ? __result.ToBaseMapCoord(map).WithY(__result.y) : __result;
       return;
     }
-    if (Command_FocusVehicleMap.FocusedVehicle is null &&
-      UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+
+    if (FocusVehicleScope.FocusedVehicle is null &&
+        UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
     {
       __result = __result.ToBaseMapCoord(vehicle);
     }

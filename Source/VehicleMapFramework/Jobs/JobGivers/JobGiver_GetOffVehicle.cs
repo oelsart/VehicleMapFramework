@@ -12,8 +12,8 @@ public class JobGiver_GetOffVehicle : ThinkNode_JobGiver
   {
     var pawnFaction = pawn.Faction;
     var isPlayer = pawnFaction is { IsPlayer: true };
-    if (isPlayer && !VehicleMapFramework.settings.autoGetOffPlayer ||
-        !isPlayer && !VehicleMapFramework.settings.autoGetOffNonPlayer)
+    if (isPlayer && !VehicleMapFramework.Settings.autoGetOffPlayer ||
+        !isPlayer && !VehicleMapFramework.Settings.autoGetOffNonPlayer)
       return null;
 
     if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)

@@ -152,16 +152,9 @@ public static class RegionTraverserAcrossMaps
 
   private static readonly Queue<BFSWorker> freeWorkers;
 
-  public static int NumWorkers;
+  public static readonly int NumWorkers;
 
   public static readonly RegionEntryPredicate PassAll;
-
-  // TODO 1.7: Remove
-  public static List<ThingDef> EnterSpotDefs { get; } =
-  [
-    .. DefDatabase<ThingDef>.AllDefs
-      .Where(d => d.HasComp<CompVehicleEnterSpot>())
-  ];
   
   private static List<ThingDef> GroundToVehicleAccessDefs { get; } =
   [

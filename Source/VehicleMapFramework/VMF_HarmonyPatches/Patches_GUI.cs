@@ -138,7 +138,7 @@ public static class Patch_ColonistBarColonistDrawer_DrawGroupFrame
 {
   public static void Postfix(int group)
   {
-    var mode = VehicleMapFramework.settings.colonistBarMode;
+    var mode = VehicleMapFramework.Settings.colonistBarMode;
     if (mode == VehicleMapSettings.ShowVehiclesOnColonistBar.DontShow)
       return;
     
@@ -194,7 +194,7 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 {
   public static void PrefixCommon(ref sbyte? __state)
   {
-    if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle ||
+    if (FocusVehicleScope.FocusedVehicle is { } vehicle ||
         UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle))
     {
       __state = Current.Game.currentMapIndex;
@@ -334,7 +334,7 @@ public static class Patch_DesignatorManager_DesignationManagerOnGUI
 {
   internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
   {
-    if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
+    if (FocusVehicleScope.FocusedVehicle is { } focused)
       __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
   }
   

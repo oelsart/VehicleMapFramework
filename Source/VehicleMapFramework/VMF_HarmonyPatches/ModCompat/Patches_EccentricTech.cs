@@ -25,7 +25,7 @@ public static class Patch_PlaceWorker_ArtillerySensor_DrawGhost
 {
   public static void Prefix(ref IntVec3 center, Thing thing)
   {
-    if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
+    if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = FocusVehicleScope.FocusedVehicle) is not null)
     {
       center = center.ToBaseMapCoord(vehicle);
     }

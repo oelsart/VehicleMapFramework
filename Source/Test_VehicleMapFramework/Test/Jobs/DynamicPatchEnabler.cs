@@ -2,18 +2,18 @@
 
 public readonly struct DynamicPatchEnabler : IDisposable
 {
-  private readonly bool dynamicPatchEnabled = VehicleMapFramework.settings.dynamicPatchEnabled;
-  private readonly bool dynamicUnPatchEnabled = VehicleMapFramework.settings.dynamicUnpatchEnabled;
+  private readonly bool dynamicPatchEnabled = VehicleMapFramework.Settings.dynamicPatchEnabled;
+  private readonly bool dynamicUnPatchEnabled = VehicleMapFramework.Settings.dynamicUnpatchEnabled;
 
   public DynamicPatchEnabler()
   {
-    VehicleMapFramework.settings.dynamicPatchEnabled = true;
-    VehicleMapFramework.settings.dynamicUnpatchEnabled = true;
+    VehicleMapFramework.Settings.dynamicPatchEnabled = true;
+    VehicleMapFramework.Settings.dynamicUnpatchEnabled = true;
   }
 
   void IDisposable.Dispose()
   {
-    VehicleMapFramework.settings.dynamicPatchEnabled = dynamicPatchEnabled;
-    VehicleMapFramework.settings.dynamicUnpatchEnabled = dynamicUnPatchEnabled;
+    VehicleMapFramework.Settings.dynamicPatchEnabled = dynamicPatchEnabled;
+    VehicleMapFramework.Settings.dynamicUnpatchEnabled = dynamicUnPatchEnabled;
   }
 }

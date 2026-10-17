@@ -74,9 +74,6 @@ public static class VMF_DefOf
 
   public static VehicleStatDef MaximumPayload;
 
-  // TODO VF Updates: VF本体にEnterNextCellのEventDefが実装済み
-  public static MapVehicleEventDef EnterNextCell;
-
   [MayRequireOdyssey] public static VehicleDef VMF_GravshipVehicleBase;
 
   [MayRequireOdyssey] public static VehicleDef VMF_GravshipVehicleBaseSpace;

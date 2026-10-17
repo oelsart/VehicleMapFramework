@@ -39,7 +39,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
   }
 
   public override bool Visible => DebugViewSettings.drawLightingOverlay &&
-                                  (Find.CurrentMap != Map || VehicleMapFramework.settings.drawPlanet);
+                                  (Find.CurrentMap != Map || VehicleMapFramework.Settings.drawPlanet);
 
   public SectionLayer_LightingOnVehicle(Section section) : base(section)
   {

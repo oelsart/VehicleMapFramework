@@ -1,10 +1,6 @@
-using System.Reflection.Emit;
 using System.Text.RegularExpressions;
-using HarmonyLib;
 using SmashTools;
-using UnityEngine;
 using Vehicles;
-using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

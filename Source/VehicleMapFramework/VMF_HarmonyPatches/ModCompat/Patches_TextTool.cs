@@ -97,14 +97,14 @@ public static class Patch_MapText_IsNearCurrentView
 public static class Patch_MapText_DrawActiveState
 {
   [PatchLevel(Level.Safe)]
-  public static void Prefix(Thing __instance, ref Command_FocusVehicleMap.FocusVehicleScope? __state)
+  public static void Prefix(Thing __instance, ref FocusVehicleScope? __state)
   {
     if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
-      __state = new Command_FocusVehicleMap.FocusVehicleScope(vehicle);
+      __state = new FocusVehicleScope(vehicle);
   }
 
   [PatchLevel(Level.Safe)]
-  public static void Finalizer(Command_FocusVehicleMap.FocusVehicleScope? __state) => __state?.Dispose();
+  public static void Finalizer(FocusVehicleScope? __state) => __state?.Dispose();
   
   [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

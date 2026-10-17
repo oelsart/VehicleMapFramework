@@ -1,13 +1,9 @@
 ﻿using System.Collections;
-using System.Diagnostics;
 using HarmonyLib;
 using RimWorld;
 using SmashTools;
 using Vehicles;
 using Verse;
-
-// TODO VF Updates 1.7: VehiclePathingSystem.VehiclePathDataはVehicles.PathDataに変更予定
-#pragma warning disable CS0618 // 型またはメンバーが旧型式です
 
 namespace VehicleMapFramework;
 
@@ -15,14 +11,12 @@ namespace VehicleMapFramework;
 public static class UniqueVehicleUtility
 {
   private static readonly Action<Def, Type, HashSet<ushort>> GiveShortHash =
-    (Action<Def, Type, HashSet<ushort>>)AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash")
-      .CreateDelegate(typeof(Action<Def, Type, HashSet<ushort>>));
+    AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash").CreateDelegate<Action<Def, Type, HashSet<ushort>>>();
 
   private static readonly Dictionary<Type, HashSet<ushort>> takenHashesPerDeftype =
     AccessTools.StaticFieldRefAccess<Dictionary<Type, HashSet<ushort>>>(typeof(ShortHashGiver),
       "takenHashesPerDeftype");
   
-#if DEV
   private static readonly FastInvokeHandler CreatePathData;
   private static readonly Func<VehiclePathingSystem, PathFinderManager> PathFinderManager;
   private static readonly AccessTools.FieldRef<PathDataContainer, PathData[]> pathDatas;
@@ -50,7 +44,6 @@ public static class UniqueVehicleUtility
 
     Active = true;
   }
-#endif
 
   extension(VehicleDef def)
   {
@@ -131,10 +124,8 @@ public static class UniqueVehicleUtility
     }
   }
 
-  [Conditional("DEV")]
   public static void GeneratePathData(VehicleDef def)
   {
-#if DEV
     if (!Active) return;
     
     var calculator =
@@ -151,7 +142,6 @@ public static class UniqueVehicleUtility
       pathFinders(pathFinderManager)[def.DefIndex] =
         Activator.CreateInstance(PathFinderImpl, Params<(object, object)>.Get((pathFinderManager, def)));
     }
-#endif
   }
 
   public static bool AllowGenerate(VehicleDef def)

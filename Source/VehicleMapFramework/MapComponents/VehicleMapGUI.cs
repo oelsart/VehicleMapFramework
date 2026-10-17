@@ -12,9 +12,9 @@ public class VehicleMapGUI(Map map) : MapComponent(map)
     
     vehicle.DrawGUIOverlay();
 
-    if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+    if (vehicle.ParentVehicleWorldObject is { } vehicleWorldObject)
     {
-      foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+      foreach (var vehicle2 in vehicleWorldObject.Vehicles)
       {
         vehicle2.DrawGUIOverlay();
       }

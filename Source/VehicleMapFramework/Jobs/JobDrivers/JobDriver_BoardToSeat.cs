@@ -1,6 +1,5 @@
 ﻿using RimWorld;
 using SmashTools.Rendering;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -55,10 +54,9 @@ public class JobDriver_BoardToSeat : JobDriver
       }
 
       var lord = pawnBoarding.GetLord();
-      if (lord?.LordJob is LordJob_FormAndSendVehicles lordJob_FormAndSendVehicles)
+      if (lord?.LordJob is LordJob_FormAndSendVehicles lordJob_FormAndSendVehicles &&
+          lordJob_FormAndSendVehicles.GetAssignedSeat(pawnBoarding) is { } vehicleAssigned)
       {
-        var vehicleAssigned =
-          Patch_JobDriver_Board_MakeNewToils.GetAssignedSeat(lordJob_FormAndSendVehicles, pawnBoarding);
         vehicleAssigned.Vehicle.TryAddPawn(pawnBoarding, vehicleAssigned.handler);
       }
       else

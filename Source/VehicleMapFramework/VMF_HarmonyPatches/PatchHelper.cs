@@ -158,7 +158,7 @@ public static class PatchHelper
     {
       return codeMatcher
         .MatchStartForward(CodeMatch.Calls(method))
-        .DeclareLocal(typeof(Command_FocusVehicleMap.FocusVehicleScope), out var scope)
+        .DeclareLocal(typeof(FocusVehicleScope), out var scope)
         .InsertAndAdvance(
           new CodeInstruction(OpCodes.Ldloc_S, vehicle),
           CachedMethodInfo.m_FocusVehicle.CallInstruction,
@@ -227,7 +227,7 @@ public static class PatchHelper
     {
       @params ??= new (MethodBase, MethodBase)[tuple.Length]; 
       for (var i = 0; i < tuple.Length; i++)
-        @params[i] = ((MethodBase, MethodBase))tuple[i];
+        @params[i] = ((MethodBase, MethodBase))tuple[i]!;
       return @params;
     }
   }

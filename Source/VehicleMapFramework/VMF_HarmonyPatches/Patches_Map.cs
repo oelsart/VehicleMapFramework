@@ -234,7 +234,7 @@ public static class Patch_Map_MapUpdate
   public static void Postfix(Map __instance)
   {
     var focused = Find.CurrentMap == __instance;
-    if (focused && __instance.IsVehicleMapOf(out var vehicle) && VehicleMapFramework.settings.drawPlanet &&
+    if (focused && __instance.IsVehicleMapOf(out var vehicle) && VehicleMapFramework.Settings.drawPlanet &&
         WorldRendererUtility.DrawingMap)
     {
       if (VehicleMapView.Available)
@@ -258,7 +258,7 @@ public static class Patch_Map_MapUpdate
     [
       new CodeInstruction(OpCodes.Dup),
       new CodeInstruction(OpCodes.Brfalse_S, label),
-      CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.settings)),
+      CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.Settings)),
       CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
       new CodeInstruction(OpCodes.Brfalse_S, label),
       CodeInstruction.LoadArgument(0),
@@ -452,12 +452,12 @@ public static class Patch_SoundStarter_PlayOneShot
 [PatchLevel(Level.Safe)]
 public static class Patch_Room_DrawFieldEdges
 {
-  public static void Prefix(Room __instance, ref Command_FocusVehicleMap.FocusVehicleScope __state)
+  public static void Prefix(Room __instance, ref FocusVehicleScope? __state)
   {
-    __state = new Command_FocusVehicleMap.FocusVehicleScope(__instance.Map.ParentVehicle);
+    __state = FocusVehicleScope.FocusVehicle(__instance.Map.ParentVehicle);
   }
   
-  public static void Finalizer(Command_FocusVehicleMap.FocusVehicleScope __state) => __state.Dispose();
+  public static void Finalizer(FocusVehicleScope __state) => __state.Dispose();
 }
 
 //極端に小さいマップではCeilToIntのせいで毎tick必ずどこかのセルの物が劣化する処理だったんでこれを車両マップ上では緩和
@@ -768,7 +768,7 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
 [PatchLevel(Level.Safe)]
 public static class Patch_Map_IsPlayerHome
 {
-  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
+  private static bool Prepare() => VehicleMapFramework.Settings is { treatAsPlayerHome: true };
 
   public static void Postfix(Map __instance, ref bool __result)
   {
@@ -780,7 +780,7 @@ public static class Patch_Map_IsPlayerHome
 [PatchLevel(Level.Cautious)]
 public static class Patch_QuestNode_GetMap_IsAcceptableMap
 {
-  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
+  private static bool Prepare() => VehicleMapFramework.Settings is { treatAsPlayerHome: true };
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {

@@ -21,7 +21,6 @@ internal class SettingsTab_Main : SettingsTabDrawer
     settings.autoGetOffNonPlayer = VehicleMapSettings.Default.autoGetOffNonPlayer;
     settings.crossMapJobProtect = VehicleMapSettings.Default.crossMapJobProtect;
     settings.includeMapThings = VehicleMapSettings.Default.includeMapThings;
-    settings.legacyCanReach = VehicleMapSettings.Default.legacyCanReach;
     settings.joyPatches = VehicleMapSettings.Default.joyPatches;
     settings.treatAsPlayerHome = VehicleMapSettings.Default.treatAsPlayerHome;
     settings.colonistBarMode = VehicleMapSettings.Default.colonistBarMode;
@@ -53,7 +52,6 @@ internal class SettingsTab_Main : SettingsTabDrawer
     listingStandard.CheckboxLabeled("VMF_Settings.CrossMapJobProtect".Translate(), ref settings.crossMapJobProtect,
       "VMF_Settings.CrossMapJobProtect.Tooltip".Translate());
     listingStandard.CheckboxLabeled("VMF_Settings.TreatAsCaravanInventory".Translate(), ref settings.includeMapThings);
-    listingStandard.CheckboxLabeled("VMF_Settings.LegacyCanReach".Translate(), ref settings.legacyCanReach);
     listingStandard.CheckboxLabeled("(Experimental) Cross map joy search.", ref settings.joyPatches);
     listingStandard.CheckboxLabeled("(Experimental) Treat vehicle map as player home.", ref settings.treatAsPlayerHome);
     {

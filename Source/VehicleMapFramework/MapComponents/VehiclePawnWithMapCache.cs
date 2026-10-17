@@ -55,10 +55,10 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
       }
     }
 
-    if (Command_FocusVehicleMap.FocusedVehicle == vehicle)
+    if (FocusVehicleScope.FocusedVehicle == vehicle)
     {
-      Command_FocusVehicleMap.FocusLockedVehicle = null;
-      Command_FocusVehicleMap.FocusedVehicle = null;
+      FocusVehicleScope.FocusLockedVehicle = null;
+      FocusVehicleScope.FocusedVehicle = null;
     }
   }
 

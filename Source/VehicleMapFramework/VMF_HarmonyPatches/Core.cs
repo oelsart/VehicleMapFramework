@@ -33,7 +33,7 @@ public static class VMF_Harmony
     {
       if (field is null)
       {
-        var assemblies = VehicleMapFramework.mod.Content.assemblies.loadedAssemblies;
+        var assemblies = VehicleMapFramework.Mod.Content.assemblies.loadedAssemblies;
         field = GenTypes.AllTypes.AsParallel()
           .Where(t => assemblies.Contains(t.Assembly) &&
                       t.CustomAttributes
@@ -65,8 +65,8 @@ public static class VMF_Harmony
   }
 
   internal static Level CurrentPatchLevel { get; private set; } =
-    (VehicleMapFramework.settings?.dynamicPatchEnabled ?? false)
-      ? VehicleMapFramework.settings.dynamicPatchLevel
+    (VehicleMapFramework.Settings?.dynamicPatchEnabled ?? false)
+      ? VehicleMapFramework.Settings.dynamicPatchLevel
       : Level.All;
 
   internal static Level PrevPatchLevel { get; set; } = Level.Mandatory;
@@ -128,7 +128,7 @@ public static class VMF_Harmony
       var patchCountAfter = Instance.GetPatchedMethodCount;
       VMF_Log.DebugMessage($"Dynamic patches applied: {(patchCountAfter - patchCountBefore).ToString()} Total: {patchCountAfter.ToString()}");
     }
-    else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
+    else if (VehicleMapFramework.Settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
     {
       PrevPatchLevel = CurrentPatchLevel;
       CurrentPatchLevel = patchLevel;
@@ -153,7 +153,7 @@ public static class VMF_Harmony
         DynamicPatchAllNow(patchLevel);
       }, "VMF_ApplyingDynamicPatches", false, null, false);
     }
-    else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
+    else if (VehicleMapFramework.Settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
     {
       LongEventHandler.QueueLongEvent(() =>
       {

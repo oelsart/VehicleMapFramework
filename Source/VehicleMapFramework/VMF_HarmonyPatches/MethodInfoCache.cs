@@ -44,7 +44,7 @@ public class MethodInfoCache
       }
     }
 
-    public readonly MethodInfo g_FocusedVehicle = AccessTools.PropertyGetter(typeof(Command_FocusVehicleMap), nameof(Command_FocusVehicleMap.FocusedVehicle));
+    public readonly MethodInfo g_FocusedVehicle = AccessTools.PropertyGetter(typeof(Command_FocusVehicleMap), nameof(FocusVehicleScope.FocusedVehicle));
 
     public readonly MethodInfo m_FocusedOnVehicleMap = ((Delegate)VehicleMapUtility.FocusedOnVehicleMap).Method;
 
@@ -316,7 +316,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_CurrentVehicleMapViewRect = ((Delegate)VehicleMapUtility.get_CurrentVehicleMapViewRect).Method;
 
-    public readonly MethodInfo m_FocusVehicle = ((Delegate)Command_FocusVehicleMap.FocusVehicle).Method;
+    public readonly MethodInfo m_FocusVehicle = ((Delegate)FocusVehicleScope.FocusVehicle).Method;
 
-    public readonly MethodInfo m_FocusVehicleScope_Dispose = ((Delegate)default(Command_FocusVehicleMap.FocusVehicleScope).Dispose).Method;
+    public readonly MethodInfo m_FocusVehicleScope_Dispose = ((Delegate)default(FocusVehicleScope).Dispose).Method;
 }

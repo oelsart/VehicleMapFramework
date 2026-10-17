@@ -27,5 +27,5 @@ internal abstract class SettingsTabDrawer
         }
     }
 
-    protected VehicleMapSettings settings = VehicleMapFramework.settings;
+    protected VehicleMapSettings settings = VehicleMapFramework.Settings;
 }

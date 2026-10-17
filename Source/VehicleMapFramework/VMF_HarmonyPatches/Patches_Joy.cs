@@ -15,7 +15,7 @@ public static class Patch_JoyGiver_GetSearchSet
     AccessTools.MethodDelegate<Action<JoyGiver, Pawn, List<Thing>>>(
       AccessTools.Method(typeof(JoyGiver), "GetSearchSet"));
   
-  private static bool Prepare() => VehicleMapFramework.settings is { joyPatches: true };
+  private static bool Prepare() => VehicleMapFramework.Settings is { joyPatches: true };
   
   public static void Postfix(JoyGiver __instance, Pawn pawn, List<Thing> outCandidates)
   {
@@ -43,7 +43,7 @@ public static class Patch_JoyGiver_GetSearchSet
 [PatchLevel(Level.Safe)]
 public static class Patch_JobGiver_GetJoy_TryGiveJobFromJoyGiverDefDirect
 {
-  private static bool Prepare() => VehicleMapFramework.settings is { joyPatches: true };
+  private static bool Prepare() => VehicleMapFramework.Settings is { joyPatches: true };
   
   public static void Postfix(Pawn pawn, Job __result)
   {
@@ -61,7 +61,7 @@ public static class Patch_JobGiver_GetJoy_TryGiveJobFromJoyGiverDefDirect
 [PatchLevel(Level.Safe)]
 public static class Patch_WatchBuildingUtility_TryFindBestWatchCell
 {
-  private static bool Prepare() => VehicleMapFramework.settings is { joyPatches: true };
+  private static bool Prepare() => VehicleMapFramework.Settings is { joyPatches: true };
   
   public static void Prefix(Thing toWatch, Pawn pawn, ref VirtualTeleporter? __state)
   {

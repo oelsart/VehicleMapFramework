@@ -14,13 +14,13 @@ public class VehicleStatPart_WeightUsageWithMap : VehicleStatPart_WeightUsage
       var statValue = vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
       if (statValue > 0f)
       {
-        num = VehicleMapUtility.VehicleMapMass(vehicle) * VehicleMapFramework.settings.weightFactor / statValue;
+        num = VehicleMapUtility.VehicleMapMass(vehicle) * VehicleMapFramework.Settings.weightFactor / statValue;
       }
       num = usageCurve.Evaluate(num);
     }
     else
     {
-      num = VehicleMapUtility.VehicleMapMass(vehicle) * VehicleMapFramework.settings.weightFactor;
+      num = VehicleMapUtility.VehicleMapMass(vehicle) * VehicleMapFramework.Settings.weightFactor;
     }
     return num;
   }

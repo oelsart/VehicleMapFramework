@@ -32,7 +32,7 @@ public class VehicleMapGrid(Map map) : MapComponent(map)
 
   public override void MapComponentUpdate()
   {
-    if (VehicleMapFramework.settings.drawVehicleMapGrid)
+    if (VehicleMapFramework.Settings.drawVehicleMapGrid)
     {
       DebugDraw();
     }

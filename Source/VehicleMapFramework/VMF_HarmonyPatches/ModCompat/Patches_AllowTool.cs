@@ -24,7 +24,7 @@ public static class Patch_UnlimitedAreaDragger_Update
 {
   internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
   {
-    if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
+    if (FocusVehicleScope.FocusedVehicle is { } focused)
       __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
   }
   

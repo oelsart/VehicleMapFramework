@@ -38,7 +38,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   public bool mapEdgeCellsDirty = true;
   public bool walkableCellsDirty = true;
   public bool enterPositionsDirty = true;
-  private int vehicleCaravanOrStashedVehicleCachedTick;
   private TransformData lastRecachedData;
 
   internal bool resizeRequest;
@@ -72,6 +71,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public EventManager<MapVehicleEventDef> MapVehicleEventManager =>
     ((IEventManager<MapVehicleEventDef>)this).EventRegistry;
+
+  public static event Action<VehiclePawnWithMap> ModCompatEvents;
   
   public VehicleMapProps VehicleMapProps => field ??= def.GetModExtension<VehicleMapProps>();
 
@@ -108,21 +109,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   [UsedImplicitly] public bool AllowExit => allowExit;
 
   [CanBeNull]
-  // TODO VF Updates: VF-393によるStashedVehicleもParentHolderで取得可能となる予定
-  public WorldObject VehicleCaravanOrStashedVehicle
-  {
-    get
-    {
-      var ticks = GenTicks.TicksGame;
-      if (GenTicks.TicksGame == vehicleCaravanOrStashedVehicleCachedTick)
-        return field;
-
-      vehicleCaravanOrStashedVehicleCachedTick = ticks;
-      field = ParentHolder as VehicleCaravan as WorldObject ??
-              Find.World.GetComponent<VehicleWorldObjectsHolder>().StashedVehicleObject(this);
-      return field;
-    }
-  }
+  public IVehicleWorldObject ParentVehicleWorldObject => ParentHolder as IVehicleWorldObject;
 
   public BoolGrid ImpassableCellGrid
   {
@@ -384,9 +371,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   protected bool IsAirborne => VehicleRaidFramework.Active && CompVehicleHover is not null &&
                                VehicleRaidFramework.State(CompVehicleHover) > 0;
 
-  public MapComponent InterceptorMapComponent =>
-    field ??= interiorMap.GetComponent(DefenseGrid.InterceptorMapComponent);
-
   public List<CompVehicleEnterSpot> EnterComps { get; } = [];
 
   public List<CompFuelTank> FuelTankComps { get; } = [];
@@ -635,7 +619,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         mapParent.sourceMap = sourceMap;
         interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef,
           mapParent.ExtraGenStepDefs, isPocketMap: true);
-        if (VehicleMapFramework.settings.drawPlanet)
+        if (VehicleMapFramework.Settings.drawPlanet)
         {
           var size = VehicleMapView.MeshSize;
           interiorMap.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
@@ -713,9 +697,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
       interiorMap = null;
 
-      if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
+      if (!VehicleMapFramework.Settings.dynamicUnpatchEnabled) return;
       if (Find.Maps.Any(m => m.IsVehicleMap)) return;
-      VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
+      VMF_Harmony.DynamicPatchAll(VehicleMapFramework.Settings.dynamicPatchLevel);
     });
   }
 
@@ -1139,7 +1123,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     component?.UpdateAllSection();
     DrawClippers();
 
-    using (new Command_FocusVehicleMap.FocusVehicleScope(this))
+    using (new FocusVehicleScope(this))
     {
       DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
       map.designationManager.DrawDesignations();
@@ -1216,7 +1200,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   private void DrawClippers()
   {
-    if (Command_FocusVehicleMap.FocusLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
+    if (FocusVehicleScope.FocusLockedVehicle == this || FocusVehicleScope.FocusedVehicle == this)
     {
       var material = ClipMat;
       var quat = this.FullAngleQuat;
@@ -1252,7 +1236,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     var currentMap = Find.CurrentMap;
     if ((currentMap == CurrentLevel || currentMap == interiorMap) && WorldRendererUtility.DrawingMap &&
-        VehicleMapFramework.settings.drawPlanet)
+        VehicleMapFramework.Settings.drawPlanet)
     {
       var material = MapEdgeClipDrawer.ClipMat;
       var size = VehicleMapView.MeshSize;
@@ -1314,13 +1298,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public override string GetInspectString()
   {
-    if (VehicleMapFramework.settings.weightFactor == 0f) return null;
+    if (VehicleMapFramework.Settings.weightFactor == 0f) return null;
 
     var str = base.GetInspectString();
     var stat = GetStatValue(VMF_DefOf.MaximumPayload);
 
     str += $"\n{VMF_DefOf.MaximumPayload.LabelCap}:" +
-           $" {(VehicleMapUtility.VehicleMapMass(this) * VehicleMapFramework.settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
+           $" {(VehicleMapUtility.VehicleMapMass(this) * VehicleMapFramework.Settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
            $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
     return str;
   }
@@ -1389,37 +1373,15 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     var manager = MapVehicleEventManager;
     if (manager is not null && manager.Initialized()) return;
     this.FillEventsDef<MapVehicleEventDef>();
-    this.AddEvent(VMF_DefOf.EnterNextCell, () =>
+    this.AddEvent(VehicleEventDefOf.PositionChanged, ClearReachabilityCache);
+    this.AddEvent(VehicleEventDefOf.RotationChanged, ClearReachabilityCache);
+    ModCompatEvents?.Invoke(this);
+    return;
+
+    void ClearReachabilityCache()
     {
       enterPositionsDirty = true;
       CrossMapReachabilityCache.ClearCacheFor(VehicleMap);
-    });
-    if (DefenseGrid.Active)
-    {
-      this.AddEvent(VMF_DefOf.EnterNextCell, () =>
-      {
-        if (InterceptorMapComponent is null) return;
-        foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
-        {
-          DefenseGrid.RepaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
-        }
-      });
-      this.AddEvent(VehicleEventDefOf.Spawned, () => FrameDelay.DelayOne(static component =>
-      {
-        if (component is null) return;
-        foreach (var grid in DefenseGrid.grids(component))
-        {
-          DefenseGrid.RepaintGrid(component, SingleParam.Get(grid));
-        }
-      }, InterceptorMapComponent));
-      this.AddEvent(VehicleEventDefOf.Despawned, () =>
-      {
-        if (InterceptorMapComponent is null) return;
-        foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
-        {
-          DefenseGrid.UnpaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
-        }
-      });
     }
   }
 

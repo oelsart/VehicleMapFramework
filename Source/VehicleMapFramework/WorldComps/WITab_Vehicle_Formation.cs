@@ -28,6 +28,8 @@ public class WITab_Vehicle_Formation : WITab
   private bool collision;
 
   protected VehicleFormationComp FormationComp => SelObject.GetComponent<VehicleFormationComp>();
+  
+  protected IVehicleWorldObject VehicleWorldObject => SelObject as IVehicleWorldObject;
 
   public WITab_Vehicle_Formation()
   {
@@ -102,7 +104,7 @@ public class WITab_Vehicle_Formation : WITab
           i =>
           {
             drawPositions.Clear();
-            var vehicles = SelObject.Vehicles.ToList();
+            var vehicles = VehicleWorldObject?.Vehicles.AsReadOnlyList ?? [];
             foreach (var (vehicle, data) in formationPresets[i].drawPositions)
             {
               if (!vehicles.Contains(vehicle)) continue;

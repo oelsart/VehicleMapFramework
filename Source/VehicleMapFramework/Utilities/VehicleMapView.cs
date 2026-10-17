@@ -39,14 +39,14 @@ public static class VehicleMapView
     if (Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
       return;
     
-    var forceRotation = VehicleMapFramework.settings.forceRotated;
+    var forceRotation = VehicleMapFramework.Settings.forceRotated;
     var forceRotated = forceRotation != VehicleMapSettings.ForceRotated.None;
     var angle = forceRotated
       ? new Rot8((byte)forceRotation).AsAngle
       : vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
-    var vehicleCaravanOrStashedVehicle = vehicle.VehicleCaravanOrStashedVehicle;
+    var vehicleWorldObject = vehicle.ParentVehicleWorldObject;
     
-    var worldObject = vehicleCaravanOrStashedVehicle ?? GetWorldObject(vehicle);
+    var worldObject = vehicleWorldObject as WorldObject ?? GetWorldObject(vehicle);
     if (worldObject is null) return;
     
     Find.World.renderer.wantedMode = WorldRenderMode.Planet;
@@ -104,9 +104,9 @@ public static class VehicleMapView
             _ => 0f
           };
         var rot = Rot4.FromAngleFlat(angle);
-        if (vehicleCaravanOrStashedVehicle is not null)
+        if (vehicleWorldObject is not null)
         {
-          foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+          foreach (var vehicle2 in vehicleWorldObject.Vehicles)
           {
             vehicle2.FullRotation = rot;
           }
@@ -120,11 +120,11 @@ public static class VehicleMapView
     Graphics.DrawMesh(mesh200, Center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
 
     //　車両本体
-    if (vehicleCaravanOrStashedVehicle?.GetComponent<VehicleFormationComp>() is { } comp)
+    if (worldObject.GetComponent<VehicleFormationComp>() is { } comp)
     {
       var drawPositions = comp.DrawPositions;
 
-      foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+      foreach (var vehicle2 in vehicleWorldObject?.Vehicles ?? [])
       {
         if (!drawPositions.ContainsKey(vehicle2))
         {
@@ -198,7 +198,7 @@ public static class VehicleMapView
       expandMoreTransition = expandMoreTransitionPct();
 
       var mapCameraPosition = Find.Camera.transform.position;
-      var scale = lookTarget.Tile.Layer.AverageTileSize / VehicleMapFramework.settings.mapSizePerTile;
+      var scale = lookTarget.Tile.Layer.AverageTileSize / VehicleMapFramework.Settings.mapSizePerTile;
       var drawPos = lookTarget.DrawPos;
       transform.rotation = Quaternion.LookRotation(-drawPos);
       transform.position = drawPos + drawPos.normalized * 15f;

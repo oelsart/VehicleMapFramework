@@ -65,7 +65,7 @@ public static class Patch_Caravan_ColonyThingsWillingToBuy
       }
     }
 
-    if (VehicleMapFramework.settings.includeMapThings)
+    if (VehicleMapFramework.Settings.includeMapThings)
       yield break;
 
     if (!vehicles.NullOrEmpty())

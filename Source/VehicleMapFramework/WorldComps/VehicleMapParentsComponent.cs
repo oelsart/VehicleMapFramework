@@ -11,8 +11,8 @@ public class VehicleMapParentsComponent : WorldComponent
 
   public VehicleMapParentsComponent(World world) : base(world)
   {
-    Command_FocusVehicleMap.FocusLockedVehicle = null;
-    Command_FocusVehicleMap.FocusedVehicle = null;
+    FocusVehicleScope.FocusLockedVehicle = null;
+    FocusVehicleScope.FocusedVehicle = null;
   }
 
   [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using RimWorld.Planet;
+using UnityEngine;
 using Vehicles;
 using Verse;
 using SmashTools;
@@ -55,7 +56,8 @@ public static class VehicleResizeUtility
 
           Respawn(vehicle, pos, prevSize);
         }
-        else if (vehicle.VehicleCaravanOrStashedVehicle?.GetComponent<VehicleFormationComp>() is { } formationComp &&
+        else if (vehicle.ParentHolder is WorldObject worldObject &&
+                 worldObject.GetComponent<VehicleFormationComp>() is { } formationComp &&
                  formationComp.DrawPositions.TryGetValue(vehicle, out var drawData))
         {
           var pos = drawData.cellRect.CenterCell;

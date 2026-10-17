@@ -37,7 +37,7 @@ public static class Patches_ResourceDeliveryHelper_Postfix
       if (!map.IsVehicleMapOf(out var vehicle))
         continue;
 
-      using var scope = new Command_FocusVehicleMap.FocusVehicleScope(vehicle);
+      using var scope = new FocusVehicleScope(vehicle);
       var localViewRect = CellRect.FromLimits(min.ToVehicleMapCoord(vehicle), max.ToVehicleMapCoord(vehicle));
       foreach (var thing in map.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint))
       {

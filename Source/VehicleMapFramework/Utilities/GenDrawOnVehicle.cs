@@ -25,7 +25,7 @@ public static class GenDrawOnVehicle
     
     if (!map.IsNonFocusedVehicleMapOf(out var vehicle))
     {
-      using var _ = Command_FocusVehicleMap.FocusVehicle(null);
+      using var _ = FocusVehicleScope.FocusVehicle(null);
       GenDraw.DrawFieldEdges(cells, color, altOffset);
       return;
     }

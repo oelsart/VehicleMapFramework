@@ -32,7 +32,7 @@ public static class Patch_DesignatorPlace_CanDesignateCell_Postfix
 {
   public static bool Prefix()
   {
-    return Command_FocusVehicleMap.FocusedVehicle is null;
+    return FocusVehicleScope.FocusedVehicle is null;
   }
 }
 
@@ -42,7 +42,7 @@ public static class Patch_DesignatorPrefix_CanDesignateCell_Prefix
 {
   public static void Postfix(ref bool __result)
   {
-    if (Command_FocusVehicleMap.FocusedVehicle is not null)
+    if (FocusVehicleScope.FocusedVehicle is not null)
       __result = true;
   }
 }

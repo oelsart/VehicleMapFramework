@@ -183,7 +183,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
   public override void PostDraw()
   {
     base.PostDraw();
-    if (!VehicleMapFramework.settings.drawPlanet && parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned &&
+    if (!VehicleMapFramework.Settings.drawPlanet && parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned &&
         !handlers.NullOrEmpty())
     {
       foreach (var handler in handlers)
@@ -203,7 +203,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
 
   public override string CompInspectStringExtra()
   {
-    if (VehicleMapFramework.settings.weightFactor == 0f) return null;
+    if (VehicleMapFramework.Settings.weightFactor == 0f) return null;
 
     if (parent.IsOnVehicleMapOf(out var vehicle))
     {
@@ -211,7 +211,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
       var stat = vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
 
       return str + $"{VMF_DefOf.MaximumPayload.LabelCap}:" +
-             $" {(VehicleMapUtility.VehicleMapMass(vehicle) * VehicleMapFramework.settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
+             $" {(VehicleMapUtility.VehicleMapMass(vehicle) * VehicleMapFramework.Settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
              $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
     }
 

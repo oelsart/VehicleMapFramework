@@ -11,7 +11,7 @@ public static class Patches_DebugTools
 {
     static Patches_DebugTools()
     {
-        if (VehicleMapFramework.settings.debugToolPatches)
+        if (VehicleMapFramework.Settings.debugToolPatches)
         {
             ApplyPatches();
         }

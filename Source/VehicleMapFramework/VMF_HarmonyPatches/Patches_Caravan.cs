@@ -20,7 +20,7 @@ public static class Patch_CaravanInventoryUtility_AllInventoryItems
   [PatchLevel(Level.Safe)]
   public static void Postfix(Caravan caravan, List<Thing> __result)
   {
-    if (!VehicleMapFramework.settings.includeMapThings || caravan is not VehicleCaravan vehicleCaravan) return;
+    if (!VehicleMapFramework.Settings.includeMapThings || caravan is not VehicleCaravan vehicleCaravan) return;
     __result.AddRange(vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
       .SelectMany(v => v.VehicleMap.listerThings
         .GetAllThings(t => t.def.category == ThingCategory.Item || t is Pawn { IsSlaveOfColony: true })));

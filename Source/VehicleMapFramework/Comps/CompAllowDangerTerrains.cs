@@ -18,7 +18,8 @@ public class CompAllowDangerTerrains : ThingComp
 
   public override void Notify_Equipped(Pawn pawn)
   {
-    AllowedTerrains.AddOrUpdate(pawn, Props.allowedDangerTerrains);
+    if (!Props.allowedDangerTerrains.NullOrEmpty())
+      AllowedTerrains.AddOrUpdate(pawn, Props.allowedDangerTerrains);
   }
 
   public override void Notify_Unequipped(Pawn pawn)

@@ -35,7 +35,6 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
       ticksToMove = VehiclePathFollower.MoveTicksAt(vehicle, prevCell, vehicle.Position);
       prevCell = vehicle.Position;
       updated = false;
-      vehicle.MapVehicleEventManager[VMF_DefOf.EnterNextCell].ExecuteEvents();
     }
     else
     {

@@ -64,7 +64,7 @@ public static class Patch_Building_ABStairs2_CarveLanding
 [PatchLevel(Level.Safe)]
 public static class Patch_Patch_CameraDriver_ABClampToBand_Postfix
 {
-  public static bool Prefix() => !Find.CurrentMap.IsVehicleMap || !VehicleMapFramework.settings.drawPlanet;
+  public static bool Prefix() => !Find.CurrentMap.IsVehicleMap || !VehicleMapFramework.Settings.drawPlanet;
 }
 
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]

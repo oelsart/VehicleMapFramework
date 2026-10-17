@@ -51,7 +51,7 @@ public static class Patch_Pawn_JobTracker_StartJob
     if (___jobsGivenThisTick > 8 && newJob?.workGiverDef is { } workGiverDef)
     {
       var message = "A \"10 jobs in one tick\" error is about to occur. ";
-      message += VehicleMapFramework.settings.crossMapJobProtect
+      message += VehicleMapFramework.Settings.crossMapJobProtect
         ? $"Disable cross-map job support for WorkGiver: {workGiverDef.defName} and temporarily enable job logging."
         : $"Likely to be the cause WorkGiver: {workGiverDef.defName}. Temporarily enable job logging.";
       VMF_Log.Warning(message);
@@ -61,7 +61,7 @@ public static class Patch_Pawn_JobTracker_StartJob
         FrameDelay.DelayOne(static instance => instance.debugLog = false, __instance);
       }
 
-      if (VehicleMapFramework.settings.crossMapJobProtect)
+      if (VehicleMapFramework.Settings.crossMapJobProtect)
         JobAcrossMapsUtility.DisabledCrossMapWorkGiverDefs.AddUnique(workGiverDef);
     }
   }

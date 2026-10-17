@@ -5,7 +5,6 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI.Group;
@@ -40,14 +39,14 @@ public static class VehicleMapUtility
   private static readonly SimpleCurve PointsFactorForPawnAgeYearsCurve =
     AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsFactorForPawnAgeYearsCurve");
 
-  public static Map CurrentMap => Command_FocusVehicleMap.FocusedVehicle?.CurrentLevel ?? Find.CurrentMap;
+  public static Map CurrentMap => FocusVehicleScope.FocusedVehicle?.CurrentLevel ?? Find.CurrentMap;
 
   [ContractAnnotation("=> true, vehicle:notnull; => false, vehicle:null")]
   public static bool FocusedOnVehicleMap([CanBeNull] out VehiclePawnWithMap vehicle)
   {
-    if (Command_FocusVehicleMap.FocusedVehicle is null)
+    if (FocusVehicleScope.FocusedVehicle is null)
       return Find.CurrentMap.IsNonFocusedVehicleMapOf(out vehicle);
-    vehicle = Command_FocusVehicleMap.FocusedVehicle;
+    vehicle = FocusVehicleScope.FocusedVehicle;
     return true;
   }
 
@@ -417,7 +416,7 @@ public static class VehicleMapUtility
 
     public object BaseMapOrCaravan =>
       map.IsVehicleMapOf(out var vehicle)
-        ? vehicle.Spawned ? vehicle.Map : vehicle.VehicleCaravanOrStashedVehicle
+        ? vehicle.Spawned ? vehicle.Map : vehicle.ParentVehicleWorldObject
         : map;
 
     [UsedImplicitly] // Reflection access by Faction Territories and Vassalage
@@ -442,7 +441,7 @@ public static class VehicleMapUtility
     [ContractAnnotation("=> true, vehicle:notnull; => false, vehicle:null")]
     public bool IsNonFocusedVehicleMapOf([CanBeNull] out VehiclePawnWithMap vehicle)
     {
-      if (map.IsVehicleMapOf(out vehicle) && (VehicleMapFramework.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap))
+      if (map.IsVehicleMapOf(out vehicle) && (VehicleMapFramework.Settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap))
       {
         return true;
       }
@@ -482,9 +481,9 @@ public static class VehicleMapUtility
       if (baseMap != map)
         cache.excludeItself.Add(baseMap);
 
-      if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+      if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.ParentHolder is IVehicleWorldObject vehicleWorldObject)
       {
-        foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+        foreach (var vehicle2 in vehicleWorldObject.Vehicles)
         {
           if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
             cache.excludeItself.Add(vehiclePawnWithMap.VehicleMap);
@@ -507,9 +506,9 @@ public static class VehicleMapUtility
     {
       if (map.IsVehicleMapOf(out var vehicle))
       {
-        if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+        if (vehicle.ParentHolder is IVehicleWorldObject vehicleWorldObject)
         {
-          foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+          foreach (var vehicle2 in vehicleWorldObject.Vehicles)
           {
             if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
               yield return vehiclePawnWithMap.VehicleMap;
@@ -529,9 +528,9 @@ public static class VehicleMapUtility
     {
       if (map.IsVehicleMapOf(out var vehicle))
       {
-        if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+        if (vehicle.ParentHolder is IVehicleWorldObject vehicleWorldObject)
         {
-          foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+          foreach (var vehicle2 in vehicleWorldObject.Vehicles)
           {
             if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
               list.Add(vehiclePawnWithMap.VehicleMap);
@@ -547,7 +546,7 @@ public static class VehicleMapUtility
       }
     }
 
-    [UsedImplicitly] // Reflection access by Portable Blueprints
+    [UsedWithReflection] // Reflection access by Portable Blueprints
     public Map BaseMap()
     {
       if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -577,7 +576,7 @@ public static class VehicleMapUtility
 
     public object BaseMapOrCaravan =>
       thing.IsOnVehicleMapOf(out var vehicle)
-        ? vehicle.Spawned ? vehicle.Map : vehicle.VehicleCaravanOrStashedVehicle
+        ? vehicle.Spawned ? vehicle.Map : vehicle.ParentVehicleWorldObject
         : thing.Map;
 
     public object MapHeldBaseMapOrCaravan
@@ -586,7 +585,7 @@ public static class VehicleMapUtility
       {
         var mapHeld = thing.MapHeld;
         return mapHeld.IsVehicleMapOf(out var vehicle)
-          ? vehicle.Spawned ? vehicle.Map : vehicle.VehicleCaravanOrStashedVehicle
+          ? vehicle.Spawned ? vehicle.Map : vehicle.ParentVehicleWorldObject
           : mapHeld;
       }
     }
@@ -971,8 +970,8 @@ public static class VehicleMapUtility
       }
 
       var isVehicleMap = map.IsVehicleMapOf(out var vehicle2);
-      var vehicleCaravanOrStashedVehicle = vehicle2?.VehicleCaravanOrStashedVehicle;
-      if (isVehicleMap && vehicleCaravanOrStashedVehicle is null && VehicleMapFramework.settings.drawPlanet &&
+      var vehicleWorldObject = vehicle2?.ParentVehicleWorldObject;
+      if (isVehicleMap && vehicleWorldObject is null && VehicleMapFramework.Settings.drawPlanet &&
           original.TryGetVehicleMap(vehicle2, flag))
       {
         vehicle = vehicle2;
@@ -981,7 +980,7 @@ public static class VehicleMapUtility
 
       var vehicles =
         isVehicleMap
-          ? vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>()
+          ? vehicleWorldObject?.Vehicles.OfType<VehiclePawnWithMap>() ?? []
           : VehiclePawnWithMapCache.AllVehiclesOn(map);
 
       var distanceSquared = float.MaxValue;
@@ -1249,7 +1248,7 @@ public static class VehicleMapUtility
     {
       var dir = c.DirectionToInsideMap(vehicle);
       var map = vehicle.VehicleMap;
-      if (Find.CurrentMap != map || VehicleMapFramework.settings.drawPlanet)
+      if (Find.CurrentMap != map || VehicleMapFramework.Settings.drawPlanet)
       {
         return new Rot8(dir).Rotated(vehicle.FullRotation);
       }

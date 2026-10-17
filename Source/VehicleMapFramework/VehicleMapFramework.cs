@@ -10,16 +10,16 @@ public class VehicleMapFramework : Mod
 {
   public const string CategoryName = "Vehicle Map Framework";
 
-  public static VehicleMapFramework mod;
+  public static VehicleMapFramework Mod { get; private set; }
 
-  public static VehicleMapSettings settings;
+  public static VehicleMapSettings Settings { get; private set; }
 
   private static readonly List<TabRecord> tabs = [];
 
   public VehicleMapFramework(ModContentPack content) : base(content)
   {
-    mod = this;
-    settings = GetSettings<VehicleMapSettings>();
+    Mod = this;
+    Settings = GetSettings<VehicleMapSettings>();
     EarlyPatchCore.EarlyPatch();
   }
 
@@ -54,9 +54,9 @@ public class VehicleMapFramework : Mod
     base.WriteSettings();
 
     Level level;
-    if (settings.dynamicPatchEnabled && (Find.Maps is null || Find.Maps.All(map => VehicleMapParentsComponent.GetCachedVehicle(map) == null)))
+    if (Settings.dynamicPatchEnabled && (Find.Maps is null || Find.Maps.All(map => VehicleMapParentsComponent.GetCachedVehicle(map) == null)))
     {
-      level = settings.dynamicPatchLevel;
+      level = Settings.dynamicPatchLevel;
     }
     else
     {
@@ -70,13 +70,13 @@ public class VehicleMapFramework : Mod
     var m_Roofed = AccessTools.Method(typeof(RoofGrid), nameof(RoofGrid.Roofed), [typeof(IntVec3)]);
     if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_Roofed))
     {
-      if (!settings.roofedPatch)
+      if (!Settings.roofedPatch)
       {
         var m_Postfix = ((Delegate)Patch_RoofGrid_Roofed.Postfix).Method;
         VMF_Harmony.Instance.Unpatch(m_Roofed, m_Postfix);
       }
     }
-    else if (settings.roofedPatch)
+    else if (Settings.roofedPatch)
     {
       var m_Postfix = ((Delegate)Patch_RoofGrid_Roofed.Postfix).Method;
       VMF_Harmony.Instance.Patch(m_Roofed, postfix: m_Postfix);
@@ -85,12 +85,12 @@ public class VehicleMapFramework : Mod
     var m_GenericRectTool = ((Delegate)DebugToolsGeneral.GenericRectTool).Method;
     if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_GenericRectTool))
     {
-      if (!settings.debugToolPatches)
+      if (!Settings.debugToolPatches)
       {
         Patches_DebugTools.ApplyPatches(true);
       }
     }
-    else if (settings.debugToolPatches)
+    else if (Settings.debugToolPatches)
     {
       Patches_DebugTools.ApplyPatches();
     }

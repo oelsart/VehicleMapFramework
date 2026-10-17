@@ -329,7 +329,7 @@ namespace VehicleMapFramework
       vehicleDef.graphicData.CopyFrom(props.baseDef.graphicData);
       vehicleDef.graphicData.texPath = "VehicleMapFramework/ClearTex";
       vehicleDef.graphicData.drawSize = props.size.ToVector2();
-      vehicleDef.modContentPack = VehicleMapFramework.mod.Content;
+      vehicleDef.modContentPack = VehicleMapFramework.Mod.Content;
       vehicleDef.modExtensions = [props];
       UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
       LongEventHandler.ExecuteWhenFinished(() =>

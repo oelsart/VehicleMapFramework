@@ -26,8 +26,10 @@ public class VehicleFormationComp : WorldObjectComp
   public void RecalculateVehiclePositions()
   {
     drawPositions.Clear();
+    if (parent is not IVehicleWorldObject vehicleWorldObject)
+      return;
     
-    foreach (var vehicle in parent.Vehicles)
+    foreach (var vehicle in vehicleWorldObject.Vehicles)
     {
       if (vehicle is VehiclePawnWithMap { VehicleDef.IsUniqueVehicle: true } vehicle2)
         vehicle2.ResizeNow();
@@ -71,7 +73,7 @@ public class VehicleFormationComp : WorldObjectComp
 
   public void CenteredDrawPositions()
   {
-    if (drawPositions.NullOrEmpty()) return;
+    if (drawPositions.NullOrEmpty() || parent is not IVehicleWorldObject vehicleWorldObject) return;
     var values = drawPositions.Values;
     var average = new Vector3(
       values.Average(p => p.cellRect.CenterVector3.x),
@@ -85,7 +87,7 @@ public class VehicleFormationComp : WorldObjectComp
         position = tuple.cellRect.CenterVector3.SetToAltitude(AltitudeLayer.LayingPawn) - average
       };
     }
-    foreach (var vehicle in parent.Vehicles.OfType<VehiclePawnWithMap>())
+    foreach (var vehicle in vehicleWorldObject.Vehicles.OfType<VehiclePawnWithMap>())
       vehicle.RecacheDrawPos(drawPositions[vehicle].position);
   }
   

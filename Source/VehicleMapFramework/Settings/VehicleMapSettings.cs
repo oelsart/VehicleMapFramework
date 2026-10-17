@@ -24,8 +24,6 @@ public class VehicleMapSettings : ModSettings
 
   public bool includeMapThings = Default.includeMapThings;
 
-  public bool legacyCanReach = Default.legacyCanReach;
-
   public bool joyPatches = Default.joyPatches;
 
   public bool treatAsPlayerHome = Default.treatAsPlayerHome;
@@ -53,7 +51,6 @@ public class VehicleMapSettings : ModSettings
     Scribe_Values.Look(ref crossMapJobProtect, nameof(crossMapJobProtect), Default.crossMapJobProtect);
     Scribe_Values.Look(ref drawVehicleMapGrid, nameof(drawVehicleMapGrid), Default.drawVehicleMapGrid);
     Scribe_Values.Look(ref includeMapThings, nameof(includeMapThings), Default.includeMapThings);
-    Scribe_Values.Look(ref legacyCanReach, nameof(legacyCanReach), Default.legacyCanReach);
     Scribe_Values.Look(ref joyPatches, nameof(joyPatches), Default.joyPatches);
     Scribe_Values.Look(ref treatAsPlayerHome, nameof(treatAsPlayerHome), Default.treatAsPlayerHome);
     Scribe_Values.Look(ref colonistBarMode, nameof(colonistBarMode), Default.colonistBarMode);
@@ -83,8 +80,6 @@ public class VehicleMapSettings : ModSettings
     public const bool drawVehicleMapGrid = false;
 
     public const bool includeMapThings = true;
-
-    public const bool legacyCanReach = false;
 
     public const bool joyPatches = false;
 
