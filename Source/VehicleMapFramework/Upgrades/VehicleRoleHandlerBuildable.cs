@@ -42,19 +42,13 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
     }
   }
 
-  // TODO VF Updates: transformData.rotationを入れるための再実装であるため、次回リリースで不要となる
-  void IParallelRenderer.DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw)
-  {
-    DynamicDrawPhaseAt(phase, in transformData, forceDraw);
-  }
-
   public new void DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw = false)
   {
     foreach (var item in thingOwner)
     {
       var value = role.PawnRenderer.RotFor(transformData.orientation);
       var vector = role.PawnRenderer.DrawOffsetFor(transformData.orientation)
-        .RotatedBy(transformData.rotation.FlipAngle(vehicle));
+        .RotatedBy(transformData.rotation);
       item.Drawer.renderer.DynamicDrawPhaseAt(phase, transformData.position + vector, value, neverAimWeapon: true);
     }
   }

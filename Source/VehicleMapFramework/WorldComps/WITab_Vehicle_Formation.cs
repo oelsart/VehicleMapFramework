@@ -27,9 +27,6 @@ public class WITab_Vehicle_Formation : WITab
   private int dragAndDropGroup;
   private bool collision;
 
-  public override bool IsVisible => VehicleMapUtility.VFUnstableRelease.Available &&
-    SelObject.Vehicles.Any(v => v is VehiclePawnWithMap);
-
   protected VehicleFormationComp FormationComp => SelObject.GetComponent<VehicleFormationComp>();
 
   public WITab_Vehicle_Formation()

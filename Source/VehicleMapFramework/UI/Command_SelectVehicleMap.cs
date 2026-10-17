@@ -1,32 +1,19 @@
 ﻿using HarmonyLib;
 using LudeonTK;
 using RimWorld;
-using SmashTools;
 using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles.Rendering;
 using Verse;
 using Object = UnityEngine.Object;
-#if DEV
-#endif
 
 namespace VehicleMapFramework;
 
 public class Command_SelectVehicleMap(VehiclePawnWithMap vehicle) : Command_ToggleWithIcon
 {
-  public static bool Available { get; } =
-    new VFVersionalPatchAttribute("1.6.2380", ComparisonType.GreaterThanOrEqual).Available;
   public VehiclePortrait portrait;
 
   public override void DrawIcon(Rect rect, Material buttonMat, GizmoRenderParms parms)
   {
-    if (!Available)
-    {
-      icon = VehicleMapUIRenderer.GetVehicleMapTexture(vehicle, Rot4.East, (256, 256));
-      base.DrawIcon(rect, buttonMat, parms);
-      return;
-    }
-    
     var min = Mathf.Min(rect.width, rect.height);
     var rect2 = rect.ContractedBy((min - min * 0.95f) / 2f);
     Widgets.BeginGroup(rect2);
@@ -48,9 +35,11 @@ public class Command_SelectVehicleMap(VehiclePawnWithMap vehicle) : Command_Togg
     
     var g_RenderTexture = AccessTools.PropertyGetter(typeof(VehiclePortrait), "RenderTexture");
     var renderTexture = (RenderTexture)g_RenderTexture.Invoke(vehicle.VehicleMapGizmo.portrait, []);
+    if (renderTexture is null)
+      return;
     
     var active = RenderTexture.active;
-    var texture = new Texture2D(renderTexture!.width, renderTexture.height, TextureFormat.RGB24, false);
+    var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
 
     RenderTexture.active = renderTexture;
     texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);

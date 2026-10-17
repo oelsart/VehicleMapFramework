@@ -178,8 +178,6 @@ public class MethodInfoCache
     
     public readonly MethodInfo m_ExtraAngle = ((Delegate)VehicleMapUtility.get_ExtraAngle).Method;
 
-    public readonly MethodInfo m_FlipAngle = ((Delegate)VehicleMapUtility.FlipAngle).Method;
-
     public readonly MethodInfo m_RotatePoint = ((Delegate)Ext_Math.RotatePoint).Method;
 
     public readonly MethodInfo g_Rot4_AsQuat = AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.AsQuat));

@@ -176,30 +176,27 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var matcher = PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add))
-      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
-      .CreateLabel(out var label);
+    var matcher = PatchHelper.CreateCodeMatcherFast(instructions, generator);
     var l_vehicle_ind = matcher.Instructions().Select(i => i.operand).OfType<LocalBuilder>()
       .FirstOrDefault(l => l.LocalType == typeof(VehiclePawn))?.LocalIndex ?? 0;
-    return matcher.InsertAndAdvance(
+    return matcher
+      .MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))),
+        new CodeMatch(OpCodes.Add))
+      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+      .Advance()
+      .CreateLabel(out var label)
+      .Insert(
         CodeInstruction.LoadLocal(l_vehicle_ind),
         new CodeInstruction(OpCodes.Ldloca_S, vehicle),
         CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
         new CodeInstruction(OpCodes.Brfalse_S, label),
-        CodeInstruction.LoadLocal(l_vehicle_ind),
-        CachedMethodInfo.m_FlipAngle.CallInstruction)
-      .CreateLabelWithOffsets(1, out var label2)
-      .InsertAfter(
         new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Brfalse_S, label2),
-        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        CachedMethodInfo.g_Angle.CallvirtInstruction,
+        CachedMethodInfo.m_FullAngle.CallvirtInstruction,
         new CodeInstruction(OpCodes.Add))
       .MatchStartForward(CodeMatch.Calls(
         AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize))))
       .Set(OpCodes.Call, ((Delegate)VehicleMapUtility.BaseRotatedSize).Method)
-      .InstructionEnumeration();
+      .Instructions();
   }
 }
 
@@ -1423,14 +1420,83 @@ public static class Patch_MapGridOwners_PathConfig_MatchesReachability
   }
 }
 
-// TODO VF Updates: Notify_Teleported will be changed to virtual, but it will also be marked as obsolete.
-[HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.Notify_Teleported))]
-[PatchLevel(Level.Safe)]
-public static class Patch_VehiclePawn_Notify_Teleported
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch(typeof(VehiclePath), nameof(VehiclePath.DrawPath))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_VehiclePath_DrawPath
 {
-  public static void Postfix(VehiclePawn __instance)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    if (__instance is VehiclePawnWithMap vehicle)
-      CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
+    return Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch("Vehicles.VehicleGhostUtility+DrawData", "DrawPos", MethodType.Getter)]
+public static class Patch_VehicleGhostUtility_DrawData_DrawPos
+{
+  [PatchLevel(Level.Sensitive)]
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var type = GenTypes.GetTypeInAnyAssembly("Vehicles.VehicleGhostUtility+DrawData");
+    var f_rot = AccessTools.Field(type, "rot");
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.LoadsField(f_rot))
+      .InsertAfterAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(type, "vehicle"),
+        ((Func<Rot8, VehiclePawn, Rot8>)BaseRot).Method.CallInstruction)
+      .MatchStartForward(CodeMatch.LoadsField(f_rot))
+      .InsertAfter(((Func<Rot8, Rot8>)FocusedRot).Method.CallInstruction)
+      .InstructionEnumeration();
+
+    Rot8 BaseRot(Rot8 rot, VehiclePawn vehicle)
+    {
+      if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle2)
+      {
+        return rot.Rotated(vehicle2.FullRotation);
+      }
+      if (vehicle.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out var vehicle3))
+      {
+        return rot.Rotated(vehicle3.FullRotation);
+      }
+      return rot;
+    }
+
+    Rot8 FocusedRot(Rot8 rot)
+    {
+      if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle)
+      {
+        return rot.Rotated(vehicle.FullRotation);
+      }
+      return rot;
+    }
+  }
+  
+  [PatchLevel(Level.Safe)]
+  public static void Postfix(VehiclePawn ___vehicle, ref Vector3 __result)
+  {
+    if (___vehicle is not null)
+    {
+      __result = ___vehicle.TryGetTargetMap(out var map) ? __result.ToBaseMapCoord(map).WithY(__result.y) : __result;
+      return;
+    }
+    if (Command_FocusVehicleMap.FocusedVehicle is null &&
+      UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+    {
+      __result = __result.ToBaseMapCoord(vehicle);
+    }
+  }
+}
+
+[HarmonyPatch(typeof(BlitRequest), nameof(BlitRequest.For), typeof(VehiclePawn))]
+[PatchLevel(Level.Safe)]
+public static class Patch_BlitRequest_For
+{
+  public static void Postfix(VehiclePawn vehicle, ref BlitRequest __result)
+  {
+    if (vehicle is VehiclePawnWithMap vehiclePawnWithMap)
+      __result.blitTargets.Add(vehiclePawnWithMap.VehicleMapBlitter);
   }
 }

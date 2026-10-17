@@ -1061,7 +1061,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (!Spawned)
     {
       interiorMap?.GetDetachedMapComponent<VehiclePositionManager>().AllClaimants.DoIf(
-        v => v.def.graphicData?.drawRotated ?? false, v => { v.Transform.rotation = rotation.FlipAngle(v); });
+        v => v.def.graphicData?.drawRotated ?? false, v => { v.Transform.rotation = rotation; });
       if (!Mathf.Approximately(Transform.rotation, rotation))
       {
         Transform.rotation = rotation;
@@ -1074,7 +1074,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f) +
                    (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
     RecacheDrawPos(drawLoc2);
-    DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc2, rot, Transform.rotation.FlipAngle(this));
+    DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc2, rot, Transform.rotation);
 
     DrawVehicleMap();
   }
@@ -1095,7 +1095,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   {
     if (!UnityData.IsInMainThread) return;
     var rot = FullRotation;
-    var transform = new TransformData(drawLoc + Transform.position, rot, Transform.rotation.FlipAngle(this));
+    var transform = new TransformData(drawLoc + Transform.position, rot, Transform.rotation);
     if (lastRecachedData == transform) return;
     lastRecachedData = transform;
     var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
@@ -1443,6 +1443,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       resizeRequest = false;
       this.ResizeNow();
     }
+  }
+
+  // VehicleRaid FrameworkのHover機能互換を目的としたものであるため、1.8では別の方法が取られるはずである
+  public override void Notify_Teleported(bool endCurrentJob = true, bool resetTweenedPos = true)
+  {
+    base.Notify_Teleported(endCurrentJob, resetTweenedPos);
+    CrossMapReachabilityCache.ClearCacheFor(interiorMap);
   }
 
   [DebugAction(VehicleMapFramework.CategoryName, "Set Transform.Rotation",
