@@ -36,7 +36,7 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
       
     - name: Restore Cache
       id: cache-steam
@@ -93,9 +93,11 @@ jobs:
         zip -r VehicleMapFramework-${{ github.ref_name }}.zip \
             1.5 \
             1.6 \
+            1.7 \
             About \
             Common \
             LICENSE \
+            LICENSE.VehicleFramework \
             LoadFolders.xml
         
         echo "RELEASE_ASSET=VehicleMapFramework-${{ github.ref_name }}.zip" >> $GITHUB_ENV

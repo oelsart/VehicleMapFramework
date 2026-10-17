@@ -44,4 +44,29 @@
 	<li IfModActive="co.uk.epicguru.rimforgepoles">1.6/_PowerPoles</li>
 	<li IfModActive="wuhuansuiyue.defensivenetworkexpanded">1.6/_DefensiveNetwork</li>
   </v1.6>
+  <v1.7>
+    <li>1.7</li>
+    <li>Common</li>
+    <li IfModActive="CETeam.CombatExtended">1.7/_CombatExtended</li>
+    <li IfModActive="brrainz.achtung">1.7/_Achtung</li>
+    <li IfModActive="Dubwise.DubsBadHygiene,Dubwise.DubsBadHygiene.Lite">1.7/_DubsBadHygiene</li>
+    <li IfModActive="Dubwise.Rimefeller">1.7/_Rimefeller</li>
+    <li IfModActive="OskarPotocki.VanillaFactionsExpanded.Core">1.7/_VanillaExpandedFramework</li>
+    <li IfModActive="XMB.AncientUrbanrUins.MO">1.7/_AncientUrbanRuins</li>
+    <li IfModActive="daylight.RLEsExpansionProductPS">1.7/_RimLifeExpansionProductionPlus</li>
+    <li IfModActive="kentington.saveourship2">1.7/_SaveOurShip2</li>
+    <li IfModActive="glasses.sos2srtsZone">1.7/_RooflessHull</li>
+    <li IfModActive="DankPyon.Medieval.Overhaul">1.7/_MedievalOverhaul</li>
+    <li IfModActive="Cain.Mineshaft">1.7/_Mines</li>
+    <li IfModActive="OskarPotocki.VFE.Mechanoid">1.7/_VFEMechanoids</li>
+    <li IfModActive="VanillaExpanded.VFESecurity">1.7/_VFESecurity</li>
+    <li IfModActive="VanillaExpanded.VFEFactory">1.7/_VFEFactory</li>
+	<li IfModActive="vanillaexpanded.gravship">1.7/_VGE</li>
+    <li IfModActive="telardo.MultiFloors,telardo.MultiFloorsDev">1.7/_MultiFloors</li>
+    <li IfModActive="Ludeon.RimWorld.Odyssey">1.7/_Odyssey</li>
+	<li IfModActive="memer.minigravships">1.7/_MiniGravships</li>
+	<li IfModActive="More.Buildable.Grav.Engine.Sizes">1.7/_MoreBuildableGravEngineSizes</li>
+	<li IfModActive="co.uk.epicguru.rimforgepoles">1.7/_PowerPoles</li>
+	<li IfModActive="wuhuansuiyue.defensivenetworkexpanded">1.7/_DefensiveNetwork</li>
+  </v1.7>
 </loadFolders>

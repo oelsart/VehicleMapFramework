@@ -100,7 +100,7 @@ jobs:
     - name: Install .NET
       uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
     
     - name: Restore Dependencies
       run: |
@@ -131,9 +131,11 @@ jobs:
         path: |
           VehicleMapFrameworkDev/1.5
           VehicleMapFrameworkDev/1.6
+          VehicleMapFrameworkDev/1.7
           VehicleMapFrameworkDev/About
           VehicleMapFrameworkDev/Common
           VehicleMapFrameworkDev/LICENSE
+          VehicleMapFrameworkDev/LICENSE.VehicleFramework
           VehicleMapFrameworkDev/LoadFolders.xml
     
   deploy:

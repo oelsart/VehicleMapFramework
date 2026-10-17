@@ -65,8 +65,8 @@
     <Exec Command="(robocopy ../../1.7 ../../../VehicleMapFrameworkDev/1.7 /MIR /E /XD AssetBundles > nul) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
     <Exec Command="(robocopy ../../Common ../../../VehicleMapFrameworkDev/Common /MIR /E > nul) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
     <Exec Command="(robocopy ../../Dev/About ../../../VehicleMapFrameworkDev/About /MIR /E > nul) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
-    <Exec Command="(robocopy ../../Dev/AssetBundles ../../../VehicleMapFrameworkDev/2022.3/AssetBundles /MIR /E > nul) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
     <Exec Command="(robocopy ../../Dev/ ../../../VehicleMapFrameworkDev LoadFolders.xml > nul) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
     <Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE > nul) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE.VehicleFramework > nul) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
   </Target>
 </Project>
