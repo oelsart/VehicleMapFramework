@@ -729,6 +729,11 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
       }
       set
       {
+        if (value is null)
+        {
+          playerSettings.AreaRestrictionInPawnCurrentMap = null;
+          return;
+        }
         var _pawn = pawn(playerSettings);
         var mapHeld = _pawn.MapHeld;
         var areaMap = value.Map;
