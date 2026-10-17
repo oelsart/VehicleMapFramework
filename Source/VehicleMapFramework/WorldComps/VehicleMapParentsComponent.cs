@@ -36,12 +36,16 @@ public class VehicleMapParentsComponent : WorldComponent
 
   private static void SetCachedVehicle(Map map)
   {
+    MapParent_Vehicle parent;
     if (MultiFloors.Active && MultiFloors.GroundMap(map) is { } groundMap)
     {
-      map = groundMap;
+      parent = groundMap.Parent as MapParent_Vehicle;
+    }
+    else
+    {
+      parent = map.Parent as MapParent_Vehicle;
     }
 
-    var parent = map.Parent as MapParent_Vehicle;
     var index = GetMapIndex(map);
     if (index >= 0 && index < cachedMapParentVehicle.Length)
     {
