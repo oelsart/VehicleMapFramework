@@ -52,9 +52,10 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
     var mapSize = fitToValidRect ? vehicle.ValidMapRect.ExpandedBy(1).Size : vehicle.MapSize.ToIntVec2;
     var scaleFactors = new Vector2(vehicleRectSize.x / vehicleDrawSize.x, vehicleRectSize.y / vehicleDrawSize.y);
     var mapUiSize = new Vector2(mapSize.x * scaleFactors.x, mapSize.z * scaleFactors.y);
+    var uiSizeMax = Mathf.Max(mapUiSize.x, mapUiSize.y);
+    var renderSize = new Vector2(uiSizeMax, uiSizeMax);
     if (horizontal)
     {
-      (mapUiSize.x, mapUiSize.y) = (mapUiSize.y, mapUiSize.x);
       (scaleFactors.x, scaleFactors.y) = (scaleFactors.y, scaleFactors.x);
     }
 
@@ -78,6 +79,6 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
       vehicleUiCenter.y + (-rawOffset.z * scaleFactors.y) - baseOffset.y // UIはY軸下向き
     );
 
-    return new Rect(Vector2.zero, mapUiSize) { center = mapUiCenter };
+    return new Rect(Vector2.zero, renderSize) { center = mapUiCenter };
   }
 }

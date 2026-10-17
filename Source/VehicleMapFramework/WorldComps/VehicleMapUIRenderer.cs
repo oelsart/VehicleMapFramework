@@ -4,11 +4,17 @@ using LudeonTK;
 using RimWorld;
 using SmashTools;
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityStubs.Rendering;
 using Vehicles;
 using Verse;
+using Waylith.Rendering;
+using FilterMode = UnityEngine.FilterMode;
+using Graphics = UnityEngine.Graphics;
 using Object = UnityEngine.Object;
+using RenderTexture = UnityEngine.RenderTexture;
 using TexSize = (int width, int height);
+using Texture = UnityEngine.Texture;
+using Texture2D = UnityEngine.Texture2D;
 
 namespace VehicleMapFramework;
 
@@ -20,7 +26,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     Ticks
   }
 
-  private const int VEHICLE_MAP_LAYER = 28;
+  private const int VehicleMapLayer = 28;
 
   /// <summary>
   /// Provides the current time. Can be overridden in tests to simulate time passage.
@@ -31,14 +37,11 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
   private readonly Game game = game;
 
   private readonly List<RenderTexture> renderTexturesPool = [];
-
   private readonly List<CacheKey> toRemove = [];
-
   private readonly List<CacheKey> toSetDirty = [];
 
   private Camera camera;
-
-  private CommandBuffer commandBuffer;
+  private List<MeshDrawCommand> commandList = [];
 
   public override void FinalizeInit()
   {
@@ -74,7 +77,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     camera = gameObject.GetComponent<Camera>();
     camera.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
     camera.orthographic = true;
-    camera.cullingMask = 1 << VEHICLE_MAP_LAYER;
+    camera.cullingMask = 1 << VehicleMapLayer;
     camera.clearFlags = CameraClearFlags.Color;
     camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
     camera.useOcclusionCulling = false;
@@ -88,7 +91,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     Vector2? drawSize = null, Vector3? drawOffset = null)
   {
     var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
-    if (component?.camera is null || component.commandBuffer is null)
+    if (component?.camera is null)
       return BaseContent.BadTex;
     var camera = component.camera;
     var key = new CacheKey(texSize, vehicle, rot);
@@ -110,15 +113,10 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     var orthoSizeByHeight = desiredWorldHeight / 2f;
     var orthoSizeByWidth = desiredWorldWidth / (2f * texAspect);
     var orthoSize = Mathf.Max(orthoSizeByHeight, orthoSizeByWidth);
-
-    camera.enabled = true;
     camera.orthographicSize = orthoSize;
     camera.aspect = texAspect;
-    camera.targetTexture = cache.RenderTexture;
-    component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin, rot);
-    camera.Render();
-    camera.targetTexture = null;
-    camera.enabled = false;
+    
+    component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin, rot, cache.RenderTexture);
     component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, TimeProvider());
     return cache.RenderTexture;
   }
@@ -127,7 +125,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     TexSize texSize, CellRect mapLimit)
   {
     var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
-    if (component?.camera is null || component.commandBuffer is null)
+    if (component?.camera is null)
       return BaseContent.BadTex;
 
     var key = new CacheKey(texSize, vehicle, rot, overlay);
@@ -147,13 +145,6 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     camera.orthographicSize = drawSizeRotated.y / 2f;
     camera.aspect = (float)texSize.width / texSize.height;
 
-    component.commandBuffer.Clear();
-    var graphic = overlay.Graphic;
-    component.commandBuffer.DrawMesh(
-      graphic.MeshAt(rot),
-      Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
-      graphic.MatAt(rot, vehicle));
-
     var overlayPos = VehicleMapUtility.OffsetFor(vehicle, rot) +
                      vehicle.VehicleGraphic.DrawOffset(rot) +
                      overlay.Graphic.DrawOffset(rot);
@@ -168,32 +159,79 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     var minZ = Mathf.Min(bl.z, tr.z);
     var maxX = Mathf.Max(bl.x, tr.x);
     var maxZ = Mathf.Max(bl.z, tr.z);
-    component.commandBuffer.EnableScissorRect(Rect.MinMaxRect(minX, minZ, maxX, maxZ));
-    component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin, rot);
-    camera.Render();
+    var clipRect = ClampPixelRect(Rect.MinMaxRect(minX, minZ, maxX, maxZ), texSize.width, texSize.height);
 
-    camera.targetTexture = null;
-    camera.enabled = false;
-    component.commandBuffer.DisableScissorRect();
+    if (clipRect is { width: > 0f, height: > 0f })
+    {
+      var mapRenderTexture = RenderTexture.GetTemporary(texSize.width, texSize.height, 24, cache.RenderTexture.format);
+      mapRenderTexture.name = "VehicleMapTextureOverlayClipSource";
+      mapRenderTexture.useMipMap = false;
+      mapRenderTexture.filterMode = cache.RenderTexture.filterMode;
+      try
+      {
+        component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin, rot, mapRenderTexture);
+        using (MeshDrawSubmission.BeginCapture(component.commandList))
+        {
+          var graphic = overlay.Graphic;
+          Graphics.DrawMesh(graphic.MeshAt(rot), Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
+            graphic.MatAt(rot, vehicle), VehicleMapLayer);
+          Graphics.DrawTexture(clipRect, mapRenderTexture,
+            ToNormalizedSourceRect(clipRect, texSize.width, texSize.height), 0, 0, 0, 0);
+        }
+        var cameraView = CameraViewFactory.GetView(camera);
+        CameraTextureRenderer.Current?.Render(
+          cache.RenderTexture, component.commandList, cameraView, new Rect(0f, 0f, 1f, 1f), Color.clear);
+        component.commandList.Clear();
+      }
+      finally
+      {
+        RenderTexture.ReleaseTemporary(mapRenderTexture);
+      }
+    }
     component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, GenTicks.TicksGame);
     return cache.RenderTexture;
   }
 
-  private void RenderVehicleMap(Map map, Vector3 drawPos, Rot4 rot)
+  private static Rect ClampPixelRect(Rect rect, int width, int height)
   {
-    var mapDrawer = map.mapDrawer;
-    var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
-    for (var i = 0; i < map.Size.x; i += 17)
+    var xMin = Mathf.Clamp(rect.xMin, 0f, width);
+    var yMin = Mathf.Clamp(rect.yMin, 0f, height);
+    var xMax = Mathf.Clamp(rect.xMax, 0f, width);
+    var yMax = Mathf.Clamp(rect.yMax, 0f, height);
+
+    if (xMax <= xMin || yMax <= yMin)
+      return Rect.zero;
+
+    return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
+  }
+
+  private static Rect ToNormalizedSourceRect(Rect pixelRect, int width, int height)
+  {
+    return new Rect(
+      pixelRect.xMin / width,
+      pixelRect.yMin / height,
+      pixelRect.width / width,
+      pixelRect.height / height);
+  }
+
+  private void RenderVehicleMap(Map map, Vector3 drawPos, Rot4 rot, RenderTexture targetTexture)
+  {
+    using (MeshDrawSubmission.BeginCapture(commandList))
     {
-      for (var j = 0; j < map.Size.z; j += 17)
+      var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
+      foreach (var section in VehiclePawnWithMap.sections(map.mapDrawer))
       {
-        var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
         DrawSection(section, drawPos, rot, component);
       }
     }
+
+    var cameraView = CameraViewFactory.GetView(camera);
+    CameraTextureRenderer.Current?.Render(
+      targetTexture, commandList, cameraView, new Rect(0f, 0f, 1f, 1f), Color.clear);
+    commandList.Clear();
   }
 
-  private void DrawSection(Section section, Vector3 drawPos, Rot4 rot, VehicleSectionLayerManager component)
+  private static void DrawSection(Section section, Vector3 drawPos, Rot4 rot, VehicleSectionLayerManager component)
   {
     var rotation = Quaternion.AngleAxis(rot.AsAngle, Vector3.up);
     DrawLayerNow(section.GetLayer(typeof(SectionLayer_TerrainOnVehicle)));
@@ -202,14 +240,14 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
     void DrawLayerNow(SectionLayer layer)
     {
-      if (layer == null) return;
+      if (layer is null) return;
       
       for (var i = 0; i < layer.subMeshes.Count; i++)
       {
         var subMesh = layer.subMeshes[i];
         if (subMesh.finalized && !subMesh.disabled)
         {
-          Graphics.DrawMesh(subMesh.mesh, drawPos, rotation, subMesh.material, VEHICLE_MAP_LAYER);
+          Graphics.DrawMesh(subMesh.mesh, drawPos, rotation, subMesh.material, VehicleMapLayer);
         }
       }
     }
@@ -235,13 +273,10 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
     if (camera != null)
     {
-      camera.RemoveAllCommandBuffers();
       Object.Destroy(camera.gameObject);
     }
 
-    commandBuffer?.Release();
     camera = null;
-    commandBuffer = null;
 
     GameEvent.OnGameDisposing -= Clear;
   }
