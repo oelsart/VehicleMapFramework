@@ -43,6 +43,14 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\Directory.Build.targets">
+      <Link>Directory.Build.targets</Link>
+    </Content>
+    <Content Include="..\Directory.Build.props">
+      <Link>Directory.Build.props</Link>
+    </Content>
+  </ItemGroup>
 
   <PropertyGroup>
     <AboutFolderPath Condition="'$(AboutXmlPath)' == ''">../../About</AboutFolderPath>
