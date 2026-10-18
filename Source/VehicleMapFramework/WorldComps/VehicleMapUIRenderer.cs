@@ -28,11 +28,6 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
   private const int VehicleMapLayer = 28;
 
-  /// <summary>
-  /// Provides the current time. Can be overridden in tests to simulate time passage.
-  /// </summary>
-  public static Func<float> TimeProvider = () => RealTime.LastRealTime;
-
   private readonly Dictionary<CacheKey, CachedMapTexture> cachedTextures = [];
   private readonly Game game = game;
 
@@ -41,7 +36,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
   private readonly List<CacheKey> toSetDirty = [];
 
   private Camera camera;
-  private List<MeshDrawCommand> commandList = [];
+  private readonly List<MeshDrawCommand> commandList = [];
 
   public override void FinalizeInit()
   {
@@ -98,7 +93,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     var cache = component.GetOrCreateCachedMapTexture(key);
     if (!cache.Dirty)
     {
-      component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, TimeProvider());
+      component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, RealTime.LastRealTime);
       return cache.RenderTexture;
     }
 
@@ -117,7 +112,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     camera.aspect = texAspect;
     
     component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin, rot, cache.RenderTexture);
-    component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, TimeProvider());
+    component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, RealTime.LastRealTime);
     return cache.RenderTexture;
   }
 
@@ -296,7 +291,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     {
       cachedTextures[key] = type switch
       {
-        DurationType.Time => new CachedMapTexture(cachedTextures[key].RenderTexture, true, TimeProvider()),
+        DurationType.Time => new CachedMapTexture(cachedTextures[key].RenderTexture, true, RealTime.LastRealTime),
         DurationType.Ticks => new CachedMapTexture(cachedTextures[key].RenderTexture, true, GenTicks.TicksGame),
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
       };
@@ -308,7 +303,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
   {
     if (!cachedTextures.TryGetValue(key, out var value))
     {
-      cachedTextures[key] = value = new CachedMapTexture(GetRenderTexture(key.size), true, TimeProvider());
+      cachedTextures[key] = value = new CachedMapTexture(GetRenderTexture(key.size), true, RealTime.LastRealTime);
     }
     return value;
   }
@@ -362,7 +357,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
     public bool Expired => DurationType == DurationType.Ticks
       ? GenTicks.TicksGame - LastUseTick > CacheDurationTicks
-      : TimeProvider() - LastUseTime > CacheDurationTime;
+      : RealTime.LastRealTime - LastUseTime > CacheDurationTime;
   }
 
   [DebugOutput(VehicleMapFramework.CategoryName, true, name = "Write vehicle map textures")]

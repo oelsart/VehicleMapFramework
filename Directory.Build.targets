@@ -45,6 +45,9 @@
     <Reference Include="$(RimWorldDirectory)UnityStubs.dll">
       <Private>false</Private>
     </Reference>
+    <Reference Include="$(RimWorldDirectory)Waylith.dll">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

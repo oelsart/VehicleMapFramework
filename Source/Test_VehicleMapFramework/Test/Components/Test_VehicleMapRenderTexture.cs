@@ -1,4 +1,6 @@
-﻿using DevTools.Testing;
+﻿using System.Collections;
+using DevTools.Testing;
+using UnityEngine;
 using Vehicles;
 using Vehicles.Tests;
 using Verse;
@@ -19,28 +21,16 @@ internal sealed class Test_VehicleMapRenderTexture
   }
 
   [Test]
-  public void CacheExpiration_Time()
+  private IEnumerable CacheExpiration_Time()
   {
-    var originalProvider = VehicleMapUIRenderer.TimeProvider;
-    try
-    {
-      var mockTime = 100f;
-      // ReSharper disable once AccessToModifiedClosure
-      VehicleMapUIRenderer.TimeProvider = () => mockTime;
+    const float Duration = VehicleMapUIRenderer.CachedMapTexture.CacheDurationTime;
+    var cache = new VehicleMapUIRenderer.CachedMapTexture(null, false, Duration);
+    Expect.IsFalse(cache.Expired, "It is not expired immediately after creation.");
 
-      var cache = new VehicleMapUIRenderer.CachedMapTexture(null, false, mockTime);
-      Expect.IsFalse(cache.Expired, "It is not expired immediately after creation.");
+    var realtime = new WaitForSecondsRealtime(Duration + 0.1f);
+    yield return realtime;
 
-      const float duration = VehicleMapUIRenderer.CachedMapTexture.CacheDurationTime;
-      mockTime += duration + 0.1f;
-
-      Expect.IsTrue(cache.Expired, $"It expires after {duration:F1} seconds or more have elapsed.");
-    }
-    finally
-    {
-      // 他のテストに影響を与えないよう元のProviderに戻す
-      VehicleMapUIRenderer.TimeProvider = originalProvider;
-    }
+    Expect.IsTrue(cache.Expired, $"It expires after {Duration:F1} seconds or more have elapsed.");
   }
 
   [Test]

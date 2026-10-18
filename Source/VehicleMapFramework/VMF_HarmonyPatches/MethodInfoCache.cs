@@ -23,20 +23,14 @@ public class MethodInfoCache
         {
           cacheInt.SetTarget(target = new MethodInfoCache());
           // List.AnyはGenCollectionによって解決されるためCIランで失敗する
-          var hasNullField = false;
           foreach (var f in AccessTools.GetDeclaredFields(typeof(MethodInfoCache)))
           {
             if (f.IsStatic) continue;
             if (f.GetValue(target) is null)
             {
-              hasNullField = true;
-              break;
+              VMF_Log.Error(
+                $"MethodInfoCache failed to cache MethodInfo: {f}. This may cause errors in some Harmony patches.");
             }
-          }
-          if (hasNullField)
-          {
-            VMF_Log.Error(
-              "MethodInfoCache failed to cache all MethodInfos. This may cause errors in some Harmony patches.");
           }
         }
         
@@ -44,7 +38,7 @@ public class MethodInfoCache
       }
     }
 
-    public readonly MethodInfo g_FocusedVehicle = AccessTools.PropertyGetter(typeof(Command_FocusVehicleMap), nameof(FocusVehicleScope.FocusedVehicle));
+    public readonly MethodInfo g_FocusedVehicle = AccessTools.PropertyGetter(typeof(FocusVehicleScope), nameof(FocusVehicleScope.FocusedVehicle));
 
     public readonly MethodInfo m_FocusedOnVehicleMap = ((Delegate)VehicleMapUtility.FocusedOnVehicleMap).Method;
 

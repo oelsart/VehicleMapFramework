@@ -1153,32 +1153,38 @@ public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
 }
 
 [HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Safe)]
 public static class Patch_ToilFailConditions_FailOnBurningImmobile
 {
   private static MethodInfo TargetMethod()
   {
-    return AccessTools.InnerTypes(typeof(ToilFailConditions)).SelectMany(t =>
-    {
-      var type = t.IsGenericTypeDefinition ? t.MakeGenericType(typeof(Toil)) : t;
-      return type.GetDeclaredMethods();
-    }).First(m => m.Name.Contains("<FailOnBurningImmobile>"));
+    return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnBurningImmobile), null, [typeof(JobDriver)]);
   }
 
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+  public static void Postfix(IJobEndable f, TargetIndex ind)
   {
-    var ind = original.GetMethodBody()!.LocalVariables.FirstIndexOf(l => l.LocalType == typeof(LocalTargetInfo));
-    var codes = PatchHelper.CreateCodeMatcherFast(instructions);
-    codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
-      .Set(OpCodes.Call, ((Delegate)ThingMapOrTargetMapOrPawnMap).Method)
-      .Insert(CodeInstruction.LoadLocal(ind));
-    return codes.Instructions();
+    switch (f)
+    {
+      case JobDriver jobDriver:
+        jobDriver.globalFailConditions.RemoveLast();
+        break;
+      case Toil toil:
+        toil.endConditions.RemoveLast();
+        break;
+    }
+    
+    f.AddEndCondition(() =>
+    {
+      var actor = f.GetActor();
+      var target = actor.jobs.curJob.GetTarget(ind);
+      return target.IsValid && target.ToTargetInfo(ThingMapOrTargetMapOrPawnMap(actor, target)).IsBurning() ? JobCondition.Incompletable : JobCondition.Ongoing;
+    });
   }
 
   private static Map ThingMapOrTargetMapOrPawnMap(Pawn pawn, LocalTargetInfo target)
   {
     var map = target.Thing?.MapHeld ?? pawn.PawnTargetMap ?? pawn.Map;
-    return !target.Cell.InBounds(map) ? map.BaseMap() : map;
+    return !target.Cell.InBounds(map) ? map.GroundMap : map;
   }
 }
 
@@ -1357,7 +1363,7 @@ public static class Patch_WorkGiver_ConstructDeliverResources_ResourceDeliverJob
 [PatchLevel(Level.Safe)]
 class Patch_ToilFailConditions_FailOnForbidden
 {
-  private static MethodBase TargetMethod()
+  private static MethodInfo TargetMethod()
   {
     return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnForbidden), null, [typeof(JobDriver)]);
   }

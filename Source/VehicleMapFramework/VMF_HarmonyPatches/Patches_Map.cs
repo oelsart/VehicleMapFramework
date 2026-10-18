@@ -258,7 +258,7 @@ public static class Patch_Map_MapUpdate
     [
       new CodeInstruction(OpCodes.Dup),
       new CodeInstruction(OpCodes.Brfalse_S, label),
-      CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.Settings)),
+      AccessTools.PropertyGetter(typeof(VehicleMapFramework), nameof(VehicleMapFramework.Settings)).CallInstruction,
       CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
       new CodeInstruction(OpCodes.Brfalse_S, label),
       CodeInstruction.LoadArgument(0),
@@ -457,7 +457,7 @@ public static class Patch_Room_DrawFieldEdges
     __state = FocusVehicleScope.FocusVehicle(__instance.Map.ParentVehicle);
   }
   
-  public static void Finalizer(FocusVehicleScope __state) => __state.Dispose();
+  public static void Finalizer(FocusVehicleScope? __state) => __state?.Dispose();
 }
 
 //極端に小さいマップではCeilToIntのせいで毎tick必ずどこかのセルの物が劣化する処理だったんでこれを車両マップ上では緩和

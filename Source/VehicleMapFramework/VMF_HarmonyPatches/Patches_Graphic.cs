@@ -221,7 +221,7 @@ public static class Patch_CameraDriver_Update
       .DeclareLocal(typeof(bool), out var isVehicleMap)
       .CreateLabel(out var label)
       .Insert(
-        CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.Settings)),
+        AccessTools.PropertyGetter(typeof(VehicleMapFramework), nameof(VehicleMapFramework.Settings)).CallInstruction,
         CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
         new CodeInstruction(OpCodes.Brfalse_S, label),
         new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Find_CurrentMap),
