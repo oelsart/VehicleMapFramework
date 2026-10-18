@@ -181,28 +181,26 @@ public static class Patch_VehicleSkyfaller_RootPos
   }
 }
 
-[HarmonyPatch(typeof(FleckSystemBase<FleckStatic>), nameof(FleckSystemBase<>.CreateFleck))]
+[HarmonyPatch(typeof(FleckManager), nameof(FleckManager.CreateFleck))]
 [PatchLevel(Level.Safe)]
-public static class Patch_FleckSystemBase_FleckStatic_CreateFleck
+public static class Patch_FleckManager_CreateFleck
 {
-  public static void Prefix(FleckSystemBase<FleckStatic> __instance, ref FleckCreationData creationData)
+  public static List<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
-    {
-      creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
-    }
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.StoresField(AccessTools.Field(typeof(Vector3), nameof(Vector3.y))))
+      .InsertAfter(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadArgument(1, true),
+        PatchHelper.MethodInfoOf(OffsetSpawnPosition).CallInstruction)
+      .Instructions();
   }
-}
 
-[HarmonyPatch(typeof(FleckSystemBase<FleckThrown>), nameof(FleckSystemBase<>.CreateFleck))]
-[PatchLevel(Level.Safe)]
-public static class Patch_FleckSystemBase_FleckThrown_CreateFleck
-{
-  public static void Prefix(FleckSystemBase<FleckThrown> __instance, ref FleckCreationData creationData)
+  private static void OffsetSpawnPosition(FleckManager manager, ref FleckCreationData data)
   {
-    if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
+    if (manager.parent.IsNonFocusedVehicleMapOf(out var vehicle))
     {
-      creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
+      data.spawnPosition = data.spawnPosition.ToBaseMapCoord(vehicle);
     }
   }
 }

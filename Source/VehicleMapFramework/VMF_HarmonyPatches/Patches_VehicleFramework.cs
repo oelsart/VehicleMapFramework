@@ -1303,27 +1303,6 @@ public static class Patch_VehicleCaravan_Notify_MemberDied_Predicate
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch]
-[PatchLevel(Level.Safe)]
-public static class Patch_SettingsCache_TryGetValue
-{
-  private static IEnumerable<MethodBase> TargetMethods()
-  {
-    return AccessTools.GetDeclaredMethods(typeof(SettingsCache)).Where(m => m.Name == "TryGetValue").Select(m =>
-      m.IsGenericMethodDefinition ? m.MakeGenericMethod(typeof(bool)) : m);
-  }
-
-  public static void Prefix(ref VehicleDef def)
-  {
-    var props = def.GetModExtension<VehicleMapProps_Unique>();
-    if (props is { baseDef: not null })
-    {
-      def = props.baseDef;
-    }
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch("Vehicles.SectionDrawer", "RecacheVehicleFilter")]
 [PatchLevel(Level.Safe)]
 public static class Patch_SectionDrawer_RecacheVehicleFilter

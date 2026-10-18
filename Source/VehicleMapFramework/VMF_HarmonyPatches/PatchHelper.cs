@@ -218,6 +218,8 @@ public static class PatchHelper
     public CodeInstruction CallvirtInstruction => new (OpCodes.Callvirt, methodInfo);
   }
 
+  public static MethodInfo MethodInfoOf(Delegate @delegate) => @delegate.Method;
+
   private static class Params<T> where T : struct, ITuple
   {
     // ReSharper disable once StaticMemberInGenericType

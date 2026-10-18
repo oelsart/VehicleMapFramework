@@ -1125,69 +1125,6 @@ public static class Patch_PawnUtility_DutyLocation
   }
 }
 
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
-{
-  private static MethodInfo TargetMethod()
-  {
-    return AccessTools.FindIncludingInnerTypes(typeof(ToilFailConditions), t =>
-    {
-      var type = t.IsGenericTypeDefinition ? t.MakeGenericType(typeof(Toil)) : t;
-      return type.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<FailOnSomeonePhysicallyInteracting>"));
-    });
-  }
-
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    var codes = instructions.ToList();
-
-    return codes.Select((c, i) =>
-    {
-      if (c.opcode != OpCodes.Callvirt || !c.OperandIs(CachedMethodInfo.g_Thing_Map)) return c;
-      codes[i - 1].opcode = OpCodes.Ldloc_1;
-      c.operand = CachedMethodInfo.g_Thing_MapHeld;
-      return c;
-    });
-  }
-}
-
-[HarmonyPatch]
-[PatchLevel(Level.Safe)]
-public static class Patch_ToilFailConditions_FailOnBurningImmobile
-{
-  private static MethodInfo TargetMethod()
-  {
-    return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnBurningImmobile), null, [typeof(JobDriver)]);
-  }
-
-  public static void Postfix(IJobEndable f, TargetIndex ind)
-  {
-    switch (f)
-    {
-      case JobDriver jobDriver:
-        jobDriver.globalFailConditions.RemoveLast();
-        break;
-      case Toil toil:
-        toil.endConditions.RemoveLast();
-        break;
-    }
-    
-    f.AddEndCondition(() =>
-    {
-      var actor = f.GetActor();
-      var target = actor.jobs.curJob.GetTarget(ind);
-      return target.IsValid && target.ToTargetInfo(ThingMapOrTargetMapOrPawnMap(actor, target)).IsBurning() ? JobCondition.Incompletable : JobCondition.Ongoing;
-    });
-  }
-
-  private static Map ThingMapOrTargetMapOrPawnMap(Pawn pawn, LocalTargetInfo target)
-  {
-    var map = target.Thing?.MapHeld ?? pawn.PawnTargetMap ?? pawn.Map;
-    return !target.Cell.InBounds(map) ? map.GroundMap : map;
-  }
-}
-
 //JobDriver_GotoDestMapはnextJobを使ってReservationを行っているので、それを使って解放しなければならない
 [HarmonyPatch(typeof(Pawn), nameof(Pawn.ClearReservationsForJob))]
 [PatchLevel(Level.Mandatory)]
@@ -1404,6 +1341,79 @@ class Patch_ToilFailConditions_FailOnForbidden
 
       return !thing.IsForbidden(actor) ? JobCondition.Ongoing : JobCondition.Incompletable;
     });
+  }
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Safe)]
+public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
+{
+  private static MethodInfo TargetMethod()
+  {
+    return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnSomeonePhysicallyInteracting), null, [typeof(JobDriver)]);
+  }
+
+  public static void Postfix(IJobEndable f, TargetIndex ind)
+  {
+    switch (f)
+    {
+      case JobDriver jobDriver:
+        jobDriver.globalFailConditions.RemoveLast();
+        break;
+      case Toil toil:
+        toil.endConditions.RemoveLast();
+        break;
+    }
+    
+    f.AddEndCondition(() =>
+    {
+      var actor = f.GetActor();
+      var thing = actor.jobs.curJob.GetTarget(ind).Thing;
+      if (thing is not null)
+      {
+        var map = thing.MapHeld ?? actor.PawnTargetMapOrMap;
+        if (map.physicalInteractionReservationManager.IsReserved(thing) &&
+            !map.physicalInteractionReservationManager.IsReservedBy(actor, thing))
+        return JobCondition.Incompletable;
+      }
+      return JobCondition.Ongoing;
+    });
+  }
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Safe)]
+public static class Patch_ToilFailConditions_FailOnBurningImmobile
+{
+  private static MethodInfo TargetMethod()
+  {
+    return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnBurningImmobile), null, [typeof(JobDriver)]);
+  }
+
+  public static void Postfix(IJobEndable f, TargetIndex ind)
+  {
+    switch (f)
+    {
+      case JobDriver jobDriver:
+        jobDriver.globalFailConditions.RemoveLast();
+        break;
+      case Toil toil:
+        toil.endConditions.RemoveLast();
+        break;
+    }
+    
+    f.AddEndCondition(() =>
+    {
+      var actor = f.GetActor();
+      var target = actor.jobs.curJob.GetTarget(ind);
+      return target.IsValid && target.ToTargetInfo(ThingMapOrTargetMapOrPawnMap(actor, target)).IsBurning() ? JobCondition.Incompletable : JobCondition.Ongoing;
+    });
+  }
+
+  private static Map ThingMapOrTargetMapOrPawnMap(Pawn pawn, LocalTargetInfo target)
+  {
+    var map = target.Thing?.MapHeld ?? pawn.PawnTargetMap ?? pawn.Map;
+    return !target.Cell.InBounds(map) ? map.GroundMap : map;
   }
 }
 
