@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 using Vehicles;
 using Verse;
-#if DEV
 using SmashTools.Rendering;
-#endif
 
 namespace VehicleMapFramework;
 
@@ -72,13 +70,7 @@ public class MoteThrownSinker : MoteThrown
     base.DeSpawn(mode);
     if (disposeOnDespawn && texture is RenderTexture renderTex)
     {
-#if DEV
       renderTex.ReleaseAndDestroy();
-#else
-      if (renderTex.IsCreated())
-        renderTex.Release();
-      Object.Destroy(renderTex);
-#endif
     }
   }
 

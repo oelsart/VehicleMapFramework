@@ -6,9 +6,18 @@ namespace VehicleMapFramework.Test_DevTools;
 
 internal class TestCoRunner
 {
-  internal const string RiMWorldPath = "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/RimWorldWin64.exe";
+  internal const string RiMWorldPath = "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/RimWorld.exe";
 
-  internal const string Arguments = "--pid OELS.VehicleMapFramework.dev -t -e --logger junit";
+  internal const string Arguments = "--pid OELS.VehicleMapFramework.dev -t -e";
+
+  internal static readonly string[] PackageIds =
+  [
+    "brrainz.harmony",
+    "SmashPhil.VehicleFramework",
+    "OELS.VehicleMapFramework.Dev",
+    "OELS.MapVehicles",
+    "Mehni.PickUpAndHaul"
+  ];
 
   internal const string ResultPath =
     "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/Mods/VehicleMapFramework/.git/testresults/Test.log";
@@ -23,7 +32,7 @@ internal class TestCoRunner
     var startInfo = new ProcessStartInfo
     {
       FileName = RiMWorldPath,
-      Arguments = Arguments,
+      Arguments = $"{Arguments} -mod={string.Join(";", PackageIds)}",
       UseShellExecute = false,
       RedirectStandardOutput = true,
       RedirectStandardError = true,
@@ -42,30 +51,15 @@ internal class TestCoRunner
 
   public static IEnumerable<TestCaseData> TestResults()
   {
-    var modsConfigPath = Path.Combine(ConfigPath, "ModsConfig.xml");
-    var backupPath = $"{modsConfigPath}.bak";
-    var testConfigPath = Path.Combine(ConfigPath, "_TEST_MODLIST.xml");
-    try
+    Run();
+    ReadResult();
+    if (testCases is null)
+      yield break;
+    foreach (var testCase in testCases)
     {
-      if (!File.Exists(modsConfigPath) || !File.Exists(testConfigPath))
-        yield break;
-      File.Replace(testConfigPath, modsConfigPath, backupPath);
-
-      Run();
-      ReadResult();
-      if (testCases is null)
-        yield break;
-      foreach (var testCase in testCases)
-      {
-        var testCaseData = new TestCaseData(testCase);
-        testCaseData.SetName($"{testCase.Attribute("name")?.Value}");
-        yield return testCaseData;
-      }
-    }
-    finally
-    {
-      FileSystem.FileCopy(modsConfigPath, testConfigPath);
-      File.Replace(backupPath, modsConfigPath, null);
+      var testCaseData = new TestCaseData(testCase);
+      testCaseData.SetName($"{testCase.Attribute("name")?.Value}");
+      yield return testCaseData;
     }
   }
 }

@@ -58,7 +58,7 @@ public static class Patch_Pawn_JobTracker_StartJob
       if (!__instance.debugLog)
       {
         __instance.debugLog = true;
-        FrameDelay.DelayOne(static instance => instance.debugLog = false, __instance);
+        Delay.AfterNTicks(1, () => __instance.debugLog = false);
       }
 
       if (VehicleMapFramework.Settings.crossMapJobProtect)

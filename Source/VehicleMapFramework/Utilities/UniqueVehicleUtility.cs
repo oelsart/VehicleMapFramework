@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using HarmonyLib;
+using JetBrains.Annotations;
 using RimWorld;
 using SmashTools;
 using Vehicles;
@@ -52,6 +53,7 @@ public static class UniqueVehicleUtility
 
   private static string GetDefName(VehicleDef parentDef, int index) => $"{index.ToString()}_{parentDef.defName}";
 
+  [UsedImplicitly] // Reflection access by VehicleRaid Framework
   public static VehicleDef GenerateUniqueVehicleDef(VehicleDef parentDef, int index, bool hotReload)
   {
     var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(GetDefName(parentDef, index));

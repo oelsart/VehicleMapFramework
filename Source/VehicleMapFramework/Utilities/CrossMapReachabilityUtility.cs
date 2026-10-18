@@ -45,19 +45,6 @@ public static class CrossMapReachabilityUtility
 
   private static readonly List<Region> destRegions = [];
 
-#if DEBUG
-    public static bool enableDebugLog;
-#endif
-
-  [Conditional("DEBUG")]
-  internal static void DebugLog(string message)
-  {
-#if DEBUG
-        if (!enableDebugLog) return;
-#endif
-    VMF_Log.DebugMessage($"[CrossMapReachability] {message}");
-  }
-
   extension(Pawn pawn)
   {
     public Map DestMap
@@ -271,8 +258,6 @@ public static class CrossMapReachabilityUtility
       if (CrossMapReachabilityCache.TryGetCache(region, region2, parmsForCache, out result, out exitSpot, out enterSpot,
             out spotsQueue))
       {
-        DebugLog(
-          $"Result from cache: {root}, {departMap}, {dest}, {destMap}, {traverseParms}: {result}, {exitSpot}, {enterSpot}");
         return result;
       }
     }

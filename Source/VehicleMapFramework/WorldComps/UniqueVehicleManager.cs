@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using JetBrains.Annotations;
 using LudeonTK;
 using Vehicles;
 using Verse;
@@ -11,8 +12,10 @@ public class UniqueVehicleManager(Game game) : GameComponent
   private Dictionary<VehicleDef, List<string>> claimedDefNames = [];
   private static bool logging;
 
+  [UsedImplicitly] // Reflection access by VehicleRaid Framework
   public static Dictionary<VehicleDef, List<VehicleDef>> PlaceholderDefs { get; } = [];
 
+  [UsedImplicitly] // Reflection access by VehicleRaid Framework
   public VehicleDef ClaimUniqueVehicleDef(VehicleDef parentDef)
   {
     if (!PlaceholderDefs.TryGetValue(parentDef, out var placeholderDefs))
@@ -63,6 +66,7 @@ public class UniqueVehicleManager(Game game) : GameComponent
     }
   }
 
+  [UsedImplicitly] // Reflection access by VehicleRaid Framework
   public int ClaimedCount(VehicleDef vehicleDef)
   {
     return claimedDefNames.GetValueOrDefault(vehicleDef)?.Count ?? 0;

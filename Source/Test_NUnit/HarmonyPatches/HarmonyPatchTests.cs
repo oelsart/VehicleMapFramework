@@ -6,7 +6,7 @@ using static VehicleMapFramework.Test_HarmonyPatches.TestPlanLoader;
 namespace VehicleMapFramework.Test_HarmonyPatches;
 
 [TestFixture]
-[Category("Local")]
+// [Category("Local")]
 [Category("Remote")]
 public class HarmonyPatchTests
 {
@@ -16,22 +16,22 @@ public class HarmonyPatchTests
     AccessTools.PropertySetter("VehicleMapFramework.UnitTestDetector:IsTestingContext")
       .Invoke(null, [true]);
     harmony = new Harmony(HarmonyId);
-    // harmony.Patch(
-    //   AccessTools.PropertyGetter("Verse.GenTypes:AllTypes"),
-    //   ((Delegate)AllTypes).Method);
-    //
-    // harmony.Patch(
-    //   AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
-    //   ((Delegate)TypeByName).Method);
-    //
-    // harmony.Patch(
-    //   AccessTools.Method("Verse.GenTypes:AllSubclasses"),
-    //   ((Delegate)AllSubclasses).Method);
-    //
-    // harmony.Patch(
-    //   AccessTools.Method("Verse.GenTypes:AllSubclassesNonAbstract"),
-    //   ((Delegate)AllSubclassesNonAbstract).Method);
-    //
+    harmony.Patch(
+      AccessTools.PropertyGetter("Verse.GenTypes:AllTypes"),
+      ((Delegate)AllTypes).Method);
+    
+    harmony.Patch(
+      AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
+      ((Delegate)TypeByName).Method);
+    
+    harmony.Patch(
+      AccessTools.Method("Verse.GenTypes:AllSubclasses"),
+      ((Delegate)AllSubclasses).Method);
+    
+    harmony.Patch(
+      AccessTools.Method("Verse.GenTypes:AllSubclassesNonAbstract"),
+      ((Delegate)AllSubclassesNonAbstract).Method);
+    
     harmony.Patch(
       AccessTools.Method("VehicleMapFramework.VMF_HarmonyPatches.PatchHelper:MethodReplacer",
         [typeof(IEnumerable<CodeInstruction>), typeof((MethodBase, MethodBase)[])]),
@@ -59,6 +59,8 @@ public class HarmonyPatchTests
   private static bool TypeByName(string typeName, out Type __result)
   {
     __result = AccessTools.TypeByName(typeName);
+    if (__result is null)
+      Assert.Fail($"Type {typeName} is not found.");
     return false;
   }
 
