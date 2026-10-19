@@ -1,35 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <Defs>
   
 	<ShaderTypeDef>
 		<defName>VMF_TerrainHardWithZ</defName>
-		<shaderPath>VehicleMapFramework/TerrainHardWithZ</shaderPath>
+		<shaderPath>VMF_TerrainHardWithZ</shaderPath>
 	</ShaderTypeDef>
   
   <ShaderTypeDef>
     <defName>VMF_SnowWithZ</defName>
-    <shaderPath>VehicleMapFramework/SnowWithZ</shaderPath>
+    <shaderPath>VMF_SnowWithZ</shaderPath>
   </ShaderTypeDef>
 	
 	<ShaderTypeDef>
 		<defName>VMF_LightOverlayInverseMultiply</defName>
-		<shaderPath>VehicleMapFramework/LightOverlayInverseMultiply</shaderPath>
+		<shaderPath>VMF_LightOverlayInverseMultiply</shaderPath>
 	</ShaderTypeDef>
 	
 	<ShaderTypeDef>
 		<defName>VMF_CutoutComplexRGBOpacity</defName>
-		<shaderPath>VehicleMapFramework/ShaderRGBOpacity</shaderPath>
+		<shaderPath>VMF_CutoutComplexRGBTransparent</shaderPath>
+    <uiShaderPath>CutoutComplexRGBUI</uiShaderPath>
 	</ShaderTypeDef>
 
 	<ShaderTypeDef>
 		<defName>VMF_CutoutComplexPatternOpacity</defName>
-		<shaderPath>VehicleMapFramework/ShaderRGBPatternOpacity</shaderPath>
+		<shaderPath>VMF_CutoutComplexPatternTransparent</shaderPath>
+    <uiShaderPath>CutoutComplexPatternUI</uiShaderPath>
 	</ShaderTypeDef>
 
 	<ShaderTypeDef>
 		<defName>VMF_CutoutComplexSkinOpacity</defName>
-		<shaderPath>VehicleMapFramework/ShaderRGBSkinOpacity</shaderPath>
+		<shaderPath>VMF_CutoutComplexSkinTransparent</shaderPath>
+    <uiShaderPath>CutoutComplexSkinUI</uiShaderPath>
 	</ShaderTypeDef>
 
 </Defs>
