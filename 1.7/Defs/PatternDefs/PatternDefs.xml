@@ -7,6 +7,8 @@
 		<path>Graphics/Patterns/Default/Default</path>
 		<properties>
 			<equalize>false</equalize>
+      <dynamicTiling>false</dynamicTiling>
 		</properties>
+    <wrapMode>Clamp</wrapMode>
 	</VehicleMapFramework.RGBMaskDef>
 </Defs>
