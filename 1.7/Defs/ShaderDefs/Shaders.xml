@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <ShaderDef>
+    <defName>VMF_CutoutComplexRGBTransparent</defName>
+    <shaderProgram>
+      <fragmentShaderFileName>VehicleMapFramework/ShaderRGBTransparent.frag.glsl</fragmentShaderFileName>
+      <transparent>true</transparent>
+      <depthWrite>true</depthWrite>
+      <renderQueue>2900</renderQueue>
+    </shaderProgram>
+  </ShaderDef>
+
+  <ShaderDef>
+    <defName>VMF_CutoutComplexPatternTransparent</defName>
+    <shaderProgram>
+      <fragmentShaderFileName>VehicleMapFramework/ShaderRGBPatternTransparent.frag.glsl</fragmentShaderFileName>
+      <transparent>true</transparent>
+      <depthWrite>true</depthWrite>
+      <renderQueue>2900</renderQueue>
+    </shaderProgram>
+  </ShaderDef>
+
+  <ShaderDef>
+    <defName>VMF_CutoutComplexSkinTransparent</defName>
+    <shaderProgram>
+      <fragmentShaderFileName>VehicleMapFramework/ShaderRGBSkinTransparent.frag.glsl</fragmentShaderFileName>
+      <transparent>true</transparent>
+      <depthWrite>true</depthWrite>
+      <renderQueue>2900</renderQueue>
+    </shaderProgram>
+  </ShaderDef>
+
+  <ShaderDef>
+    <defName>VMF_TerrainHardWithZ</defName>
+    <shaderProgram>
+      <vertexShaderFileName>MapWorldUV.vert.glsl</vertexShaderFileName>
+      <fragmentShaderFileName>TerrainHard.frag.glsl</fragmentShaderFileName>
+      <flipTextureST>false</flipTextureST>
+      <depthWrite>true</depthWrite>
+      <renderQueue>2400</renderQueue>
+      <textureWrapOverrides>
+        <li>
+          <key>_MainTex</key>
+          <value>Repeat</value>
+        </li>
+      </textureWrapOverrides>
+    </shaderProgram>
+  </ShaderDef>
+
+  <ShaderDef>
+    <defName>VMF_SnowWithZ</defName>
+    <shaderProgram>
+      <vertexShaderFileName>MapWorldUV.vert.glsl</vertexShaderFileName>
+      <fragmentShaderFileName>Snow.frag.glsl</fragmentShaderFileName>
+      <flipTextureST>false</flipTextureST>
+      <transparent>true</transparent>
+      <depthWrite>false</depthWrite>
+      <renderQueue>3175</renderQueue> <!-- After SunShadow -->
+      <textureWrapOverrides>
+        <li>
+          <key>_MainTex</key>
+          <value>Repeat</value>
+        </li>
+        <li>
+          <key>_PollutedTex</key>
+          <value>Repeat</value>
+        </li>
+        <li>
+          <key>_MacroTex</key>
+          <value>Repeat</value>
+        </li>
+        <li>
+          <key>_AlphaAddTex</key>
+          <value>Repeat</value>
+        </li>
+      </textureWrapOverrides>
+    </shaderProgram>
+  </ShaderDef>
+
+  <ShaderDef>
+    <defName>VMF_LightOverlayInverseMultiply</defName>
+    <shaderProgram>
+      <fragmentShaderFileName>VehicleMapFramework/LightOverlayInverseMultiply.flag.glsl</fragmentShaderFileName>
+      <useTexture>false</useTexture>
+      <transparent>true</transparent>
+      <depthWrite>false</depthWrite>
+      <renderQueue>3101</renderQueue>
+      <sceneGrab>
+        <name>VMFLightOverlay</name>
+        <queue>3101</queue>
+      </sceneGrab>
+    </shaderProgram>
+  </ShaderDef>
+  
+</Defs>
