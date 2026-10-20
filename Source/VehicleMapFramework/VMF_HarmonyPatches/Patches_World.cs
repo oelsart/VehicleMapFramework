@@ -77,7 +77,7 @@ public static class Patch_Selector_SelectorOnGUI_BeforeMainTabs
         __instance.SelectedPawns.Empty() &&
         new Rect(Vector2.zero, VehicleMapView.MeshSize).Contains(UI.MouseMapPosition().ToVector2()))
     {
-      using (new VehicleMapView.WorldCameraScope(Find.WorldCamera, caravan))
+      using (new VehicleMapView.WorldCameraScope(Find.WorldCamera, caravan, true))
       {
         Find.WorldSelector.ClearSelection();
         Find.WorldSelector.Select(caravan, false);

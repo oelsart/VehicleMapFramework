@@ -2,8 +2,13 @@
 using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
+using UnityStubs.Rendering;
 using Vehicles.World;
 using Verse;
+using Waylith.Rendering;
+using Graphics = UnityEngine.Graphics;
+using Material = UnityEngine.Material;
+using RenderTexture = UnityEngine.RenderTexture;
 
 namespace VehicleMapFramework;
 
@@ -20,17 +25,26 @@ public static class VehicleMapView
   public static readonly Vector3 Center = new(MeshSizeX / 2f, 0f, MeshSizeX / 2f);
   private static Mesh mesh200;
   private static Material skyMat;
+  private static Material bgMat;
+  private static RenderTexture renderTexture;
+
+  private static readonly List<MeshDrawCommand> commandList = [];
+
+  private static int lastWorldRenderedTick;
+  private static Vector3 lastWorldObjectDrawPos;
 
   public static bool Available { get; internal set; } = true;
   
   static VehicleMapView()
   {
-    if (UnitTestDetector.IsTestingContext) return;
     LongEventHandler.ExecuteWhenFinished(() =>
     {
       mesh200 = MeshPool.GridPlane(MeshSize);
       skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
       skyMat.renderQueue = 3100;
+      renderTexture = new RenderTexture(2048, 2048, 0, RenderTextureFormat.ARGB32);
+      bgMat = MaterialPool.MatFrom(ShaderDatabase.Cutout);
+      bgMat.mainTexture = renderTexture;
     });
   }
   
@@ -49,39 +63,50 @@ public static class VehicleMapView
     var worldObject = vehicleWorldObject as WorldObject ?? GetWorldObject(vehicle);
     if (worldObject is null) return;
     
-    Find.World.renderer.wantedMode = WorldRenderMode.Planet;
-    WorldRendererUtility.UpdateGlobalShadersParams();
     var curLayer = worldObject.Tile.Layer;
-    using (new WorldCameraScope(Find.Camera, worldObject))
-    {
-      var id = curLayer.LayerID;
-      foreach (var (_, planetLayer) in Find.WorldGrid.PlanetLayers)
-      {
-        if (planetLayer.LayerID <= id && planetLayer.Visible)
-        {
-          foreach (var drawLayer in planetLayer.WorldDrawLayers)
-          {
-            if (drawLayer is
-                WorldDrawLayer_SingleTile or WorldDrawLayer_Satellites or WorldDrawLayer_Clouds or
-                WorldDrawLayer_Glow or WorldDrawLayer_UngeneratedPlanetParts)
-              continue;
 
-            drawLayer.Render();
+    if (Mathf.Abs(lastWorldRenderedTick - GenTicks.TicksGame) > 9 ||
+        (worldObject.DrawPos - lastWorldObjectDrawPos).sqrMagnitude > 0.1f)
+    {
+      lastWorldRenderedTick = GenTicks.TicksGame;
+      lastWorldObjectDrawPos = worldObject.DrawPos;
+      Find.World.renderer.wantedMode = WorldRenderMode.Planet;
+      WorldRendererUtility.UpdateGlobalShadersParams();
+      using (new WorldCameraScope(Find.Camera, worldObject))
+      {
+        using var capture = MeshDrawSubmission.BeginCapture(commandList);
+        var id = curLayer.LayerID;
+        foreach (var (_, planetLayer) in Find.WorldGrid.PlanetLayers)
+        {
+          if (planetLayer.LayerID <= id && planetLayer.Visible)
+          {
+            foreach (var drawLayer in planetLayer.WorldDrawLayers)
+            {
+              if (drawLayer is
+                  WorldDrawLayer_SingleTile or WorldDrawLayer_Satellites or WorldDrawLayer_Clouds or
+                  WorldDrawLayer_Glow or WorldDrawLayer_UngeneratedPlanetParts)
+                continue;
+
+              drawLayer.Render();
+            }
           }
         }
-      }
 
-      Find.World.dynamicDrawManager.DrawDynamicWorldObjects();
-      if (worldObject is VehicleCaravan vehicleCaravan)
-      {
-        vehicleCaravan.gotoMote.RenderMote();
-        vehicleCaravan.vehiclePather?.curPath?.DrawPath(vehicleCaravan);
-      }
+        Find.World.dynamicDrawManager.DrawDynamicWorldObjects();
+        if (worldObject is VehicleCaravan vehicleCaravan)
+        {
+          vehicleCaravan.gotoMote.RenderMote();
+          vehicleCaravan.vehiclePather?.curPath?.DrawPath(vehicleCaravan);
+        }
       
-      Find.Camera.Render();
+        var cameraView = CameraViewFactory.GetView(Find.Camera);
+        CameraTextureRenderer.Current?.Render(
+          renderTexture, commandList, cameraView, new Rect(0f, 0f, 1f, 1f), Color.clear);
+        commandList.Clear();
+      }
+      Find.World.renderer.wantedMode = WorldRenderMode.None;
     }
-    Find.World.renderer.wantedMode = WorldRenderMode.None;
-
+    
     if (!vehicle.Spawned)
     {
       if (forceRotated)
@@ -115,11 +140,15 @@ public static class VehicleMapView
       }
     }
     
+    // 背景
+    Graphics.DrawMesh(mesh200, Center, Quaternion.identity, bgMat, 0);
+    
     // 空の暗さ
     skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
     Graphics.DrawMesh(mesh200, Center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
 
     //　車両本体
+    var drawPos = Center.WithY(AltitudeLayer.LayingPawn.AltitudeFor());
     if (worldObject.GetComponent<VehicleFormationComp>() is { } comp)
     {
       var drawPositions = comp.DrawPositions;
@@ -131,13 +160,13 @@ public static class VehicleMapView
           comp.FindVehiclePosition(vehicle2);
           comp.CenteredDrawPositions();
         }
-        var drawPos2 = Center + (drawPositions[vehicle2].position).RotatedBy(angle);
+        var drawPos2 = drawPos + (drawPositions[vehicle2].position).RotatedBy(angle);
         vehicle2.DrawAt(in drawPos2, vehicle2.FullRotation, angle - vehicle2.FullRotation.AsAngle);
       }
     }
     else
     {
-      vehicle.DrawAt(in Center, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
+      vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
     }
     return;
 
@@ -178,18 +207,20 @@ public static class VehicleMapView
     private readonly Quaternion rotation;
     private readonly bool orthographic;
     private readonly float orthographicSize;
+    private readonly float aspect;
     private readonly int cullingMask;
     private readonly float farClipPlane;
     private readonly float transition;
     private readonly float expandMoreTransition;
 
-    public WorldCameraScope(Camera targetCamera, WorldObject lookTarget)
+    public WorldCameraScope(Camera targetCamera, WorldObject lookTarget, bool mapCameraTranslate = false)
     {
       camera = targetCamera;
       var transform = camera.transform;
 
       position = transform.position;
       rotation = transform.rotation;
+      aspect = camera.aspect;
       orthographic = camera.orthographic;
       orthographicSize = camera.orthographicSize;
       cullingMask = camera.cullingMask;
@@ -202,9 +233,11 @@ public static class VehicleMapView
       var drawPos = lookTarget.DrawPos;
       transform.rotation = Quaternion.LookRotation(-drawPos);
       transform.position = drawPos + drawPos.normalized * 15f;
-      camera.transform.Translate((mapCameraPosition - Center).ToVector2() * scale);
+      if (mapCameraTranslate)
+        camera.transform.Translate((mapCameraPosition - Center).ToVector2() * scale);
       camera.orthographic = true;
-      camera.orthographicSize = Find.CameraDriver.RootSize * scale;
+      camera.orthographicSize = (mapCameraTranslate ? Find.CameraDriver.RootSize : MeshSizeX) * scale;
+      camera.aspect = 1f;
       camera.cullingMask = WorldCameraManager.WorldLayerMask;
       camera.farClipPlane = WorldCameraManager.FarClipPlane;
       transitionPct() = 0f;
@@ -218,6 +251,7 @@ public static class VehicleMapView
       transform.position = position;
       camera.orthographic = orthographic;
       camera.orthographicSize = orthographicSize;
+      camera.aspect = aspect;
       camera.cullingMask = cullingMask;
       camera.farClipPlane = farClipPlane;
       transitionPct() = transition;
