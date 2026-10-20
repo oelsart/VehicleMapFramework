@@ -7,6 +7,7 @@ using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
 using UnityEngine;
+using UnityEngine.Rendering;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.World;
@@ -44,6 +45,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   private static readonly Material ClipMat =
     SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
+  private static readonly List<Matrix4x4> clipMatrices = [];
 
   private static readonly CachedTexture iconIncreasePriority = new("VehicleMapFramework/UI/IncreasePriority");
 
@@ -118,24 +120,38 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         impassableCellsDirty = false;
         field ??= new BoolGrid(interiorMap);
         field.Clear();
-        var sizeX = MapSize.x;
-        var sizeZ = MapSize.z;
-        var terrainGrid = interiorMap.terrainGrid;
-        for (var x = 0; x < sizeX; x++)
+        
+        if (UnityData.IsInMainThread)
         {
-          for (var z = 0; z < sizeZ; z++)
-          {
-            if (terrainGrid.TerrainAt(z * sizeX + x) is { passability: Traversability.Impassable })
-              field[new IntVec3(x, 0, z)] = true;
-          }
+          // マップ読み込み中に初期化された場合
+          LongEventHandler.ExecuteWhenFinished(SetUp);
+          return field;
         }
 
-        var list = interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled);
-        for (var i = 0; i < list.Count; i++)
+        SetUp();
+        return field;
+
+        void SetUp()
         {
-          field[list[i].Position] = true;
+          var sizeX = MapSize.x;
+          var sizeZ = MapSize.z;
+          var terrainGrid = interiorMap.terrainGrid;
+          for (var x = 0; x < sizeX; x++)
+          {
+            for (var z = 0; z < sizeZ; z++)
+            {
+              if (terrainGrid.TerrainAt(z * sizeX + x) is { passability: Traversability.Impassable })
+                field[new IntVec3(x, 0, z)] = true;
+            }
+          }
+
+          var list = interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled);
+          for (var i = 0; i < list.Count; i++)
+          {
+            field[list[i].Position] = true;
+          }
+          AsAboveSoBelow.CopyBoolGrid(this, field);
         }
-        AsAboveSoBelow.CopyBoolGrid(this, field);
       }
 
       return field;
@@ -1053,8 +1069,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       interiorMap?.rememberedCameraPos.rootPos = drawLoc;
     }
 
-    var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f) +
-                   (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
+    var drawLoc2 = drawLoc + (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
     RecacheDrawPos(drawLoc2);
     DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc2, rot, Transform.rotation);
 
@@ -1201,6 +1216,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (FocusVehicleScope.FocusLockedVehicle == this || FocusVehicleScope.FocusedVehicle == this)
     {
       var material = ClipMat;
+      material.enableInstancing = true;
       var quat = this.FullAngleQuat;
       var size = MapSize;
       Vector3 s = new(500f, 1f, size.z);
@@ -1226,10 +1242,14 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       {
         if (impassableGrid[c] && (!expander || !ExpandableGrid[c]))
         {
-          matrix.SetTRS(ToBaseMapCoord(c.ToVector3Shifted(), this), quat, s);
-          Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+          clipMatrices.Add(Matrix4x4.TRS(
+            ToBaseMapCoord(c.ToVector3Shifted(), this).SetToAltitude(AltitudeLayer.MetaOverlays), quat, s));
         }
       }
+
+      if (clipMatrices.Count > 0)
+        Graphics.DrawMeshInstanced(MeshPool.plane10, 0, material, clipMatrices, null, ShadowCastingMode.Off, false, 0);
+      clipMatrices.Clear();
     }
 
     var currentMap = Find.CurrentMap;
