@@ -176,8 +176,16 @@ public static class ExpectOrSuspend
       current.TestContext ??= context;
       current.FailLabel ??= message;
       current.FailMessage ??= failureMessage;
-      StackTrace stackTrace = new(skipFrames, true);
-      current.StackTrace ??= stackTrace;
+      if (current.StackTrace == null)
+      {
+        StackTrace frameStackTrace = new(skipFrames, true);
+        // if (status is Status.Failed && Debugger.IsAttached && TestFixtureManager.BreakOnTestFailure)
+        // {
+        //   Debugger.Break();
+        // }
+
+        current.StackTrace = frameStackTrace.ToString();
+      }
     }
   }
 
