@@ -3,6 +3,7 @@
     <RootNamespace>VehicleMapFramework.Test_DevTools</RootNamespace>
     <OutDir>$(ModDir)..\VehicleMapFrameworkDev\Test\Assemblies\</OutDir>
     <GenerateDependencyFile>true</GenerateDependencyFile>
+    <RunSettingsFilePath>..\..\.runsettings</RunSettingsFilePath>
   </PropertyGroup>
   
   <ItemGroup>

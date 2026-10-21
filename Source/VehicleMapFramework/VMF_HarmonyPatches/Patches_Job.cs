@@ -1067,10 +1067,31 @@ public static class Patch_ToilFailConditions_SelfAndParentsDespawnedOrNull
   }
 }
 
-[HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
-[PatchLevel(Level.Sensitive)]
+[HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden))]
 public static class Patch_ForbidUtility_IsForbidden
 {
+  [HarmonyPatch([typeof(IntVec3), typeof(Pawn)])]
+  [PatchLevel(Level.Safe)]
+  public static bool Prefix(IntVec3 c, Pawn pawn, ref bool __result)
+  {
+    if (pawn.CurJob is not { } curJob)
+      return true;
+
+    var targetMap = curJob.targetA.IsValid && c == curJob.targetA.Cell ? curJob.targetA.Thing?.MapHeld : null;
+    targetMap ??= curJob.targetB.IsValid && c == curJob.targetB.Cell ? curJob.targetB.Thing?.MapHeld : null;
+    targetMap ??= curJob.targetC.IsValid && c == curJob.targetC.Cell ? curJob.targetC.Thing?.MapHeld : null;
+    targetMap ??= pawn.PawnTargetMap;
+    if (targetMap is not null && pawn.Map != targetMap)
+    {
+      __result = c.IsForbidden(pawn, targetMap);
+      return false;
+    }
+
+    return true;
+  }
+  
+  [HarmonyPatch([typeof(Thing), typeof(Pawn)])]
+  [PatchLevel(Level.Sensitive)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return PatchHelper.CreateCodeMatcherFast(instructions)
@@ -1295,125 +1316,39 @@ public static class Patch_WorkGiver_ConstructDeliverResources_ResourceDeliverJob
   }
 }
 
-// デリゲートへのTranspilerが適用されない問題が発生したため、やむなくPostfixによる置き換えを選択した
-[HarmonyPatch]
+[HarmonyPatch(typeof(PhysicalInteractionReservationManager), nameof(PhysicalInteractionReservationManager.IsReserved))]
 [PatchLevel(Level.Safe)]
-class Patch_ToilFailConditions_FailOnForbidden
+public static class Patch_PhysicalInteractionReservationManager_IsReserved
 {
-  private static MethodInfo TargetMethod()
+  public static void Prefix(ref PhysicalInteractionReservationManager __instance, LocalTargetInfo target)
   {
-    return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnForbidden), null, [typeof(JobDriver)]);
-  }
-  
-  static void Postfix(IJobEndable f, TargetIndex ind)
-  {
-    switch (f)
-    {
-      case JobDriver jobDriver:
-        jobDriver.globalFailConditions.RemoveLast();
-        break;
-      case Toil toil:
-        toil.endConditions.RemoveLast();
-        break;
-    }
-
-    f.AddEndCondition(() =>
-    {
-      var actor = f.GetActor();
-      if (actor.Faction != Faction.OfPlayer || actor.jobs.curJob.ignoreForbidden)
-      {
-        return JobCondition.Ongoing;
-      }
-
-      var cell = actor.jobs.curJob.GetTarget(ind).Cell;
-      var thing = actor.jobs.curJob.GetTarget(ind).Thing;
-      var thingHolder = thing?.ParentHolder;
-      if (thingHolder is not Pawn_CarryTracker && thingHolder is not Pawn_InventoryTracker && cell.IsValid &&
-          cell.IsForbidden(actor, thing))
-      {
-        return JobCondition.Incompletable;
-      }
-
-      if (thing == null)
-      {
-        return JobCondition.Ongoing;
-      }
-
-      return !thing.IsForbidden(actor) ? JobCondition.Ongoing : JobCondition.Incompletable;
-    });
+    if (target.Thing?.MapHeld is { } thingMap && thingMap.physicalInteractionReservationManager != __instance)
+      __instance = thingMap.physicalInteractionReservationManager;
   }
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(PhysicalInteractionReservationManager), nameof(PhysicalInteractionReservationManager.IsReservedBy))]
 [PatchLevel(Level.Safe)]
-public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
+public static class Patch_PhysicalInteractionReservationManager_IsReservedBy
 {
-  private static MethodInfo TargetMethod()
+  public static void Prefix(ref PhysicalInteractionReservationManager __instance, Pawn claimant, LocalTargetInfo target)
   {
-    return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnSomeonePhysicallyInteracting), null, [typeof(JobDriver)]);
-  }
-
-  public static void Postfix(IJobEndable f, TargetIndex ind)
-  {
-    switch (f)
-    {
-      case JobDriver jobDriver:
-        jobDriver.globalFailConditions.RemoveLast();
-        break;
-      case Toil toil:
-        toil.endConditions.RemoveLast();
-        break;
-    }
-    
-    f.AddEndCondition(() =>
-    {
-      var actor = f.GetActor();
-      var thing = actor.jobs.curJob.GetTarget(ind).Thing;
-      if (thing is not null)
-      {
-        var map = thing.MapHeld ?? actor.PawnTargetMapOrMap;
-        if (map.physicalInteractionReservationManager.IsReserved(thing) &&
-            !map.physicalInteractionReservationManager.IsReservedBy(actor, thing))
-        return JobCondition.Incompletable;
-      }
-      return JobCondition.Ongoing;
-    });
+    var targetMap = target.Thing?.MapHeld;
+    if (targetMap is null && claimant.CurJob?.globalTarget.Cell == target.Cell)
+      targetMap = claimant.CurJob.globalTarget.Map;
+    if (targetMap is not null && targetMap.physicalInteractionReservationManager != __instance)
+      __instance = targetMap.physicalInteractionReservationManager;
   }
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(FireUtility), nameof(FireUtility.ContainsStaticFire))]
 [PatchLevel(Level.Safe)]
-public static class Patch_ToilFailConditions_FailOnBurningImmobile
+public static class Patch_FireUtility_ContainsStaticFire
 {
-  private static MethodInfo TargetMethod()
+  public static void Prefix(IntVec3 c, ref Map map)
   {
-    return AccessTools.Method(typeof(ToilFailConditions), nameof(ToilFailConditions.FailOnBurningImmobile), null, [typeof(JobDriver)]);
-  }
-
-  public static void Postfix(IJobEndable f, TargetIndex ind)
-  {
-    switch (f)
-    {
-      case JobDriver jobDriver:
-        jobDriver.globalFailConditions.RemoveLast();
-        break;
-      case Toil toil:
-        toil.endConditions.RemoveLast();
-        break;
-    }
-    
-    f.AddEndCondition(() =>
-    {
-      var actor = f.GetActor();
-      var target = actor.jobs.curJob.GetTarget(ind);
-      return target.IsValid && target.ToTargetInfo(ThingMapOrTargetMapOrPawnMap(actor, target)).IsBurning() ? JobCondition.Incompletable : JobCondition.Ongoing;
-    });
-  }
-
-  private static Map ThingMapOrTargetMapOrPawnMap(Pawn pawn, LocalTargetInfo target)
-  {
-    var map = target.Thing?.MapHeld ?? pawn.PawnTargetMap ?? pawn.Map;
-    return !target.Cell.InBounds(map) ? map.GroundMap : map;
+    if (!c.InBounds(map))
+      map = map.GroundMap;
   }
 }
 

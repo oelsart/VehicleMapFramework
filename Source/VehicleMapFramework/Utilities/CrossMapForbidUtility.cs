@@ -13,7 +13,8 @@ public static class CrossMapForbidUtility
       if (map is null || map == pawn.Map)
         return c.IsForbidden(pawn);
       
-      using var _ = new VirtualTeleporter(pawn, map, setDepartMap: pawn is { DepartMap: null });
+      var pos = pawn.PositionOnAnotherMap(map);
+      using var _ = new VirtualTeleporter(pawn, map, pos, setDepartMap: pawn is { DepartMap: null });
       return c.IsForbidden(pawn);
     }
 
@@ -22,8 +23,16 @@ public static class CrossMapForbidUtility
       if (map == pawn.Map)
         return c.IsForbidden(pawn);
 
-      using var _ = new VirtualTeleporter(pawn, map, setDepartMap: pawn is { DepartMap: null });
+      var pos = pawn.PositionOnAnotherMap(map);
+      using var _ = new VirtualTeleporter(pawn, map, pos, setDepartMap: pawn is { DepartMap: null });
       return c.IsForbidden(pawn);
+    }
+
+    private bool IsForbidden(Pawn pawn)
+    {
+      return ForbidUtility.CaresAboutForbidden(pawn, true) &&
+             (!c.InAllowedArea(pawn) || pawn.mindState.maxDistToSquadFlag > 0f &&
+               !c.InHorDistOf(pawn.DutyLocation(), pawn.mindState.maxDistToSquadFlag));
     }
   }
 }
