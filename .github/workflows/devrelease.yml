@@ -134,6 +134,7 @@ jobs:
           VehicleMapFrameworkDev/1.7
           VehicleMapFrameworkDev/About
           VehicleMapFrameworkDev/Common
+          VehicleMapFrameworkDev/2022.3
           VehicleMapFrameworkDev/LICENSE
           VehicleMapFrameworkDev/LICENSE.VehicleFramework
           VehicleMapFrameworkDev/LoadFolders.xml
