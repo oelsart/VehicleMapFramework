@@ -24,87 +24,45 @@ internal static class UnitTestDetector
 public static class ModCompat
 {
   public static readonly bool AllowTool = IsModActive("UnlimitedHugs.AllowTool");
-
   public static readonly bool BillDoorsFramework = IsModActive("3HSTltd.Framework");
-
   public static readonly bool CombatExtended = IsModActive("CETeam.CombatExtended") || IsModActive("CETeam.CombatExtended_steam");
-
   public static readonly bool ColonyGroups = IsModActive("DerekBickley.LTOColonyGroupsFinal");
-
   public static readonly bool DeepStorage = IsModActive("LWM.DeepStorage");
-
   public static readonly bool Fortified = IsModActive("AOBA.Framework");
-
   public static readonly bool DrakkenLaserDrill = IsModActive("MYDE.DrakkenLaserDrill") || IsModActive("Mlie.DrakkenLaserDrill");
-
   public static readonly bool DrillTurret = IsModActive("Mlie.MiningCoDrillTurret");
-
   public static readonly bool ExosuitFramework = IsModActive("Aoba.Exosuit.Framework");
-
   public static readonly bool GiantImperialTurret = IsModActive("XMB.Giantimperialcannonturret.MO");
-
   public static readonly bool Gunplay = IsModActive("automatic.gunplay");
-
   public static readonly bool HospitalityCasino = IsModActive("Adamas.HospitalityCasino");
-
   public static readonly bool IRBM = IsModActive("kazepsi.irbm");
-
   public static readonly bool MuzzleFlash = IsModActive("IssacZhuang.MuzzleFlash");
-
   public static readonly bool ProjectRimFactory = IsModActive("spdskatr.projectrimfactory");
-
   public static readonly bool SmarterConstruction = IsModActive("dhultgren.smarterconstruction");
-
   public static readonly bool TabulaRasa = IsModActive("neronix17.toolbox");
-
   public static readonly bool VFEArchitect = IsModActive("VanillaExpanded.VFEArchitect");
-
   public static readonly bool VPsyE = IsModActive("VanillaExpanded.VPsycastsE");
-
   public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");
-
   public static readonly bool VQEGenerator = IsModActive("vanillaquestsexpanded.generator");
-
   public static readonly bool Vivi = IsModActive("gguake.race.vivi");
-
   public static readonly bool WASDedPawn = IsModActive("addvans.WASDedPawn");
-
   public static readonly bool WhileYoureUp = IsModActive("CodeOptimist.JobsOfOpportunity") || IsModActive("zsbk.patch16.whileyoureup");
-
   public static readonly bool WVCWorkModes = IsModActive("wvc.sergkart.biotech.MoreMechanoidsWorkModes");
-
   public static readonly bool YayosCombat3 = IsModActive("Mlie.YayosCombat3");
-
   public static readonly bool PickUpAndHaul = IsModActive("Mehni.PickUpAndHaul");
-
   public static readonly bool TextTool = IsModActive("ferny.TextTool");
-
   public static readonly bool TraderShips = IsModActive("automatic.traderships");
-
   public static readonly bool UFHeavyIndustries = IsModActive("KindSeal.LOL");
-
   public static readonly bool NightmareCore = IsModActive("Nightmare.Core");
-
   public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
-
   public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
-
   public static readonly bool RimWorldOfMagic = IsModActive("Torann.ARimworldOfMagic");
-
   public static readonly bool CeleTech = IsModActive("TOT.CeleTech.MKIII");
-
   public static readonly bool PenTool = IsModActive("rabiosus.pentool");
-
   public static readonly bool PerspectiveShift = IsModActive("ferny.PerspectiveShift");
-
   public static readonly bool PauseOtherSettlements = IsModActive("esvn.PauseOtherSettlementsSimulation");
-
-  public static readonly bool CutPlantsBeforeBuilding = IsModActive("Mlie.CutPlantsBeforeBuilding");
-
   public static readonly bool AnimalCages = IsModActive("zal.animalcages");
-
   public static readonly bool DoNotHitMe = IsModActive("Og.do.not.hit.me");
-
   public static readonly bool AutoApparelPickup = IsModActive("Scorpio.AutoApparelPickup");
 
   static ModCompat()

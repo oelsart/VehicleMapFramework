@@ -1,4 +1,4 @@
-﻿$SourceDir = "../../../../RimWorldWin64_Data/Managed"
+﻿$SourceDir = "../../../.."
 $OutputDir = "./Stubs"
 
 # 出力先フォルダがなければ作成

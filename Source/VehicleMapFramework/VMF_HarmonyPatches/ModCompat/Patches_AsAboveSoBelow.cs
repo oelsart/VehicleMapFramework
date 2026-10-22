@@ -195,14 +195,14 @@ public static class Patch_Patch_PawnPath_ABLiftPathLine_Prefix
 }
 
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
-[HarmonyPatch("AsAboveSoBelow.Patch_ShotReport_ABCrossBandDistance", "Prefix")]
+[HarmonyPatch("AsAboveSoBelow.ABCombatGeometry", "TryLocalize")]
+[HarmonyPatch([typeof(Thing), typeof(IntVec3), typeof(IntVec3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
 [PatchLevel(Level.Safe)]
-public static class Patch_Patch_ShotReport_ABCrossBandDistance_Prefix
+public static class Patch_ABCombatGeometry_TryLocalize
 {
-  public static bool Prefix(Thing caster, LocalTargetInfo target)
+  public static bool Prefix(Thing shooter)
   {
-    return !caster.IsOnNonFocusedVehicleMap && !target.Thing.IsOnNonFocusedVehicleMap ||
-           caster.Map == (target.Thing?.Map ?? caster.GroundMap);
+    return shooter is not Pawn { stances.curStance: Stance_Busy { focusTarg.Thing.IsOnVehicleMap: true } };
   }
 }
 
@@ -213,7 +213,8 @@ public static class Patch_Patch_Projectile_ABCrossBandOrigin_Prefix
 {
   public static bool Prefix(Thing launcher, LocalTargetInfo usedTarget)
   {
-    return Patch_Patch_ShotReport_ABCrossBandDistance_Prefix.Prefix(launcher, usedTarget);
+    return !launcher.IsOnNonFocusedVehicleMap && !usedTarget.Thing.IsOnNonFocusedVehicleMap ||
+           launcher.Map == (usedTarget.Thing?.Map ?? launcher.GroundMap);
   }
 }
 
@@ -224,7 +225,8 @@ public static class Patch_ABCombatAim_TryLocalAngle
 {
   public static bool Prefix(Building_Turret turret, LocalTargetInfo target)
   {
-    return Patch_Patch_ShotReport_ABCrossBandDistance_Prefix.Prefix(turret, target);
+    return !turret.IsOnNonFocusedVehicleMap && !target.Thing.IsOnNonFocusedVehicleMap ||
+           turret.Map == (target.Thing?.Map ?? turret.GroundMap);
   }
 }
 

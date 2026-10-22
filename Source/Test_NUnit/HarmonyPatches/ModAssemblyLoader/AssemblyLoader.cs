@@ -24,7 +24,8 @@ public class AssemblyLoader(string version, string workshopPath, string localMod
       if (rootFolder is null)
         throw new FileNotFoundException($"Folder {folderName} not found");
     }
-    var loadFolders = TryLoadXDoc(Path.Combine(rootFolder!.FullName, LoadFoldersFileName));
+    var loadFolders = TryLoadXDoc(Path.Combine(rootFolder!.FullName, LoadFoldersFileName)) ??
+                      TryLoadXDoc(Path.Combine(rootFolder!.FullName, LoadFoldersFileName.ToLower()));
     var folders =
       (loadFolders?.Root?.Element($"v{version}") ?? loadFolders?.Root?.Element("default"))?
       .Elements("li").Select(l => l.Value).ToList();
@@ -74,7 +75,7 @@ public class AssemblyLoader(string version, string workshopPath, string localMod
         }
         catch
         {
-          // ignored
+          Assert.Warn($"Fail to load assembly: {fileInfo.FullName}");
         }
       }
     }

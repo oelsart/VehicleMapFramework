@@ -19,12 +19,21 @@ public static class TestPlanLoader
   static TestPlanLoader()
   {
     // ロードの初期化
-    AssemblyLoadContext.Default.Resolving += (_, assemblyName) =>
+    foreach (var context in AssemblyLoadContext.All)
     {
-      var fileName = $"{assemblyName.Name}.dll";
-      var path = Path.Combine(Configurations.RimWorldAssemblyFolder, fileName);
-      return File.Exists(path) ? Assembly.LoadFrom(path) : null;
-    };
+      context.Resolving += (_, assemblyName) =>
+      {
+        if (assemblyName.Name?.StartsWith("Unity") ?? false)
+        {
+          var stubs = Path.Combine(Configurations.RimWorldAssemblyFolder, "UnityStubs.dll");
+          if (File.Exists(stubs))
+            return Assembly.LoadFrom(stubs);
+        }
+        var fileName = $"{assemblyName.Name}.dll";
+        var path = Path.Combine(Configurations.RimWorldAssemblyFolder, fileName);
+        return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+      };
+    }
     Loader = new AssemblyLoader(
       Configurations.Version,
       Configurations.SteamWorkshopRoot,

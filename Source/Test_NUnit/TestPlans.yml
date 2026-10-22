@@ -2,11 +2,6 @@
 - Name: VanillaExpandedFramework
 - Name: VFEArchitect
 - Name: VFESecurity
-- Name: VFESecurity + CE
-  Mods:
-    - VFESecurity
-  Categories:
-    - VMF_Patches_CombatExtendedVFESecurityCompat
 - Name: VFEFactory
 - Name: VVehiclesE
 - Name: VGravshipE
@@ -79,12 +74,12 @@
 #  Mods:
 #    - JecsLite
 #    - RimWorldOfMagic
-#- Name: SmarterConstruction
+- Name: SmarterConstruction
 - Name: SmartPistol
 - Name: StackGap
 - Name: TabulaRasa
 - Name: TraderShips
-#- Name: ViviRace
+- Name: ViviRace
 - Name: WhileYoureUp
 - Name: YayosCombat3
 - Name: SmartFarming

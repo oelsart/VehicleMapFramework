@@ -126,7 +126,7 @@ public class HarmonyPatchTests
   }
 
   [Test]
-  [DependsOnTest("LoadAssemblies")]
+  [DependsOnTest("LoadAssemblies", AllowFailure = true)]
   [TestCaseSource(typeof(TestPlanLoader), nameof(GetModCompatTestPlans))]
   public void InitializeModCompatClass(Type type)
   {
@@ -138,7 +138,7 @@ public class HarmonyPatchTests
   }
   
   [Test]
-  [DependsOnTest("InitializeModCompatClass")]
+  [DependsOnTest("InitializeModCompatClass", AllowFailure = true)]
   [TestCaseSource(typeof(TestPlanLoader), nameof(GetPatchTestPlans))]
   public void ExecutePatches(TestPlan plan)
   {
