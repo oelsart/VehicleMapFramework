@@ -88,6 +88,12 @@ public static class TestUtility
     return pawn;
   }
 
+  public static VehicleGroup CreateBasicMapVehicleGroup(VehicleGroup.MockSettings settings)
+  {
+    settings.vehicleDef ??= MapVehicleDefGenerator.CreateVehicleDef(settings);
+    return VehicleGroup.CreateBasicVehicleGroup(settings);
+  }
+
   public static Ability_GrapplingHook GrapplingAbility =>
     new()
     {
