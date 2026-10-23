@@ -17,13 +17,13 @@ public class CrossMapRegionLinks(World world) : WorldComponent(world)
 
   public ReadOnlySpan<Region> GetConnectedRegions(Region region)
   {
-    if (region == null) return ReadOnlySpan<Region>.Empty;
+    if (region == null) return [];
 
     var id = region.id;
     if ((uint)id >= (uint)ranges.Length) return ReadOnlySpan<Region>.Empty;
 
     var range = ranges[id];
-    return range.count == 0 ? ReadOnlySpan<Region>.Empty : new ReadOnlySpan<Region>(flatLinks, range.start, range.count);
+    return range.count == 0 ? [] : new ReadOnlySpan<Region>(flatLinks, range.start, range.count);
   }
 
   /// <summary>

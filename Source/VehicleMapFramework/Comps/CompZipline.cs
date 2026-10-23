@@ -62,8 +62,8 @@ public class CompZipline : CompVehicleEnterSpot
     if (!IsZiplineEnd) return;
     LongEventHandler.ExecuteWhenFinished(() =>
     {
-      if (Find.World.GetComponent<CrossMapRegionLinks>() is not { } component ||
-          Pair is not { Spawned: true })
+      if (Pair is not { Spawned: true } ||
+          Find.World.GetComponent<CrossMapRegionLinks>() is not { } component)
         return;
       
       regionA = parent.GetRegion();
