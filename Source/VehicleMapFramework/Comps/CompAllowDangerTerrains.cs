@@ -19,11 +19,15 @@ public class CompAllowDangerTerrains : ThingComp
   public override void Notify_Equipped(Pawn pawn)
   {
     if (!Props.allowedDangerTerrains.NullOrEmpty())
+    {
       AllowedTerrains.AddOrUpdate(pawn, Props.allowedDangerTerrains);
+      CrossMapReachabilityCache.ClearCacheFor(pawn);
+    }
   }
 
   public override void Notify_Unequipped(Pawn pawn)
   {
     AllowedTerrains.Remove(pawn);
+    CrossMapReachabilityCache.ClearCacheFor(pawn);
   }
 }

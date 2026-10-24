@@ -1380,7 +1380,7 @@ public static class Patch_Reachability_ClearCache
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(typeof(Reachability), "map"),
         new CodeInstruction(OpCodes.Ldc_I4_0),
-        ((Delegate)CrossMapReachabilityCache.ClearCacheFor).Method.CallInstruction)
+        ((Action<Map, bool>)CrossMapReachabilityCache.ClearCacheFor).Method.CallInstruction)
       .InstructionEnumeration();
   }
 }

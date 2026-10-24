@@ -11,8 +11,9 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
     (bool result, TargetInfo exitSpot, TargetInfo enterSpot, List<TraverseSpots> spotsQueue)> cache = [];
 
   private readonly Dictionary<int, HashSet<CachedEntry>> removalDic = [];
+  private readonly List<CachedEntry> tmpEntries = [];
 
-  public static CrossMapReachabilityCache Instance { get; private set; }
+  private static CrossMapReachabilityCache Instance { get; set; }
 
   public override void FinalizeInit(bool fromLoad)
   {
@@ -35,6 +36,37 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
     foreach (var hashSet in Instance.removalDic.Values)
     {
       hashSet.Clear();
+    }
+  }
+
+  public static void ClearCacheFor(Pawn pawn)
+  {
+    foreach (var (_, hashSet) in Instance.removalDic)
+    {
+      foreach (var key in hashSet)
+      {
+        if (key.TraverseParms.traverseParms.pawn != pawn)
+          continue;
+
+        Instance.tmpEntries.Add(key);
+        if (Instance.cache.TryGetValue(key, out var value))
+        {
+          if (value.spotsQueue is not null)
+          {
+            value.spotsQueue.Clear();
+            SimplePool<List<TraverseSpots>>.Return(value.spotsQueue);
+            value.spotsQueue = null;
+          }
+
+          Instance.cache.Remove(key);
+        }
+      }
+
+      foreach (var entry in Instance.tmpEntries)
+      {
+        hashSet.Remove(entry);
+      }
+      Instance.tmpEntries.Clear();
     }
   }
 
@@ -160,7 +192,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
     private Region SecondRegion { get; }
 
-    private TraverseParmsExtended TraverseParms { get; }
+    public TraverseParmsExtended TraverseParms { get; }
 
     public CachedEntry(Region firstRegion, Region secondRegion, TraverseParmsExtended traverseParms)
     {
