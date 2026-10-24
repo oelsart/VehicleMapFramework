@@ -1,4 +1,4 @@
-﻿namespace VehicleMapFramework.Test_DevTools;
+﻿namespace VehicleMapFramework.Test;
 
 public class NamedLazy<T>(string name, Func<T> factory)
 {

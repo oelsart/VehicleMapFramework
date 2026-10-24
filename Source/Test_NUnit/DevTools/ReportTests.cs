@@ -1,7 +1,7 @@
 using System.Text;
 using System.Xml.Linq;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [TestFixture]
 [Category("Local")]

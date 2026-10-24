@@ -3,7 +3,7 @@ using HarmonyLib;
 using Verse;
 using Verse.AI;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 public readonly struct PuahDisabler : IDisposable
 {

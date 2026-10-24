@@ -6,7 +6,7 @@ using Vehicles.Tests;
 using Verse;
 using Verse.AI;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 internal abstract class CrossMapWorkGiverTestBase(VehicleGroup group)
 {

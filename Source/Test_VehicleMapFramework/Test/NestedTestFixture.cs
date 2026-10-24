@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using MethodType = DevTools.Testing.MethodType;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 public class NestedTestFixture : ITestFixture
 {
@@ -27,7 +27,7 @@ public class NestedTestFixture : ITestFixture
     Name = name;
     Args = args ?? [];
 
-    var context = Test.Current.TestCase as ITestFixture ?? ((ITestFunction)Test.Current.TestCase).Fixture;
+    var context = DevTools.Testing.Test.Current.TestCase as ITestFixture ?? ((ITestFunction)DevTools.Testing.Test.Current.TestCase).Fixture;
     Module = context.Module;
     TestType = context.TestType;
 
@@ -101,12 +101,12 @@ public class NestedTestFixture : ITestFixture
     // DevLog.Write($"Starting nested-tests: {Name}...");
     // DevLog.WriteLine();
 
-    using (new Test.Scope(this))
+    using (new DevTools.Testing.Test.Scope(this))
     {
       using LogWatcher fxWatcher = new(testManager.Config);
       if (!OneTimeSetUp(instance))
       {
-        Test.Fail($"Failed to set up {Name}!");
+        DevTools.Testing.Test.Fail($"Failed to set up {Name}!");
         yield break;
       }
 
@@ -120,7 +120,7 @@ public class NestedTestFixture : ITestFixture
         var attempts = 0;
         do
         {
-          using Test.Scope fns = new(function);
+          using DevTools.Testing.Test.Scope fns = new(function);
           using LogWatcher fnWatcher = new(testManager.Config);
           if (++attempts > 1)
           {
@@ -130,7 +130,7 @@ public class NestedTestFixture : ITestFixture
           {
             if (!SetUp(instance))
             {
-              Test.Fail($"Failed to set up {Name}!");
+              DevTools.Testing.Test.Fail($"Failed to set up {Name}!");
               continue;
             }
 
@@ -147,7 +147,7 @@ public class NestedTestFixture : ITestFixture
           {
             if (!TearDown(instance))
             {
-              Test.Fail($"Failed to tear down {Name}!");
+              DevTools.Testing.Test.Fail($"Failed to tear down {Name}!");
             }
           }
         } while (attempts <= maxRetries && function.Status is Status.Failed);
@@ -156,11 +156,11 @@ public class NestedTestFixture : ITestFixture
       }
       if (!OneTimeTearDown(instance))
       {
-        Test.Fail($"Failed to tear down {Name}!");
+        DevTools.Testing.Test.Fail($"Failed to tear down {Name}!");
       }
     }
 
-    AccessTools.Method(typeof(Test), "LogResults").Invoke(null, [this, testToRun]);
+    AccessTools.Method(typeof(DevTools.Testing.Test), "LogResults").Invoke(null, [this, testToRun]);
     // DevLog.Flush();
     // DevLog.WriteLine();
     // DevLog.Write(

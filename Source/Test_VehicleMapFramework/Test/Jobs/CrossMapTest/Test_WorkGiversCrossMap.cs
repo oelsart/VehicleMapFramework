@@ -6,7 +6,7 @@ using Vehicles;
 using Vehicles.Tests;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [TestFixture(TestType.Playing)]
 public sealed class Test_WorkGiversCrossMap

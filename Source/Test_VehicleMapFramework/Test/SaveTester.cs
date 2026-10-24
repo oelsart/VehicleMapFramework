@@ -2,7 +2,7 @@
 using HarmonyLib;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 public static class SaveTester
 {
@@ -25,7 +25,7 @@ public static class SaveTester
     catch(Exception ex)
     {
       Scribe.ForceStop();
-      Test.Fail(ex);
+      DevTools.Testing.Test.Fail(ex);
     }
   }
 
@@ -45,7 +45,7 @@ public static class SaveTester
     catch(Exception ex)
     {
       Scribe.ForceStop();
-      Test.Fail(ex);
+      DevTools.Testing.Test.Fail(ex);
     }
   }
 

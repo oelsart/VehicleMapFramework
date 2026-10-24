@@ -3,7 +3,7 @@ using RimWorld;
 using Vehicles.Tests;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 internal class Test_HaulToInventory(VehicleGroup group) : Test_HaulGeneral(group)
 {

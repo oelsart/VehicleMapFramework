@@ -8,7 +8,7 @@ using Vehicles;
 using Verse;
 using Verse.AI;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [TestFixture(TestType.Playing)]
 internal sealed class Test_CrossMapReachability(
@@ -150,7 +150,7 @@ internal sealed class Test_CrossMapReachability(
 
     if (traverseParms.Value.pawn is { } pawn2)
     {
-      using var areaScope = new AllowedAreaScope(pawn2, Crawlers[0]);
+      using var areaScope = new TestUtility.AllowedAreaScope(pawn2, Crawlers[0]);
       var resultWithAllowedArea = CrossMapReachabilityUtility.CanReach(Map, root, vehicleMap.Center, PathEndMode.OnCell,
         traverseParms.Value, vehicleMap, out exitSpot, out enterSpot, out spotsQueue);
       Expect.IsTrue(resultWithAllowedArea, "Entering vehicle should ignore destination vehicle allowed area");
@@ -181,7 +181,7 @@ internal sealed class Test_CrossMapReachability(
 
     if (traverseParms.Value.pawn is { } pawn2)
     {
-      using var areaScope = new AllowedAreaScope(pawn2, Crawlers[0]);
+      using var areaScope = new TestUtility.AllowedAreaScope(pawn2, Crawlers[0]);
       var resultWithAllowedArea = CrossMapReachabilityUtility.CanReach(vehicleMap, vehicleMap.Center, dest, PathEndMode.OnCell,
         traverseParms.Value, Map, out _, out _, out _);
       if (traverseParms.Name.ToLower().Contains("ability"))

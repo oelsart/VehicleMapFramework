@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 using Vehicles.Tests;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [TestFixture(TestType.Playing)]
 internal sealed class Test_CompPowerNetLink : IGenericTest

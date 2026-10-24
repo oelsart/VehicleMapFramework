@@ -8,7 +8,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 internal class LogWatcher : IDisposable
 {
@@ -56,7 +56,7 @@ internal class LogWatcher : IDisposable
     if (!config.VerifyForLogType(logType))
       return;
 
-    var current = Test.Current;
+    var current = DevTools.Testing.Test.Current;
     if (current is { Status: Status.Failed })
       return;
 
@@ -78,11 +78,11 @@ internal class LogWatcher : IDisposable
     switch (logType)
     {
       case LogType.Error or LogType.Assert or LogType.Exception:
-        Test.Fail("Logged error not whitelisted for tests.",
+        DevTools.Testing.Test.Fail("Logged error not whitelisted for tests.",
           $"\"{logEntry.message}\"{Environment.NewLine}{logEntry.stackTrace}");
         break;
       case LogType.Warning:
-        Test.Fail("Logged warning not whitelisted for tests.",
+        DevTools.Testing.Test.Fail("Logged warning not whitelisted for tests.",
           $"\"{logEntry.message}\"{Environment.NewLine}{logEntry.stackTrace}");
         break;
     }

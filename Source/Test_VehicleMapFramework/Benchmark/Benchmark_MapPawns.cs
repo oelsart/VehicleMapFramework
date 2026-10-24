@@ -3,7 +3,7 @@ using LudeonTK;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [BenchmarkClass("MapPawns", AllowedGameStates = AllowedGameStates.PlayingOnMap, RunAsync = false)]
 internal sealed class Benchmark_MapPawns

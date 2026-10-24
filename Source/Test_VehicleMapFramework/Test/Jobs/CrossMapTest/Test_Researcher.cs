@@ -2,7 +2,7 @@
 using Vehicles.Tests;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 internal class Test_Researcher(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
 {

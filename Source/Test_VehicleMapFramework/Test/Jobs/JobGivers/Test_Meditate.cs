@@ -4,7 +4,7 @@ using UnityEngine.Assertions;
 using Vehicles.Tests;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools.JobGivers;
+namespace VehicleMapFramework.Test.JobGivers;
 
 [LoadIfRoyaltyActive]
 [TestFixture(TestType.Playing)]

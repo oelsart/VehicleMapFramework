@@ -2,7 +2,7 @@
 using DevTools.Testing;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [TestFixture(TestType.MainMenu)]
 internal sealed class Test_CrossMapRegionLink

@@ -2,7 +2,7 @@
 using RimWorld;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [TestFixture(TestType.Playing)]
 internal sealed class Test_TargetMapManager
@@ -126,7 +126,7 @@ internal sealed class Test_TargetMapManager
       }
       catch (Exception ex)
       {
-        Test.Fail($"WorldComponentTick should not throw ArgumentNullException even if GC-collected keys exist.\n{ex}");
+        DevTools.Testing.Test.Fail($"WorldComponentTick should not throw ArgumentNullException even if GC-collected keys exist.\n{ex}");
       }
     }
   }

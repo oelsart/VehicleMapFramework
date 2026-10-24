@@ -5,7 +5,7 @@
 using DevTools.Testing;
 using UnityEngine;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 internal static class Ext_TestConfig
 {

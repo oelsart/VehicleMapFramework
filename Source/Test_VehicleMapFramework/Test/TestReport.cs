@@ -5,7 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DevTools.Testing;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 internal class TestReport
 {

@@ -7,7 +7,7 @@ using Vehicles;
 using Vehicles.Tests;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 public static class MapVehicleDefGenerator
 {

@@ -4,7 +4,7 @@ using RimWorld;
 using Vehicles;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [BenchmarkClass("CrossMapReachability", AllowedGameStates = AllowedGameStates.PlayingOnMap)]
 internal sealed class Benchmark_CrossMapReachability

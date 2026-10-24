@@ -5,7 +5,7 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [BenchmarkClass("VehicleMapView", AllowedGameStates = AllowedGameStates.PlayingOnMap, RunAsync = false)]
 internal sealed class Benchmark_VehicleMapView

@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using UnityEngine.Assertions.Comparers;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 public static class ExpectOrSuspend
 {
@@ -169,7 +169,7 @@ public static class ExpectOrSuspend
       return;
     }
 
-    var current = Test.Current;
+    var current = DevTools.Testing.Test.Current;
     current.Status = status;
     if (status is Status.Failed or Status.Canceled or Status.Skipped)
     {
@@ -192,6 +192,6 @@ public static class ExpectOrSuspend
   [MustUseReturnValue] private static IEnumerator Suspend(string message)
   {
     Find.TickManager?.Pause();
-    yield return Test.Suspend(-1, message);
+    yield return DevTools.Testing.Test.Suspend(-1, message);
   }
 }

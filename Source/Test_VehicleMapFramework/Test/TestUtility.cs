@@ -1,4 +1,4 @@
-﻿global using static VehicleMapFramework.Test_DevTools.TestUtility;
+﻿global using static VehicleMapFramework.Test.TestUtility;
 using System.Collections;
 using DevTools.Testing;
 using RimWorld;
@@ -8,7 +8,7 @@ using Vehicles.Tests;
 using Verse;
 using Verse.AI;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 public static class TestUtility
 {

@@ -5,7 +5,7 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles.Tests;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 internal sealed class Test_StudyInteract(VehicleGroup group) : WorkGiverTestBase(group)
 {

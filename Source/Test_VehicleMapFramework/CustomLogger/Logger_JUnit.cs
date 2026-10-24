@@ -3,7 +3,7 @@ using System.Xml.Linq;
 using DevTools.Testing;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 public class Logger_JUnit : ILogWriter
 {

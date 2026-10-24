@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Xml.Linq;
 using Microsoft.VisualBasic;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 internal class TestCoRunner
 {

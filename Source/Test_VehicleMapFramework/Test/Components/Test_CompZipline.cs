@@ -3,7 +3,7 @@ using UnityEngine.Assertions;
 using Vehicles.Tests;
 using Verse;
 
-namespace VehicleMapFramework.Test_DevTools;
+namespace VehicleMapFramework.Test;
 
 [TestFixture(TestType.Playing)]
 internal sealed class Test_CompZipline
@@ -69,7 +69,7 @@ internal sealed class Test_CompZipline
     var thing = ThingMaker.MakeThing(VMF_DefOf.VMF_ZiplineEnd);
     if (thing is not ZiplineEnd ziplineEnd)
     {
-      Test.Fail($"VMF_DefOf.ZiplineEnd produced unexpected thing type: {thing?.GetType().FullName ?? "null"}");
+      DevTools.Testing.Test.Fail($"VMF_DefOf.ZiplineEnd produced unexpected thing type: {thing?.GetType().FullName ?? "null"}");
       return null;
     }
 
@@ -95,7 +95,7 @@ internal sealed class Test_CompZipline
       }
     }
 
-    Test.Fail(
+    DevTools.Testing.Test.Fail(
       $"Expected region {source.id} to be connected to region {expected.id}, " +
       $"but connected regions were [{FormatRegionIds(connectedRegions)}].");
   }
@@ -107,7 +107,7 @@ internal sealed class Test_CompZipline
     {
       if (ReferenceEquals(connectedRegions[i], unexpected))
       {
-        Test.Fail(
+        DevTools.Testing.Test.Fail(
           $"Expected region {source.id} not to be connected to region {unexpected.id}, " +
           $"but connected regions were [{FormatRegionIds(connectedRegions)}].");
       }
