@@ -32,7 +32,7 @@ public class RoleUpgradeBuildable : VehicleUpgrade.RoleUpgrade
 
     if (!upgrade2.turretIds.NullOrEmpty())
     {
-      upgrade2.label += ": " + upgrade2.turretIds!.Select(i => i.CapitalizeFirst()).ToCommaList();
+      upgrade2.label += ": " + upgrade2.turretIds.Select(i => i.CapitalizeFirst()).ToCommaList();
     }
 
     VehicleRoleBuildable vehicleRole = new()
