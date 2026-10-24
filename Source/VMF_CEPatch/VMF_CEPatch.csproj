@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <Reference Include="CombatExtended">
-      <HintPath>$(SteamWorkshopRoot)\2890901044\Assemblies\CombatExtended.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3495749827\Assemblies\CombatExtended.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
