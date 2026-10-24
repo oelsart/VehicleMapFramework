@@ -65,9 +65,8 @@ public class CompMapExpander : ThingComp
           c => ValidCell(c) && c != parent.Position,
           c =>
           {
-            if (tmpCells.Contains(c))
+            if (tmpCells.Remove(c))
             {
-              tmpCells.Remove(c);
               if (tmpCells.Empty())
               {
                 result = false;
@@ -128,37 +127,40 @@ public class CompMapExpander : ThingComp
   {
     if (respawningAfterLoad)
     {
-      FrameDelay.DelayOne(Process, this);
+      FrameDelay.DelayOne(static comp => Process(comp, true), this);
       return;
     }
-    Process(this);
+    Process(this, false);
     return;
 
-    static void Process(CompMapExpander comp)
+    static void Process(CompMapExpander comp, bool respawningAfterLoad)
     {
       if (comp.parent.IsOnVehicleMapOf(out var vehicle))
       {
         var map = comp.parent.Map;
-        MapComponent mapComp = null;
-        var banded = AsAboveSoBelow.Active &&
-                     (mapComp = AsAboveSoBelow.CompOf(map)) is not null &&
-                     AsAboveSoBelow.Banded(mapComp);
-        foreach (var c in comp.parent.OccupiedRect())
+        if (!respawningAfterLoad)
         {
-          map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
-          if (banded)
+          MapComponent mapComp = null;
+          var banded = AsAboveSoBelow.Active &&
+                       (mapComp = AsAboveSoBelow.CompOf(map)) is not null &&
+                       AsAboveSoBelow.Banded(mapComp);
+          foreach (var c in comp.parent.OccupiedRect())
           {
-            for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
+            map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
+            if (banded)
             {
-              map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c, i), VMF_DefOf.VMF_VehicleFloor);
+              for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
+              {
+                map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c, i), VMF_DefOf.VMF_VehicleFloor);
+              }
             }
           }
         }
         vehicle.MapExpanderComps.Add(comp);
-        comp.DirtySelfAndAdjacentComps(comp.parent.Map);
+        comp.DirtySelfAndAdjacentComps(map);
         vehicle.impassableCellsDirty = true;
         vehicle.resizeRequest = true;
-        CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
+        CrossMapReachabilityCache.ClearCacheFor(map);
       }
     }
   }
