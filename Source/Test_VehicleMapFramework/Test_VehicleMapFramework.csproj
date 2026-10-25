@@ -34,5 +34,6 @@
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Update="Krafs.Rimworld.Ref" />
   </ItemGroup>
 </Project>

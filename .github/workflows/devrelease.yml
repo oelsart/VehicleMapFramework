@@ -150,6 +150,12 @@ jobs:
         name: VehicleMapFrameworkDev
         path: VehicleMapFrameworkDev
     
+    - name: Disable Docker seccomp security profile (Fix SteamCMD network issue)
+      run: |
+        sudo mkdir -p /etc/docker
+        echo '{"seccomp-profile": "unconfined"}' | sudo tee /etc/docker/daemon.json
+        sudo systemctl restart docker
+    
     - name: Deploy
       uses: m00nl1ght-dev/steam-workshop-deploy@v4
       with:

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>VehicleMapFramework</RootNamespace>
     <AssemblyName>VehicleMapFramework</AssemblyName>
+    <AssemblyCopyright>Copyright ©OELS  2024-2026</AssemblyCopyright>
     <OutDir>$(ModDir)\1.7\Assemblies\</OutDir>
   </PropertyGroup>
 
@@ -13,6 +14,16 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="VMF_AchtungPatch" />
+    <InternalsVisibleTo Include="VMF_CEPatch" />
+    <InternalsVisibleTo Include="VMF_DBHCompat" />
+    <InternalsVisibleTo Include="VMF_RimefellerCompat" />
+    <InternalsVisibleTo Include="VMF_VEFCompat" />
+    <InternalsVisibleTo Include="Test_VehicleMapFramework" />
+    <InternalsVisibleTo Include="MapVehiclesOcean" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
