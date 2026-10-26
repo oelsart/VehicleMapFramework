@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <IsPackable>false</IsPackable>
-    <RootNamespace>VehicleMapFramework.Test_CompatPatches</RootNamespace>
+    <RootNamespace>VehicleMapFramework.Test</RootNamespace>
     <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>
 
@@ -12,7 +11,9 @@
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Mono.Cecil" />
     <PackageReference Include="NUnit" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" />
     <PackageReference Include="YamlDotNet" />
   </ItemGroup>
 

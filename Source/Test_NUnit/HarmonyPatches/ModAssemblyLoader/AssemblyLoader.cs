@@ -14,7 +14,7 @@ public class AssemblyLoader(string version, string workshopPath, string localMod
 
   private const string CommonFolderName = "Common";
 
-  public List<Assembly> LoadModFolder(string folderName)
+  public List<Assembly> LoadModFolder(string folderName, AssemblyLoadContext context = null)
   {
     ArgumentNullException.ThrowIfNull(folderName);
     var rootFolder = TryLoadFolder(Path.Combine(workshopPath, folderName));
@@ -53,6 +53,7 @@ public class AssemblyLoader(string version, string workshopPath, string localMod
     }
 
     var loadedAssemblies = new List<Assembly>();
+    context ??= AssemblyLoadContext.Default;
     foreach (var name in folders.OrderBy(name => name is "/" or "\\"))
     {
       var fullPath = rootFolder.FullName;
@@ -68,14 +69,11 @@ public class AssemblyLoader(string version, string workshopPath, string localMod
       {
         try
         {
-          var assembly = Assembly.LoadFrom(fileInfo.FullName);
-          AssemblyLoadContext.Default.Resolving += (_, assemblyName) =>
-            assemblyName?.Name == assembly.GetName().Name ? assembly : null;
-          loadedAssemblies.Add(assembly);
+          loadedAssemblies.Add(context.LoadFromAssemblyPath(fileInfo.FullName));
         }
         catch
         {
-          Assert.Warn($"Fail to load assembly: {fileInfo.FullName}");
+          Assert.Warn($"Failed to load assembly: {fileInfo.FullName}");
         }
       }
     }

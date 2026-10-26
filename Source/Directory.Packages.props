@@ -9,8 +9,10 @@
     <PackageVersion Include="Krafs.Rimworld.Ref" Version="1.7.4985-unstable" />
     <PackageVersion Include="Lib.Harmony" Version="3.0.0-rc.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageVersion Include="Mono.Cecil" Version="0.11.6" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.94" />
     <PackageVersion Include="NUnit" Version="5.0.0" />
+    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.14" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 </Project>

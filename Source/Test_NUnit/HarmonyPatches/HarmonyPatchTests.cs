@@ -1,12 +1,14 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using HarmonyLib;
-using static VehicleMapFramework.Test_HarmonyPatches.TestPlanLoader;
+using Mono.Cecil;
+using static VehicleMapFramework.Test.TestPlanLoader;
 
-namespace VehicleMapFramework.Test_HarmonyPatches;
+namespace VehicleMapFramework.Test;
 
 [TestFixture]
-// [Category("Local")]
+[Category("Local")]
 [Category("Remote")]
 public class HarmonyPatchTests
 {
@@ -117,14 +119,65 @@ public class HarmonyPatchTests
       List<Assembly> assemblies2 = null;
       using (Assert.EnterMultipleScope())
       {
-        Assert.DoesNotThrow(() => assemblies2 = Loader.LoadModFolder(WorkshopIds[mod]));
+        Assert.DoesNotThrow(() => assemblies2 = Loader.LoadModFolder(WorkshopIds[mod], new AssemblyLoadContext(mod, true)));
         Assert.That(assemblies2, Is.Not.Empty);
       }
       assemblies.AddRange(assemblies2);
     }
-    Assert.Pass($"Successfully loaded {assemblies.Count} assemblies.\n{string.Join("\n", assemblies)}");
-  }
 
+    foreach (var assembly in assemblies)
+    {
+      LoadAndRewriteAssembly(assembly.Location);
+    }
+    Assert.Pass($"Successfully loaded {assemblies.Count} assemblies.\n{string.Join("\n", assemblies)}");
+    return;
+    
+    static void LoadAndRewriteAssembly(string assemblyPath)
+    {
+      var targetName = AssemblyName.GetAssemblyName(assemblyPath).Name;
+      if (AssemblyLoadContext.Default.Assemblies.Any(a => a.GetName().Name == targetName))
+      {
+        return;
+      }
+      
+      var resolver = new DefaultAssemblyResolver();
+      var baseDir = Configurations.RimWorldAssemblyFolder;
+      resolver.AddSearchDirectory(baseDir);
+      var assemblyDir = Path.GetDirectoryName(assemblyPath);
+      if (!string.IsNullOrEmpty(assemblyDir) && assemblyDir != baseDir)
+      {
+        resolver.AddSearchDirectory(assemblyDir);
+      }
+      var readerParameters = new ReaderParameters
+      {
+        AssemblyResolver = resolver
+      };
+      
+      using var assemblyDef = AssemblyDefinition.ReadAssembly(assemblyPath, readerParameters);
+      var isModified = false;
+
+      foreach (var reference in assemblyDef.MainModule.AssemblyReferences)
+      {
+        if (reference.Name.StartsWith("UnityEngine"))
+        {
+          reference.Name = "UnityStubs";
+          isModified = true;
+        }
+      }
+    
+      if (isModified)
+      {
+        using var ms = new MemoryStream();
+        assemblyDef.Write(ms);
+        ms.Position = 0;
+        AssemblyLoadContext.Default.LoadFromStream(ms);
+        return;
+      }
+
+      Assembly.LoadFrom(assemblyPath);
+    }
+  }
+  
   [Test]
   [DependsOnTest("LoadAssemblies", AllowFailure = true)]
   [TestCaseSource(typeof(TestPlanLoader), nameof(GetModCompatTestPlans))]

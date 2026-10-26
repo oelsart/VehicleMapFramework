@@ -1,4 +1,4 @@
-﻿namespace VehicleMapFramework.Test_HarmonyPatches;
+﻿namespace VehicleMapFramework.Test;
 
 public static class Configurations
 {

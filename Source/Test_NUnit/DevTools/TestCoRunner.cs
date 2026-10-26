@@ -21,9 +21,6 @@ internal class TestCoRunner
   internal const string ResultPath =
     "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/Mods/VehicleMapFramework/.git/testresults/Test.log";
 
-  internal static readonly string ConfigPath =
-    $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)[..^6]}/LocalLow/Ludeon Studios/RimWorld by Ludeon Studios/Config";
-
   internal static XElement[] testCases;
 
   public static void Run()
