@@ -17,9 +17,9 @@ internal static class Patches_MuzzleFlash
 }
 
 [HarmonyPatchCategory(PatchCategories.MuzzleFlash)]
-[HarmonyPatch("MuzzleFlash.MapComponent_MuzzleFlashManager", "MapComponentUpdate")]
+[HarmonyPatch("MuzzleFlash.MapComponent_MuzzleFlashManager", "MapComponentDraw")]
 [PatchLevel(Level.Sensitive)]
-public static class Patch_MapComponent_MuzzleFlashManager_MapComponentUpdate
+public static class Patch_MapComponent_MuzzleFlashManager_MapComponentDraw
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
