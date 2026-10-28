@@ -13,7 +13,6 @@ using Verse;
 using Verse.AI;
 using Verse.AI.Group;
 using Verse.Sound;
-using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -176,27 +175,9 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var matcher = PatchHelper.CreateCodeMatcherFast(instructions, generator);
-    var l_vehicle_ind = matcher.Instructions().Select(i => i.operand).OfType<LocalBuilder>()
-      .FirstOrDefault(l => l.LocalType == typeof(VehiclePawn))?.LocalIndex ?? 0;
-    return matcher
-      .MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))),
-        new CodeMatch(OpCodes.Add))
-      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
-      .Advance()
-      .CreateLabel(out var label)
-      .Insert(
-        CodeInstruction.LoadLocal(l_vehicle_ind),
-        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-        CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
-        new CodeInstruction(OpCodes.Brfalse_S, label),
-        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        CachedMethodInfo.m_FullAngle.CallvirtInstruction,
-        new CodeInstruction(OpCodes.Add))
-      .MatchStartForward(CodeMatch.Calls(
-        AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize))))
-      .Set(OpCodes.Call, ((Delegate)VehicleMapUtility.BaseRotatedSize).Method)
-      .Instructions();
+    return instructions.MethodReplacer(
+      AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize)),
+      ((Delegate)VehicleMapUtility.BaseRotatedSize).Method);
   }
 }
 
@@ -1400,65 +1381,6 @@ public static class Patch_VehiclePath_DrawPath
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch("Vehicles.VehicleGhostUtility+DrawData", "DrawPos", MethodType.Getter)]
-public static class Patch_VehicleGhostUtility_DrawData_DrawPos
-{
-  [PatchLevel(Level.Sensitive)]
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    var type = GenTypes.GetTypeInAnyAssembly("Vehicles.VehicleGhostUtility+DrawData");
-    var f_rot = AccessTools.Field(type, "rot");
-    return PatchHelper.CreateCodeMatcherFast(instructions)
-      .MatchStartForward(CodeMatch.LoadsField(f_rot))
-      .InsertAfterAndAdvance(
-        CodeInstruction.LoadArgument(0),
-        CodeInstruction.LoadField(type, "vehicle"),
-        ((Func<Rot8, VehiclePawn, Rot8>)BaseRot).Method.CallInstruction)
-      .MatchStartForward(CodeMatch.LoadsField(f_rot))
-      .InsertAfter(((Func<Rot8, Rot8>)FocusedRot).Method.CallInstruction)
-      .InstructionEnumeration();
-
-    Rot8 BaseRot(Rot8 rot, VehiclePawn vehicle)
-    {
-      if (FocusVehicleScope.FocusedVehicle is { } vehicle2)
-      {
-        return rot.Rotated(vehicle2.FullRotation);
-      }
-      if (vehicle.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out var vehicle3))
-      {
-        return rot.Rotated(vehicle3.FullRotation);
-      }
-      return rot;
-    }
-
-    Rot8 FocusedRot(Rot8 rot)
-    {
-      if (FocusVehicleScope.FocusedVehicle is { } vehicle)
-      {
-        return rot.Rotated(vehicle.FullRotation);
-      }
-      return rot;
-    }
-  }
-  
-  [PatchLevel(Level.Safe)]
-  public static void Postfix(VehiclePawn ___vehicle, ref Vector3 __result)
-  {
-    if (___vehicle is not null)
-    {
-      __result = ___vehicle.TryGetTargetMap(out var map) ? __result.ToBaseMapCoord(map).WithY(__result.y) : __result;
-      return;
-    }
-
-    if (FocusVehicleScope.FocusedVehicle is null &&
-        UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
-    {
-      __result = __result.ToBaseMapCoord(vehicle);
-    }
   }
 }
 
