@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <Reference Include="Achtung">
-      <HintPath>$(SteamWorkshopRoot)\730936602\1.7\Assemblies\Achtung.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\730936602\1.6\Assemblies\Achtung.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
