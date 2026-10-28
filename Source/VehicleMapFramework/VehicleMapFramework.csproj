@@ -3,7 +3,6 @@
   <PropertyGroup>
     <RootNamespace>VehicleMapFramework</RootNamespace>
     <AssemblyName>VehicleMapFramework</AssemblyName>
-    <AssemblyCopyright>Copyright ©OELS  2024-2026</AssemblyCopyright>
     <OutDir>$(ModDir)\1.7\Assemblies\</OutDir>
   </PropertyGroup>
 

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <FileVersion>1.7.0</FileVersion>
     <AssemblyVersion>1.7.0</AssemblyVersion>
+    <AssemblyCopyright>Copyright ©OELS  2024-2026</AssemblyCopyright>
 
     <Configurations>Debug;Dev;Release</Configurations>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
