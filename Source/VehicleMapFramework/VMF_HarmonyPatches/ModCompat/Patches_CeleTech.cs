@@ -375,9 +375,9 @@ public static class Patch_Verb_PlasmaIncinerator_TryCastShot
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("CeleTech.Base.Verb_RocketShoot", "TryCastShot")]
+[HarmonyPatch("CeleTech.Base.Verb_RocketShoot", "TryCastShotInner")]
 [PatchLevel(Level.Cautious)]
-public static class Patch_Verb_RocketShoot_TryCastShot
+public static class Patch_Verb_RocketShoot_TryCastShotInner
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
