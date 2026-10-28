@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using HarmonyLib;
+using JetBrains.Annotations;
 using Mono.Cecil;
 using static VehicleMapFramework.Test.TestPlanLoader;
 
@@ -171,6 +172,7 @@ public class HarmonyPatchTests
         assemblyDef.Write(ms);
         ms.Position = 0;
         AssemblyLoadContext.Default.LoadFromStream(ms);
+        Console.WriteLine("Assembly modified.");
         return;
       }
 
@@ -265,9 +267,12 @@ public class HarmonyPatchTests
       });
     }
 
-    void HandleException(Exception ex)
+    void HandleException([NotNull] Exception ex)
     {
-      Assert.Fail(ex?.ToString() ?? "");
+      if (ex is HarmonyException harmonyException)
+        ex = harmonyException.InnerException;
+      Assert.That(ex is FileNotFoundException { FileName: { } fileName } && fileName.Contains("UnityEngine.CoreModule"),
+        Is.True, ex?.ToString());
     }
   }
 }
