@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Reflection;
 using AchtungMod;
 using HarmonyLib;
 using RimWorld;
@@ -44,14 +42,14 @@ public static class Patch_Colonist_UpdateOrderPos
     if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None) ||
         __instance.pawn.MapHeld.IsNonFocusedVehicleMapOf(out _))
     {
-      __result = __instance.UpdateOrderPos(pos, cellValidator, vehicle);
+      __result = __instance.UpdateOrderPosOnVehicle(pos, cellValidator, vehicle);
       return false;
     }
 
     return true;
   }
 
-  public static IntVec3 UpdateOrderPos(this Colonist colonist, Vector3 pos, Predicate<IntVec3> cellValidator,
+  private static IntVec3 UpdateOrderPosOnVehicle(this Colonist colonist, Vector3 pos, Predicate<IntVec3> cellValidator,
     VehiclePawnWithMap vehicle)
   {
     IntVec3 destCell;
@@ -230,15 +228,12 @@ public static class Patch_Controller_HandleDrawing
 [HarmonyPatch(typeof(Controller), nameof(Controller.MouseDown))]
 public static class Patch_Controller_MouseDown
 {
-  private static VehiclePawnWithMap tmpFocusedMap;
-
   [PatchLevel(Level.Safe)]
-  public static void Prefix(Vector3 pos)
+  public static void Prefix(Vector3 pos, ref FocusVehicleScope? __state)
   {
-    tmpFocusedMap = Command_FocusVehicleMap.FocusedVehicle;
     if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
     {
-      Command_FocusVehicleMap.FocusedVehicle = vehicle;
+      __state = new FocusVehicleScope(vehicle);
       CrossMapReachabilityUtility.DestMapGlobal = vehicle.CurrentLevel;
       GenUIOnVehicle.vehicleForSelector = vehicle;
     }
@@ -260,9 +255,9 @@ public static class Patch_Controller_MouseDown
   }
 
   [PatchLevel(Level.Safe)]
-  public static void Finalizer()
+  public static void Finalizer(FocusVehicleScope? __state)
   {
-    Command_FocusVehicleMap.FocusedVehicle = tmpFocusedMap;
+    __state?.Dispose();
     CrossMapReachabilityUtility.DestMapGlobal = null;
     GenUIOnVehicle.vehicleForSelector = null;
   }

@@ -46,4 +46,21 @@
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
+
+  <Target Name="GenerateEmptyUnityCoreModule"
+          BeforeTargets="ResolveAssemblyReferences"
+          Condition="!Exists('$(IntermediateOutputPath)UnityEngine.CoreModule.dll')">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(IntermediateOutputPath)empty.cs" Lines="" Overwrite="true" />
+    <Csc Sources="$(IntermediateOutputPath)empty.cs"
+         OutputAssembly="$(IntermediateOutputPath)UnityEngine.CoreModule.dll"
+         TargetType="Library" />
+  </Target>
+
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(IntermediateOutputPath)UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
 </Project>
