@@ -104,7 +104,7 @@ jobs:
     
     - name: Restore Dependencies
       run: |
-        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.slnx -c DevRelease
+        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.slnx
     
     - name: Build DLL
       run: |
