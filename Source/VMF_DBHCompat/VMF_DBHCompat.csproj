@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>VehicleMapFramework</RootNamespace>
-    <OutDir>$(ModDir)\1.7\DubsBadHygiene\Assemblies\</OutDir>
+    <OutDir>$(ModDir)\1.7\_DubsBadHygiene\Assemblies\</OutDir>
     <Configurations>Debug;Dev;Release;DevRelease</Configurations>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
