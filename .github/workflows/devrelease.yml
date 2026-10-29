@@ -104,12 +104,12 @@ jobs:
     
     - name: Restore Dependencies
       run: |
-        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.slnx
+        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.slnx -c DevRelease
     
     - name: Build DLL
       run: |
         $workshopRoot = "$pwd/Steam/steamapps/workshop/content/294100"
-        dotnet build Source/VehicleMapFramework/VehicleMapFramework.slnx --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.slnx -c DevRelease --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
     
     - name: Move dev folder
       run: Move-Item ../VehicleMapFrameworkDev VehicleMapFrameworkDev
