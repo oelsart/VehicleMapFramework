@@ -2,6 +2,8 @@
   <PropertyGroup>
     <RootNamespace>VehicleMapFramework</RootNamespace>
     <OutDir>$(ModDir)\1.7\_CombatExtended\Assemblies\</OutDir>
+    <Configurations>Debug;Dev;Release;DevRelease</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -18,7 +20,7 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)'=='Dev'">
+  <ItemGroup Condition="'$(Configuration)'=='Dev'or'$(Configuration)'=='DevRelease'">
     <Reference Include="SmashTools">
       <HintPath>$(VFUnstableFolder)\1.7\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>

@@ -1,7 +1,7 @@
 ﻿<Project>
   <Target Name="CopyToDev"
           AfterTargets="Build"
-          Condition="'$(Configuration)' == 'Dev' and '$(SkipCopyToDev)' != 'true'">
+          Condition="'$(Configuration)'=='Dev' or '$(Configuration)'=='DevRelease'">
     <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)CopyToDev.ps1&quot; -SolutionDir &quot;$(MSBuildThisFileDirectory)&quot;" />
   </Target>
 </Project>

@@ -2,6 +2,8 @@
   <PropertyGroup>
     <RootNamespace>VehicleMapFramework.Test</RootNamespace>
     <GenerateDependencyFile>true</GenerateDependencyFile>
+    <Configurations>Debug;Dev;Release;DevRelease</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

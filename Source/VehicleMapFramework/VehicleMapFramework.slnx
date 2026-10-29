@@ -2,17 +2,18 @@
   <Configurations>
     <BuildType Name="Debug" />
     <BuildType Name="Dev" />
+    <BuildType Name="DevRelease" />
     <BuildType Name="Release" />
     <Platform Name="Any CPU" />
     <Platform Name="ARM64" />
     <Platform Name="x64" />
   </Configurations>
   <Project Path="../Test_NUnit/Test_NUnit.csproj">
-    <BuildType Solution="Dev|ARM64" Project="Debug" />
-    <BuildType Solution="Dev|x64" Project="Debug" />
+    <Build Solution="DevRelease|Any CPU" Project="false" />
   </Project>
   <Project Path="../Test_VehicleMapFramework/Test_VehicleMapFramework.csproj">
     <Build Solution="Debug|Any CPU" Project="false" />
+    <Build Solution="DevRelease|Any CPU" Project="false" />
     <Build Solution="Release|Any CPU" Project="false" />
   </Project>
   <Project Path="../VMF_AchtungPatch/VMF_AchtungPatch.csproj" />

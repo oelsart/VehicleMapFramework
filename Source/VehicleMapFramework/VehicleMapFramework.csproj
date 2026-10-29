@@ -4,6 +4,8 @@
     <RootNamespace>VehicleMapFramework</RootNamespace>
     <AssemblyName>VehicleMapFramework</AssemblyName>
     <OutDir>$(ModDir)\1.7\Assemblies\</OutDir>
+    <Configurations>Debug;Dev;Release;DevRelease</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +27,7 @@
     <InternalsVisibleTo Include="MapVehiclesOcean" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)'=='Dev'">
+  <ItemGroup Condition="'$(Configuration)'=='Dev'or'$(Configuration)'=='DevRelease'">
     <Reference Include="AnimationKit">
       <HintPath>$(VFUnstableFolder)\1.7\Assemblies\AnimationKit.dll</HintPath>
       <Private>False</Private>
@@ -64,7 +66,7 @@
 
   <PropertyGroup>
     <AboutFolderPath Condition="'$(AboutXmlPath)' == ''">../../About</AboutFolderPath>
-    <AboutFolderPath Condition="'$(Configuration)'=='Dev'">../../Dev/About</AboutFolderPath>
+    <AboutFolderPath Condition="'$(Configuration)'=='Dev'or'$(Configuration)'=='DevRelease'">../../Dev/About</AboutFolderPath>
   </PropertyGroup>
   <Target Name="UpdateVersion" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
     <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;"/>

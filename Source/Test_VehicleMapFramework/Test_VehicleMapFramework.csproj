@@ -4,6 +4,8 @@
     <OutDir>$(ModDir)..\VehicleMapFrameworkDev\Test\Assemblies\</OutDir>
     <GenerateDependencyFile>true</GenerateDependencyFile>
     <RunSettingsFilePath>..\..\.runsettings</RunSettingsFilePath>
+    <Configurations>Debug;Dev;Release;DevRelease</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   
   <ItemGroup>
