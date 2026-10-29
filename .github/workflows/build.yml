@@ -29,7 +29,7 @@ jobs:
           artifact: LocalTestResults
           name: Local Tests
           path: '*.xml'
-          reporter: java-junit
+          reporter: dotnet-trx
           fail-on-error: 'true'
           
   build:
