@@ -1,2 +1,2 @@
-dotnet build "VehicleMapFramework.sln" --configuration Release
-dotnet build "VehicleMapFramework.sln" --configuration Dev
+dotnet build "VehicleMapFramework.slnx" --configuration Release
+dotnet build "VehicleMapFramework.slnx" --configuration Dev

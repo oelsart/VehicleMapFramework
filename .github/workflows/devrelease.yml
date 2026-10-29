@@ -36,7 +36,7 @@ jobs:
     
     env:
       Solution_Name: VehicleMapFramework
-      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
+      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.slnx
       WorkshopMods: |
         3522907382  # Vehicle Framework (Unstable)
         2023507013  # Vanilla Expanded Framework
@@ -114,12 +114,7 @@ jobs:
     - name: Build DLL
       run: |
         $workshopRoot = "$pwd/Steam/steamapps/workshop/content/294100"
-        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.slnx --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
     
     - name: Move dev folder
       run: Move-Item ../VehicleMapFrameworkDev VehicleMapFrameworkDev
