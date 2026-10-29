@@ -12,5 +12,5 @@ public static class Configurations
 
   public const string VehicleFramework = "3014915404";
 
-  public const string CombatExtended = "2890901044";
+  public const string CombatExtended = "3495749827";
 }
