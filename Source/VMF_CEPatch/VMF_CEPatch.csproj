@@ -47,20 +47,39 @@
     </ProjectReference>
   </ItemGroup>
 
-  <Target Name="GenerateEmptyUnityCoreModule"
-          BeforeTargets="ResolveAssemblyReferences"
-          Condition="!Exists('$(IntermediateOutputPath)UnityEngine.CoreModule.dll')">
-    <MakeDir Directories="$(IntermediateOutputPath)" />
-    <WriteLinesToFile File="$(IntermediateOutputPath)empty.cs" Lines="" Overwrite="true" />
-    <Csc Sources="$(IntermediateOutputPath)empty.cs"
-         OutputAssembly="$(IntermediateOutputPath)UnityEngine.CoreModule.dll"
-         TargetType="Library" />
-  </Target>
+  <Target Name="GenerateUnityCoreModuleFacade"
+          AfterTargets="ResolveAssemblyReferences"
+          BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <UnityCoreModuleFacadeCs>$(IntermediateOutputPath)UnityEngine.CoreModule.Facade.cs</UnityCoreModuleFacadeCs>
+      <UnityCoreModuleFacadeDll>$(IntermediateOutputPath)UnityEngine.CoreModule.dll</UnityCoreModuleFacadeDll>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(IntermediateOutputPath)UnityEngine.CoreModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+
+    <WriteLinesToFile File="$(UnityCoreModuleFacadeCs)"
+                      Overwrite="true"
+                      Lines="$([System.String]::Copy('
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+[assembly: AssemblyVersion(&quot;0.0.0.0&quot;)]
+
+[assembly: TypeForwardedTo(typeof(UnityEngine.Vector3))]
+[assembly: TypeForwardedTo(typeof(UnityEngine.Bounds))]
+[assembly: TypeForwardedTo(typeof(UnityEngine.Quaternion))]
+'))" />
+
+    <Csc Sources="$(UnityCoreModuleFacadeCs)"
+         References="@(ReferencePath)"
+         OutputAssembly="$(UnityCoreModuleFacadeDll)"
+         TargetType="Library"
+         TreatWarningsAsErrors="false" />
+
+    <ItemGroup>
+      <ReferencePath Include="$(UnityCoreModuleFacadeDll)">
+        <Private>False</Private>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
 </Project>
