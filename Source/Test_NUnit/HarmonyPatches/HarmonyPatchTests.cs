@@ -16,6 +16,7 @@ public class HarmonyPatchTests
   [OneTimeSetUp]
   public void OneTimeSetUp()
   {
+    EnsureInitialized();
     AccessTools.PropertySetter("VehicleMapFramework.UnitTestDetector:IsTestingContext")
       .Invoke(null, [true]);
     harmony = new Harmony(HarmonyId);

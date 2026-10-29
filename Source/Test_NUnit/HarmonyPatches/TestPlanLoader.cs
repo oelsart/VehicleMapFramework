@@ -15,9 +15,28 @@ public static class TestPlanLoader
   public static Dictionary<string, string> WorkshopIds { get; }
   
   private static readonly List<TestPlan> testPlans;
+  private static bool Initialized { get; set; }
 
   static TestPlanLoader()
   {
+    Loader = new AssemblyLoader(
+      Configurations.Version,
+      Configurations.SteamWorkshopRoot,
+      Configurations.LocalModsRoot);
+    
+    // デシリアライズ
+    var deserializer = new DeserializerBuilder().Build();
+    var workshopIdsYaml = File.ReadAllText(Path.Combine(Configurations.TestProjectRoot, Configurations.WorkshopIdsFileName));
+    WorkshopIds = deserializer.Deserialize<Dictionary<string, string>>(workshopIdsYaml);
+    var testPlansYaml = File.ReadAllText(Path.Combine(Configurations.TestProjectRoot, Configurations.TestPlansFileName));
+    testPlans = deserializer.Deserialize<List<TestPlan>>(testPlansYaml);
+  }
+  
+  public static void EnsureInitialized()
+  {
+    if (Initialized)
+      return;
+    
     // ロードの初期化
     AssemblyLoadContext.Default.Resolving += (_, assemblyName) =>
     {
@@ -25,17 +44,7 @@ public static class TestPlanLoader
       var path = Path.Combine(Configurations.RimWorldAssemblyFolder, fileName);
       return File.Exists(path) ? Assembly.LoadFrom(path) : null;
     };
-    Loader = new AssemblyLoader(
-      Configurations.Version,
-      Configurations.SteamWorkshopRoot,
-      Configurations.LocalModsRoot);
-
-    // デシリアライズ
-    var deserializer = new DeserializerBuilder().Build();
-    var workshopIdsYaml = File.ReadAllText(Path.Combine(Configurations.TestProjectRoot, Configurations.WorkshopIdsFileName));
-    WorkshopIds = deserializer.Deserialize<Dictionary<string, string>>(workshopIdsYaml);
-    var testPlansYaml = File.ReadAllText(Path.Combine(Configurations.TestProjectRoot, Configurations.TestPlansFileName));
-    testPlans = deserializer.Deserialize<List<TestPlan>>(testPlansYaml);
+    
     foreach (var plan in testPlans)
     {
       plan.Mods ??= [plan.Name];
@@ -55,6 +64,7 @@ public static class TestPlanLoader
         .SelectMany(AccessTools.GetTypesFromAssembly)
         .Where(type => type.FullName?.Contains("Patch") ?? false)
     ];
+    Initialized = true;
   }
 
   public static IEnumerable<TestCaseData> GetLoadTestPlans()
@@ -69,6 +79,7 @@ public static class TestPlanLoader
 
   public static IEnumerable<TestCaseData> GetModCompatTestPlans()
   {
+    EnsureInitialized();
     ModCompatType = AccessTools.TypeByName("VehicleMapFramework.ModCompat");
     foreach (var type in ModCompatType.InnerTypes())
     {
