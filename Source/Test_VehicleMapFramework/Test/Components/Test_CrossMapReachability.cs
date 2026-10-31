@@ -150,7 +150,7 @@ internal sealed class Test_CrossMapReachability(
 
     if (traverseParms.Value.pawn is { } pawn2)
     {
-      using var areaScope = new TestUtility.AllowedAreaScope(pawn2, Crawlers[0]);
+      using var areaScope = new AllowedAreaScope(pawn2, Crawlers[0]);
       var resultWithAllowedArea = CrossMapReachabilityUtility.CanReach(Map, root, vehicleMap.Center, PathEndMode.OnCell,
         traverseParms.Value, vehicleMap, out exitSpot, out enterSpot, out spotsQueue);
       Expect.IsTrue(resultWithAllowedArea, "Entering vehicle should ignore destination vehicle allowed area");
@@ -181,7 +181,7 @@ internal sealed class Test_CrossMapReachability(
 
     if (traverseParms.Value.pawn is { } pawn2)
     {
-      using var areaScope = new TestUtility.AllowedAreaScope(pawn2, Crawlers[0]);
+      using var areaScope = new AllowedAreaScope(pawn2, Crawlers[0]);
       var resultWithAllowedArea = CrossMapReachabilityUtility.CanReach(vehicleMap, vehicleMap.Center, dest, PathEndMode.OnCell,
         traverseParms.Value, Map, out _, out _, out _);
       if (traverseParms.Name.ToLower().Contains("ability"))
@@ -217,7 +217,7 @@ internal sealed class Test_CrossMapReachability(
   public void VehicleMapToVehicleMapToVehicleMap()
   {
     var offset = Pantodon.Size.x + 1;
-    using var scope = new DeepOceanCellRectScope(offset * 3 + 6);
+    using var scope = new DeepOceanCellRectScope(Map, offset * 3 + 6);
 
     Assert.IsNotNull(GenSpawn.Spawn(Pantodons[0], Map.Center + IntVec3.West * offset, Map), "Pantodons[0]");
     Assert.IsNotNull(GenSpawn.Spawn(Pantodons[1], Map.Center, Map), "Pantodons[1]");
@@ -322,7 +322,7 @@ internal sealed class Test_CrossMapReachability(
   public void VehicleMapToImpassableSea()
   {
     var offset = Pantodon.Size.x + 1;
-    using var scope = new DeepOceanCellRectScope(offset * 3 + 6);
+    using var scope = new DeepOceanCellRectScope(Map, offset * 3 + 6);
 
     Assert.IsNotNull(GenSpawn.Spawn(Pantodons[0], Map.Center, Map), "Pantodons[0]");
 
@@ -338,90 +338,5 @@ internal sealed class Test_CrossMapReachability(
     Expect.AreEqual(exitSpot, TargetInfo.Invalid, $"exitSpot: {exitSpot}");
     Expect.AreEqual(enterSpot, TargetInfo.Invalid, $"enterSpot: {enterSpot}");
     Expect.IsNull(spotsQueue, $"spotsQueue: {string.Join(", ", spotsQueue ?? [])}");
-  }
-
-  private struct DeepOceanCellRectScope : IDisposable
-  {
-    private TerrainDef[] underTerrains;
-    private TerrainDef[] topTerrains;
-    private CellRect cellRect;
-
-    public DeepOceanCellRectScope() : this(Map.Size.x)
-    {
-    }
-
-    public DeepOceanCellRectScope(int size)
-    {
-      cellRect = CellRect.CenteredOn(Map.Center, size, size).ClipInsideMap(Map);
-      underTerrains = new TerrainDef[cellRect.Area];
-      topTerrains = new TerrainDef[cellRect.Area];
-      var terrainGrid = Map.terrainGrid;
-      var i = 0;
-      foreach (var cell in cellRect)
-      {
-        underTerrains[i] = terrainGrid.UnderTerrainAt(i);
-        topTerrains[i] = terrainGrid.TopTerrainAt(i);
-        i++;
-        terrainGrid.SetTerrain(cell, TerrainDefOf.WaterOceanDeep);
-      }
-    }
-
-    public void Dispose()
-    {
-      var terrainGrid = Map.terrainGrid;
-      var i = 0;
-      foreach (var cell in cellRect)
-      {
-        if (underTerrains[i] is { } underTerrain)
-          terrainGrid.SetUnderTerrain(cell, underTerrain);
-
-        if (topTerrains[i] is { } topTerrain)
-          terrainGrid.SetTerrain(cell, topTerrain);
-        i++;
-      }
-
-      underTerrains = null;
-      topTerrains = null;
-    }
-  }
-
-  private struct WalledScope : IDisposable
-  {
-    private List<Thing> walls;
-
-    [Obsolete("The constructor with no arguments is prohibited.", error: true)]
-    public WalledScope()
-    {
-    }
-
-    public WalledScope(VehiclePawnWithMap vehicle)
-    {
-      var cells = vehicle.CachedMapEdgeCells;
-      var count = cells.Count;
-      Assert.AreNotEqual(count, 0);
-      walls = SimplePool<List<Thing>>.Get();
-      walls.Clear();
-      for (var i = 0; i < count; i++)
-      {
-        var wall = ThingMaker.MakeThing(ThingDefOf.Wall, ThingDefOf.WoodLog);
-        wall.SetFactionDirect(Faction.OfPlayer);
-        walls.Add(wall);
-        Assert.IsNotNull(GenSpawn.Spawn(wall, cells[i], vehicle.VehicleMap));
-      }
-    }
-
-    public void Dispose()
-    {
-      for (var i = 0; i < walls.Count; i++)
-      {
-        var wall = walls[i];
-        if (wall is { Destroyed: false })
-          wall.Destroy();
-      }
-
-      walls.Clear();
-      SimplePool<List<Thing>>.Return(walls);
-      walls = null;
-    }
   }
 }

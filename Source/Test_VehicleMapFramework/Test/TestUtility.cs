@@ -177,4 +177,92 @@ public static class TestUtility
       area.Delete();
     }
   }
+  
+
+  public struct DeepOceanCellRectScope : IDisposable
+  {
+    private readonly Map map;
+    private TerrainDef[] underTerrains;
+    private TerrainDef[] topTerrains;
+    private CellRect cellRect;
+
+    public DeepOceanCellRectScope(Map map) : this(map, map.Size.x)
+    {
+    }
+
+    public DeepOceanCellRectScope(Map map, int size)
+    {
+      this.map = map;
+      cellRect = CellRect.CenteredOn(map.Center, size, size).ClipInsideMap(map);
+      underTerrains = new TerrainDef[cellRect.Area];
+      topTerrains = new TerrainDef[cellRect.Area];
+      var terrainGrid = map.terrainGrid;
+      var i = 0;
+      foreach (var cell in cellRect)
+      {
+        underTerrains[i] = terrainGrid.UnderTerrainAt(i);
+        topTerrains[i] = terrainGrid.TopTerrainAt(i);
+        i++;
+        terrainGrid.SetTerrain(cell, TerrainDefOf.WaterOceanDeep);
+      }
+    }
+
+    public void Dispose()
+    {
+      var terrainGrid = map.terrainGrid;
+      var i = 0;
+      foreach (var cell in cellRect)
+      {
+        if (underTerrains[i] is { } underTerrain)
+          terrainGrid.SetUnderTerrain(cell, underTerrain);
+
+        if (topTerrains[i] is { } topTerrain)
+          terrainGrid.SetTerrain(cell, topTerrain);
+        i++;
+      }
+
+      underTerrains = null;
+      topTerrains = null;
+    }
+  }
+  
+  public struct WalledScope : IDisposable
+  {
+    private List<Thing> walls;
+
+    [Obsolete("The constructor with no arguments is prohibited.", error: true)]
+    public WalledScope()
+    {
+    }
+
+    public WalledScope(VehiclePawnWithMap vehicle)
+    {
+      var cells = vehicle.CachedMapEdgeCells;
+      var count = cells.Count;
+      Assert.AreNotEqual(count, 0);
+      walls = SimplePool<List<Thing>>.Get();
+      walls.Clear();
+      for (var i = 0; i < count; i++)
+      {
+        var wall = ThingMaker.MakeThing(ThingDefOf.Wall, ThingDefOf.WoodLog);
+        wall.SetFactionDirect(Faction.OfPlayer);
+        walls.Add(wall);
+        Assert.IsNotNull(GenSpawn.Spawn(wall, cells[i], vehicle.VehicleMap));
+      }
+    }
+
+    public void Dispose()
+    {
+      for (var i = 0; i < walls.Count; i++)
+      {
+        var wall = walls[i];
+        if (wall is { Destroyed: false })
+          wall.Destroy();
+      }
+
+      walls.Clear();
+      SimplePool<List<Thing>>.Return(walls);
+      walls = null;
+    }
+  }
 }
