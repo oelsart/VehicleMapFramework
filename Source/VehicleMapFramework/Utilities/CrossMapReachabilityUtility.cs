@@ -531,15 +531,13 @@ public static class CrossMapReachabilityUtility
 
       var traverseParms = TraverseParms.For(vehicle, maxDanger, mode);
 
-      if (dest.Cell == vehicle.Position && destMap == vehicle.Map)
+      if (!vehicle.Spawned) return false;
+      var departMap = vehicle.Map;
+      if (departMap == null || destMap == null) return false;
+      if (dest.Cell == vehicle.Position && destMap == departMap)
       {
         return true;
       }
-
-      if (!vehicle.Spawned) return false;
-
-      var departMap = vehicle.Map;
-      if (departMap == null || destMap == null) return false;
       if (departMap == destMap)
       {
         return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef]
