@@ -2,6 +2,7 @@
 using CombatExtended;
 using RimWorld;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -19,10 +20,6 @@ public static class VerbOnVehicleCEUtility
       {
         var drawPos = verb.caster.DrawPos;
         var shotHeight = verb.ShotHeight;
-        if (verb.caster.IsOnVehicleMapOf(out var vehicle))
-        {
-          shotHeight = shotHeight.YOffsetFull(vehicle);
-        }
         return new Vector3(drawPos.x, shotHeight, drawPos.z);
       }
     }
@@ -109,14 +106,14 @@ public static class VerbOnVehicleCEUtility
       AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand)
     {
       var targCellOnBaseMap = targ.CellOnBaseMap();
-      if (targ.Thing != null && targ.Thing.BaseMapOrCaravan != verb.Caster.BaseMapOrCaravan)
+      if (targ.Thing is not null)
       {
-        goodDest = IntVec3.Invalid;
-        return false;
-      }
-      if (targ.HasThing)
-      {
-        if (verb.CanHitCellFromCellIgnoringRange(shotSource, targ.Cell, targ.Thing!.Map, sourceBand, targetBand, targ.Thing))
+        if (targ.Thing.BaseMapOrCaravan != verb.Caster.BaseMapOrCaravan)
+        {
+          goodDest = IntVec3.Invalid;
+          return false;
+        }
+        if (verb.CanHitCellFromCellIgnoringRange(shotSource, targ.Cell, targ.Thing.Map, sourceBand, targetBand, targ.Thing))
         {
           goodDest = targCellOnBaseMap;
           return true;
@@ -171,27 +168,35 @@ public static class VerbOnVehicleCEUtility
         var groundMap = map.GroundMap;
         bool CanShootThroughCell(IntVec3 cell)
         {
-          var cell2 = cell;
           var map2 = groundMap;
-          if (cell2.TryGetVehicleMap(groundMap, out var vehicle))
+          Thing cover = null;
+          if (cell.TryGetVehicleMap(groundMap, out var vehicle))
           {
-            var c = cell2.ToVehicleMapCoord(vehicle);
+            // すり抜けを防ぐためセル中心から最も近い射線上の点で車両マップ座標に変換する。
+            var originToPoint = cell.ToVector3Shifted() - shotLine.origin;
+            var t = Mathf.Max(0f, Vector3.Dot(originToPoint, shotLine.direction));
+            var intersectionPoint = shotLine.origin + shotLine.direction * t;
+            var c = intersectionPoint.ToVehicleMapCoord(vehicle).ToIntVec3();
             if (c.InBounds(vehicle.VehicleMap))
             {
-              map2 = vehicle.VehicleMap;
-              cell2 = c.TranslateToTargetBand(map2, sourceBand, targetBand);
+              var c2 = c.TranslateToTargetBand(vehicle.VehicleMap, sourceBand, targetBand);
+              var vehicleMap = vehicle.VehicleMap;
+              cover = c2.GetFirstPawn(vehicleMap) ?? c2.GetCover(vehicleMap);
+              if (cover is not null)
+              {
+                map2 = vehicleMap;
+                cell = c;
+              }
             }
           }
-          var cover = cell2.InBounds(map2) ? cell2.GetFirstPawn(map2) ?? cell2.GetCover(map2) : null;
-          if (verb.caster.IsOnVehicleMapOf(out var vehicle2) && cover == vehicle2)
-          {
-            return true;
-          }
-
+          cover ??= cell.InBounds(map2) ? cell.GetFirstPawn(map2) ?? cell.GetCover(map2) : null;
           if (cover != null && cover != verb.ShooterPawn && cover != verb.caster && cover != targetThing && !cover.IsPlant() && !(cover is Pawn && cover.HostileTo(verb.caster)))
           {
-            //Shooter pawns don't attempt to shoot targets partially obstructed by their own faction members or allies, except when close enough to fire over their shoulder
-            if (cover is Pawn { Downed: false, Faction: not null } cellPawn && verb.ShooterPawn?.Faction != null && (verb.ShooterPawn.Faction == cellPawn.Faction || verb.ShooterPawn.Faction.RelationKindWith(cellPawn.Faction) == FactionRelationKind.Ally) &&
+            // Shooter pawns don't attempt to shoot targets partially obstructed by their own faction members or allies, except when close enough to fire over their shoulder
+            // ただしCasterが乗っている車両自体も含め、車両に向けては発砲可。
+            if (cover is Pawn { Downed: false, Faction: not null } cellPawn and not VehiclePawn &&
+                verb.ShooterPawn?.Faction != null &&
+                (verb.ShooterPawn.Faction == cellPawn.Faction || verb.ShooterPawn.Faction.RelationKindWith(cellPawn.Faction) == FactionRelationKind.Ally) &&
                 !cellPawn.AdjacentTo8WayOrInside(verb.ShooterPawn))
             {
               return false;
@@ -223,14 +228,14 @@ public static class VerbOnVehicleCEUtility
             {
               if (Controller.settings.DebugDrawPartialLoSChecks)
               {
-                verb.caster.BaseMap().debugDrawer.FlashCell(cell, 0, bounds.extents.y.ToString(CultureInfo.CurrentCulture));
+                map2.debugDrawer.FlashCell(cell, 0, bounds.extents.y.ToString(CultureInfo.CurrentCulture));
               }
               return false;
             }
 
             if (Controller.settings.DebugDrawPartialLoSChecks)
             {
-              verb.caster.GroundMap.debugDrawer.FlashCell(cell, 0.7f, bounds.extents.y.ToString(CultureInfo.CurrentCulture));
+              map2.debugDrawer.FlashCell(cell, 0.7f, bounds.extents.y.ToString(CultureInfo.CurrentCulture));
             }
           }
 
@@ -238,11 +243,12 @@ public static class VerbOnVehicleCEUtility
         }
 
         // Add validator to parameters
-        foreach (var curCell in GenSightCE.PointsOnLineOfSight(shotSource, targetPos))
+        foreach (var point in GenSightCE.PointsOnLineOfSight(shotSource, targetPos))
         {
+          var curCell = point with { y = 0 };
           if (Controller.settings.DebugDrawPartialLoSChecks)
-          {
-            verb.caster.GroundMap.debugDrawer.FlashCell(curCell, 0.4f);
+          { 
+            groundMap.debugDrawer.FlashCell(curCell, 0.4f);
           }
           if (curCell != shotSource.ToIntVec3() && curCell != targetLoc && !CanShootThroughCell(curCell))
           {

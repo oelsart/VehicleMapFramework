@@ -838,3 +838,20 @@ public static class Patch_NonSnapAttackTargetFinder_BestAttackTarget
     __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
   }
 }
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(CollisionVertical), "CalculateHeightRange")]
+[PatchLevel(Level.Safe)]
+public static class Patch_CollisionVertical_CalculateHeightRange
+{
+  public static void Postfix(Thing thing, ref FloatRange heightRange, ref float shotHeight)
+  {
+    if (thing.IsOnVehicleMapOf(out var vehicle))
+    {
+      var yOffset = new CollisionVertical(vehicle).Max;
+      heightRange.min += yOffset;
+      heightRange.max += yOffset;
+      shotHeight += yOffset;
+    }
+  }
+}
