@@ -88,6 +88,10 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
         }
         layer.Regenerate();
         layer.RefreshSubMeshBounds();
+        if (type == typeof(SectionLayer_EdgeShadows))
+        {
+          FinalizeVerts(layer);
+        }
       }
       catch (Exception ex)
       {
