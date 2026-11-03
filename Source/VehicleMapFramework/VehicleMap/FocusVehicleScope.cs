@@ -1,6 +1,6 @@
 ﻿namespace VehicleMapFramework;
 
-public struct FocusVehicleScope : IDisposable
+public readonly struct FocusVehicleScope : IDisposable
 {
   public static VehiclePawnWithMap FocusLockedVehicle { get; set; }
 

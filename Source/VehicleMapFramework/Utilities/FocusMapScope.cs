@@ -12,7 +12,7 @@ internal readonly ref struct FocusMapScope
   
   private FocusMapScope(Map map)
   {
-    if (map is null) throw new ArgumentNullException(nameof(map));
+    ArgumentNullException.ThrowIfNull(map);
     tmpMapIndex = Current.Game.currentMapIndex;
     Current.Game.currentMapIndex = (sbyte)map.Index;
     IsValid = true; // 正しいコンストラクタを通ったScopeだけがValidとされる

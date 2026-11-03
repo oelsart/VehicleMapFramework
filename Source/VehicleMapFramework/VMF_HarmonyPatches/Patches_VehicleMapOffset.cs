@@ -413,13 +413,11 @@ public static class Patch_RoyalTitlePermitWorker_CallShuttle_DrawShuttleGhost
   }
 }
 
-[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawTargetHighlightWithLayer))]
+[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawTargetHighlightWithLayer),
+  typeof(IntVec3), typeof(AltitudeLayer), typeof(Material))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_GenDraw_DrawTargetHighlightWithLayer
 {
-  //Vector3 position = c.ToVector3ShiftedWithAltitude(layer); ->
-  //Vector3 position = c.ToVector3ShiftedWithAltitude(layer).OrigToVehicleMap();
-  [PatchLevel(Level.Sensitive)]
-  [HarmonyPatch([typeof(IntVec3), typeof(AltitudeLayer), typeof(Material)])]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var codes = instructions.ToList();

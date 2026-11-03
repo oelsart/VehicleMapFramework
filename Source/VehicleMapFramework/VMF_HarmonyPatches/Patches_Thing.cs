@@ -201,7 +201,7 @@ public static class Patch_PlaceWorker_FuelingPort_DrawFuelingPortCell
     return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude2))
       .InsertAfter(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction)
-      .InstructionEnumeration();
+      .Instructions();
   }
 }
 

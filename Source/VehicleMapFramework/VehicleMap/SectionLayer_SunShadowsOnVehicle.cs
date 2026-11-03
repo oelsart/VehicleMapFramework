@@ -17,7 +17,7 @@ public class SectionLayer_SunShadowsOnVehicle : SectionLayer
 
   public SectionLayer_SunShadowsOnVehicle(Section section) : base(section)
   {
-    subLayer = (SectionLayer)Activator.CreateInstance(t_SectionLayer_SunShadows, section);
+    subLayer = (SectionLayer)Activator.CreateInstance(t_SectionLayer_SunShadows, section)!;
     relevantChangeTypes = subLayer.relevantChangeTypes;
   }
 
