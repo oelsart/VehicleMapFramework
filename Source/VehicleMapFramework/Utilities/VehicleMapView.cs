@@ -148,7 +148,7 @@ public static class VehicleMapView
     Graphics.DrawMesh(mesh200, Center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
 
     //　車両本体
-    var drawPos = Center;
+    var drawPos = Center.WithYOffset(AltitudeLayer.Terrain.AltitudeFor());
     if (worldObject.GetComponent<VehicleFormationComp>() is { } comp)
     {
       var drawPositions = comp.DrawPositions;

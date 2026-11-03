@@ -15,6 +15,8 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
   internal static readonly HashSet<Type> OrientedSectionLayerTypes =
     [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract()
       .Append(typeof(SectionLayer_SunShadowsOnVehicle))
+      .Append(typeof(SectionLayer_SubstructurePropsOnVehicle))
+      .Append(typeof(SectionLayer_GravshipHullOnVehicle))
       .Except(typeof(SectionLayer_ThingsPowerGrid))];
 
   public static readonly List<CompatBase> CompatClassesForDrawLayers = [];
