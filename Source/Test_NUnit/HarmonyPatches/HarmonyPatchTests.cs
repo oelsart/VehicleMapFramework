@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using HarmonyLib;
-using JetBrains.Annotations;
 using Mono.Cecil;
 using static VehicleMapFramework.Test.TestPlanLoader;
 
@@ -268,7 +267,7 @@ public class HarmonyPatchTests
       });
     }
 
-    void HandleException([NotNull] Exception ex)
+    void HandleException(Exception ex)
     {
       if (ex is HarmonyException harmonyException)
         ex = harmonyException.InnerException;
