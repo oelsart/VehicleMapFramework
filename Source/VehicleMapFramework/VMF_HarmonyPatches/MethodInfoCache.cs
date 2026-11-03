@@ -158,13 +158,9 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_BaseFullRotationSpawned_Thing = ((Func<Thing, Rot8>)VehicleMapUtility.BaseFullRotationSpawned).Method;
 
-    public readonly MethodInfo m_BaseFullRotationAsRot4 = ((Func<Thing, Rot4>)VehicleMapUtility.BaseFullRotationAsRot4).Method;
-
     public readonly MethodInfo g_Angle = AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.Angle));
 
     public readonly MethodInfo g_Rot4_AsAngle = AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.AsAngle));
-
-    public readonly MethodInfo g_Rot8_AsAngle = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.AsAngle));
 
     public readonly MethodInfo m_FullAngle = ((Delegate)VehicleMapUtility.get_FullAngle).Method;
 
@@ -190,9 +186,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Thing_DrawPos = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos));
 
-    public readonly MethodInfo m_GenThing_TrueCenter1 = ((Func<Thing, Vector3>)GenThing.TrueCenter).Method;
-
-    public readonly MethodInfo m_GenThing_TrueCenter2 = ((Func<IntVec3, Rot4, IntVec2, float, Vector3>)GenThing.TrueCenter).Method;
+    public readonly MethodInfo m_GenThing_TrueCenter = ((Func<Thing, Vector3>)GenThing.TrueCenter).Method;
 
     public readonly MethodInfo m_RotateForPrintNegate = ((Delegate)VehicleMapUtility.RotateForPrintNegate).Method;
 

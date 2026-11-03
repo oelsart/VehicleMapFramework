@@ -28,7 +28,7 @@ public static class Patch_MeditationUtility_DrawMeditationSpotOverlay
     return PatchHelper.CreateCodeMatcherFast(instructions)
       .MatchStartForward(
         CodeMatch.IsLdloc(),
-        CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter1))
+        CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter))
       .Insert(CachedMethodInfo.m_ToBaseMapCoord1.CallInstruction)
       .InstructionEnumeration();
   }
