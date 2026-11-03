@@ -8,8 +8,6 @@ using static VehicleMapFramework.Test.TestPlanLoader;
 namespace VehicleMapFramework.Test;
 
 [TestFixture]
-[Category("Local")]
-[Category("Remote")]
 public class HarmonyPatchTests
 {
   [OneTimeSetUp]
