@@ -427,6 +427,26 @@ public static class Patch_GenDraw_DrawTargetHighlightWithLayer
   }
 }
 
+[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawRadiusRing),
+  typeof(IntVec3), typeof(float), typeof(Color), typeof(Func<IntVec3, bool>))]
+[PatchLevel(Level.Safe)]
+public static class Patch_GenDraw_DrawRadiusRing
+{
+  internal static void Prefix(IntVec3 center, ref FocusVehicleScope? __state)
+  {
+    foreach (var obj in Find.Selector.SelectedObjects)
+    {
+      if (obj is Thing thing && thing.Position == center)
+      {
+        __state = FocusVehicleScope.FocusVehicle(thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ? vehicle : null);
+        break;
+      }
+    }
+  }
+  
+  internal static void Finalizer(FocusVehicleScope? __state) => __state?.Dispose();
+}
+
 //CellがターゲットのMoteにオフセットをかける
 [HarmonyPatch(typeof(MoteAttachLink), nameof(MoteAttachLink.UpdateDrawPos))]
 [PatchLevel(Level.Sensitive)]

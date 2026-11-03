@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using JetBrains.Annotations;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -499,19 +498,6 @@ public static class Patch_JumpUtility_DoJump
   }
 }
 
-[HarmonyPatch(typeof(VerbProperties), nameof(VerbProperties.DrawRadiusRing))]
-[PatchLevel(Level.Safe)]
-public static class Patch_VerbProperties_DrawRadiusRing
-{
-  internal static void Prefix(Verb verb, [MustDisposeResource] ref FocusMapScope __state)
-  {
-    if (verb.caster.IsOnNonFocusedVehicleMapOf(out var vehicle))
-      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
-  }
-  
-  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
-}
-
 [HarmonyPatch(typeof(Targeter), nameof(Targeter.TargeterUpdate))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Targeter_TargeterUpdate
@@ -520,10 +506,22 @@ public static class Patch_Targeter_TargeterUpdate
   {
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Targeter), "CurrentTargetUnderMouse")))
-      .NonFocusedMapVehicle(out var vehicle,
+      .Advance()
+      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+      .DeclareLocal(typeof(Thing), out var caster)
+      .CreateLabel(out var label)
+      .InsertAndAdvance(
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(typeof(Targeter), nameof(Targeter.targetingSource)),
-        AccessTools.PropertyGetter(typeof(ITargetingSource), nameof(ITargetingSource.Caster)).CallvirtInstruction)
+        AccessTools.PropertyGetter(typeof(ITargetingSource), nameof(ITargetingSource.Caster)).CallvirtInstruction,
+        new CodeInstruction(OpCodes.Stloc_S, caster),
+        new CodeInstruction(OpCodes.Ldloc_S, caster),
+        new CodeInstruction(OpCodes.Brfalse_S, label),
+        new CodeInstruction(OpCodes.Ldloc_S, caster),
+        ((Delegate)TargetMapUtility.get_TargetMap).Method.CallInstruction,
+        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+        CachedMethodInfo.m_IsNonFocusedVehicleMapOf.CallInstruction,
+        new CodeInstruction(OpCodes.Pop))
       .FocusVehicleAroundMethod(vehicle,
         AccessTools.Method(typeof(ITargetingSource), nameof(ITargetingSource.DrawHighlight)))
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Targeter), "highlightAction")))
