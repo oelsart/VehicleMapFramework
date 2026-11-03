@@ -142,18 +142,27 @@ public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
 [PatchLevel(Level.Safe)]
 public static class Patch_CompResourceStorage_PostDraw
 {
-  public static void Prefix(CompResourceStorage __instance, ref GenDraw.FillableBarRequest ___request)
+  public static void Prefix(CompResourceStorage __instance, ref GenDraw.FillableBarRequest ___request,
+    ref FocusVehicleScope? __state)
   {
-    var fullRot = __instance.parent.BaseFullRotationAsRot4();
-    var offset = (__instance.Props.centerOffset + Vector3.up * 0.1f).RotatedBy(new Rot8(fullRot.AsInt).AsAngle);
-    if (__instance.parent.Graphic.WestFlipped && __instance.parent.BaseRotationVehicleDraw() == Rot4.West)
+    if (__instance.Props.drawStorageBar && __instance.parent.IsOnNonFocusedVehicleMapOf(out var vehicle))
     {
-      offset = offset.RotatedBy(180f);
+      var barData = __instance.Props.barData;
+      ___request.rotation = __instance.parent.BaseRotationVehicleDraw().Rotated(RotationDirection.Clockwise);
+      var offset = ___request.rotation.AsInt switch
+      {
+        Rot4.EastInt => barData.centerPositionOffsetEast,
+        Rot4.SouthInt => barData.centerPositionOffsetSouth,
+        Rot4.WestInt => barData.centerPositionOffsetWest,
+        _ => barData.centerPositionOffsetNorth,
+      };
+      offset = offset.RotatedBy(vehicle.ExtraAngle);
+      ___request.center = __instance.parent.DrawPos + Vector3.up * 0.1f + offset;
+      __state = FocusVehicleScope.FocusVehicle(vehicle);
     }
-    ___request.center = __instance.parent.DrawPos + offset;
-    Rot8Utility.Rotate(ref fullRot, RotationDirection.Clockwise);
-    Rot8Utility.rot4Int(ref ___request.rotation) = fullRot.AsByte;
   }
+  
+  public static void Finalizer(FocusVehicleScope? __state) => __state?.Dispose();
 }
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
@@ -169,53 +178,59 @@ public static class Patch_ExpandableProjectile_StartingPosition
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(Verb_ShootCone), "DrawLines")]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_ShootCone_DrawLines
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static List<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationAsRot4),
-      (CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef));
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.VEFCore)]
-[HarmonyPatch(typeof(Verb_ShootCone), "DrawConeRounded")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Verb_ShootCone_DrawConeRounded
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationAsRot4));
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
+      .Advance()
+      .NonFocusedMapVehicle(out var vehicle,
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Verb), nameof(Verb.caster)))
+      .InsertAndAdvance(
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2))
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat))
+      .Advance()
+      .MultiplyFullAngleQuat(vehicle)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat))
+      .Advance()
+      .MultiplyFullAngleQuat(vehicle)
+      .Instructions();
   }
 }
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(Verb_ShootCone), nameof(Verb_ShootCone.CanHitTarget))]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_ShootCone_CanHitTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
-      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
-      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationSpawned_Thing));
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(Verb), nameof(Verb.caster)))
+      .Set(OpCodes.Call, ((Delegate)VehicleMapUtility.CellOnAnotherThingMap).Method)
+      .Instructions();
   }
 }
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
-[HarmonyPatch(typeof(Verb_ShootCone), nameof(Verb_ShootCone.InCone))]
+[HarmonyPatch("VEF.Weapons.VanillaExpandedFramework_Building_TurretGun_IsValidTarget_Patch", "Postfix")]
 [PatchLevel(Level.Cautious)]
-public static class Patch_Verb_ShootCone_InCone
+public static class Patch_VanillaExpandedFramework_Building_TurretGun_IsValidTarget_Patch_Postfix
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Rot4_AsAngle, CachedMethodInfo.g_Rot8_AsAngle);
+    return PatchHelper.CreateCodeMatcherFast(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
+      .InsertAndAdvance(CodeInstruction.LoadArgument(1))
+      .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnAnotherThingMap)
+      .Instructions();
   }
 }
 
@@ -230,9 +245,12 @@ public static class Patch_CompShieldField_UpdateShieldCoverage
       return true;
 
     var positionOnBaseMap = __instance.HostThing.PositionOnBaseMap;
-    __instance.coveredCells = new HashSet<IntVec3>(GenRadial
-      .RadialCellsAround(positionOnBaseMap, __instance.ShieldRadius, true)
-      .Where(x => x.InBounds(vehicle.Map)));
+    __instance.coveredCells =
+    [
+      .. GenRadial
+        .RadialCellsAround(positionOnBaseMap, __instance.ShieldRadius, true)
+        .Where(x => x.InBounds(vehicle.Map))
+    ];
     if (__instance.ShieldRadius < 6f)
     {
       __instance.scanCells = __instance.coveredCells;

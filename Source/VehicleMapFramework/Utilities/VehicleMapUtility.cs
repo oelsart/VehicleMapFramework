@@ -189,15 +189,6 @@ public static class VehicleMapUtility
     return target.Thing != null ? new TargetInfo(target.Thing) : new TargetInfo(target.CellOnBaseMap(), map);
   }
 
-  public static IntVec3 CellOnAnotherThingMap(this LocalTargetInfo target, Thing another)
-  {
-    if (target.HasThing)
-    {
-      return target.Thing.PositionOnAnotherThingMap(another);
-    }
-    return another.IsOnVehicleMapOf(out var vehicle) ? target.Cell.ToVehicleMapCoord(vehicle) : target.Cell;
-  }
-
   public static IntVec3 CellOnAnotherMap(this IntVec3 cell, Map another)
   {
     return another.IsVehicleMapOf(out var vehicle) ? cell.ToVehicleMapCoord(vehicle) : cell;
@@ -749,11 +740,6 @@ public static class VehicleMapUtility
       return thing.Rotation;
     }
 
-    public Rot4 BaseFullRotationAsRot4()
-    {
-      return thing.BaseFullRotation().AsRot4Force();
-    }
-
     public Rot4 BaseRotationForDoor()
     {
       var rot = thing.BaseRotationVehicleDraw();
@@ -840,10 +826,9 @@ public static class VehicleMapUtility
       if (thing.def.category is not (ThingCategory.Building or ThingCategory.Ethereal or ThingCategory.Item)) // BlueprintはEthereal
         return rot;
       if (VehicleSectionLayerManager.RotForPrint != Rot4.North &&
-          ((thing.def.size.x != thing.def.size.z ||
-           thing.def.rotatable || thing.def.graphicData is { drawRotated: true }) &&
-           thing.Graphic is Graphic_Multi &&
-           !SameMaterialByRot()))
+          (thing.def.rotatable ||
+           (thing.def.size.x != thing.def.size.z || thing.def.graphicData is { drawRotated: true }) &&
+           thing.Graphic is Graphic_Multi && !SameMaterialByRot()))
       {
         rot.AsInt += VehicleSectionLayerManager.RotForPrint.AsInt;
       }
@@ -1165,6 +1150,15 @@ public static class VehicleMapUtility
     public IntVec3 CellOnBaseMapSpawned()
     {
       return target.HasThing ? target.Thing.PositionOnBaseMapSpawned : target.Cell;
+    }
+
+    public IntVec3 CellOnAnotherThingMap(Thing another)
+    {
+      if (target.HasThing)
+      {
+        return target.Thing.PositionOnAnotherThingMap(another);
+      }
+      return another.IsOnVehicleMapOf(out var vehicle) ? target.Cell.ToVehicleMapCoord(vehicle) : target.Cell;
     }
   }
 
