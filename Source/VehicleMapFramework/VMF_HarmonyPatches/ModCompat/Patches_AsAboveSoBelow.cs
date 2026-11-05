@@ -32,7 +32,8 @@ public static class Patch_MapGenerator_GenerateMap
 {
   public static void Prefix(ref IntVec3 mapSize, MapParent parent)
   {
-    if (parent is MapParent_Vehicle { Faction.IsPlayer: true })
+    if (parent is MapParent_Vehicle { Faction.IsPlayer: true, vehicle.VehicleDef: { } vehicleDef } &&
+        !vehicleDef.HasModExtension<VehicleMapProps_Gravship>())
     {
       var pendingLayout = PendingLayout.Invoke(null);
       var upperLevels = UpperLevels();
