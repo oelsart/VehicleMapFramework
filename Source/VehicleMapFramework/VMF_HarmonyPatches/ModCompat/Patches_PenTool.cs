@@ -66,7 +66,7 @@ public static class Patch_PenSession_Draw
     return PatchHelper.CreateCodeMatcherFast(instructions, generator)
       .DeclareLocal(typeof(Matrix4x4), out var matrix)
       .MatchStartForward(
-        CodeMatch.Calls(CachedMethodInfo.m_CurrentViewRect))
+        CodeMatch.Calls(CachedMethodInfo.g_CurrentViewRect))
       .InsertAfter(
         new CodeInstruction(OpCodes.Ldloca_S, matrix),
         ((Delegate)Transform).Method.CallInstruction)
@@ -124,7 +124,7 @@ public static class Patch_PenSession_DrawBatchGhosts
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
+    return instructions.MethodReplacer(CachedMethodInfo.g_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
   }
 }
 
