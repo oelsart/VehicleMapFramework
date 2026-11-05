@@ -3,7 +3,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
-using UnityEngine;
 using Vehicles;
 using Verse;
 
@@ -22,52 +21,37 @@ public static class Patch_DesignatorManager_ProcessInputEvents
   internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
 }
 
-[HarmonyPatch(typeof(Building_OrbitalTradeBeacon), "MakeMatchingStockpile")]
-public static class Patch_Building_OrbitalTradeBeacon_MakeMatchingStockpile
-{
-  internal static void Prefix(Thing __instance, [MustDisposeResource] ref FocusMapScope __state)
-  {
-    if (__instance.IsOnVehicleMapOf(out var vehicle))
-      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
-  }
-  
-  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
-}
-
-[HarmonyPatch("RimWorld.Building_SunLamp", "MakeMatchingGrowZone")]
-public static class Patch_Building_SunLamp_MakeMatchingGrowZone
-{
-  internal static void Prefix(Thing __instance, [MustDisposeResource] ref FocusMapScope __state)
-  {
-    if (__instance.IsOnVehicleMapOf(out var vehicle))
-      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
-  }
-  
-  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
-}
-
 [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerUpdate))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_DesignationDragger_DraggerUpdate
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
+    return instructions.MethodReplacer(CachedMethodInfo.g_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
   }
 }
 
 [HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.DesignatorManagerUpdate))]
-[PatchLevel(Level.Sensitive)]
 public static class Patch_Designator_SelectedUpdate
 {
+  [PatchLevel(Level.Safe)]
   internal static void Prefix([MustDisposeResource] ref FocusMapScope __state)
   {
+    if (AsAboveSoBelow.Active)
+    {
+      // AASB2はCurrentViewRectをキャッシュするため、車両マップフォーカス中にそれが呼ばれると全てが暗転してしまう
+      _ = Find.CameraDriver.CurrentViewRect;
+    }
     if (FocusVehicleScope.FocusedVehicle is { } focused)
+    {
       __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
+    }
   }
   
+  [PatchLevel(Level.Safe)]
   internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
   
+  [PatchLevel(Level.Sensitive)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var m_SelectedUpdate = AccessTools.Method(typeof(Designator), nameof(Designator.SelectedUpdate));
@@ -86,7 +70,7 @@ public static class Patch_Designator_SelectedUpdate
   public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
   {
     if (FocusVehicleScope.FocusLockedVehicle != null ||
-        Input.GetMouseButton(0)) return;
+        Find.DesignatorManager.Dragger.Dragging) return;
 
     FocusVehicleScope.FocusedVehicle = null;
     var mousePos = UI.MouseMapPosition();
@@ -169,13 +153,37 @@ public static class Patch_Designator_CreateReverseDesignationGizmo_Delegate
 }
 
 [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Cautious)]
 public static class Patch_DesignationManager_DrawDesignations
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
+    return instructions.MethodReplacer(CachedMethodInfo.g_CurrentViewRect, CachedMethodInfo.m_CurrentVehicleMapViewRect);
   }
+}
+
+[HarmonyPatch(typeof(Building_OrbitalTradeBeacon), "MakeMatchingStockpile")]
+public static class Patch_Building_OrbitalTradeBeacon_MakeMatchingStockpile
+{
+  internal static void Prefix(Thing __instance, [MustDisposeResource] ref FocusMapScope __state)
+  {
+    if (__instance.IsOnVehicleMapOf(out var vehicle))
+      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
+  }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
+}
+
+[HarmonyPatch("RimWorld.Building_SunLamp", "MakeMatchingGrowZone")]
+public static class Patch_Building_SunLamp_MakeMatchingGrowZone
+{
+  internal static void Prefix(Thing __instance, [MustDisposeResource] ref FocusMapScope __state)
+  {
+    if (__instance.IsOnVehicleMapOf(out var vehicle))
+      __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
+  }
+  
+  internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
 }
 
 [HarmonyPatch(typeof(GenGrid), nameof(GenGrid.InNoZoneEdgeArea))]
