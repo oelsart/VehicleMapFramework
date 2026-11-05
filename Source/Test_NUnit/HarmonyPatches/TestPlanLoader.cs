@@ -28,6 +28,10 @@ public static class TestPlanLoader
     var deserializer = new DeserializerBuilder().Build();
     var workshopIdsYaml = File.ReadAllText(Path.Combine(Configurations.TestProjectRoot, Configurations.WorkshopIdsFileName));
     WorkshopIds = deserializer.Deserialize<Dictionary<string, string>>(workshopIdsYaml);
+    if (!Configurations.IsRemote)
+    {
+      WorkshopIds["VehicleFramework"] = "Vehicle-Framework";
+    }
     var testPlansYaml = File.ReadAllText(Path.Combine(Configurations.TestProjectRoot, Configurations.TestPlansFileName));
     testPlans = deserializer.Deserialize<List<TestPlan>>(testPlansYaml);
   }
@@ -51,7 +55,7 @@ public static class TestPlanLoader
       plan.Categories ??= [$"VMF_Patches_{plan.Name}"];
 
       if (plan.Name == "VehicleFramework")
-        Loader.LoadModFolder(WorkshopIds[plan.Name]);
+        Loader.LoadModFolder(Configurations.IsRemote ? WorkshopIds[plan.Name] : "Vehicle-Framework");
     }
 
     // VMFロードと型キャッシュ
