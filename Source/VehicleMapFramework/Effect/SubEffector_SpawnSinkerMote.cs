@@ -23,7 +23,7 @@ public class SubEffector_SpawnSinkerMote(SubEffecterDef subDef, Effecter parent)
     
     if (vehicle.Map is null)
       return;
-    const int PixelPerCell = 128;
+    const int PixelPerCell = 64;
     var request = BlitRequest.For(vehicle);
     request.rot = vehicle.FullRotation;
     var drawSize = vehicle.DrawSize / vehicle.VehicleDef.uiIconScale;

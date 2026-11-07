@@ -29,6 +29,7 @@ public class MoteThrownSinker : MoteThrown
   private Vector3 texDrawSize;
   private (int, int) texSize;
   private VehiclePawnWithMap vehicle;
+  private Rot4 rot;
   private GraphicOverlay overlay;
   private Color overlayColor;
   private SimpleCurve colorOverlayAlphaCurve;
@@ -45,14 +46,14 @@ public class MoteThrownSinker : MoteThrown
     disposeOnDespawn = true;
   }
   
-  public virtual void SetParameters(Texture _texture, Quaternion _texRotation, Vector3 _texDrawSize,
-    (int, int) _texSize,
-    VehiclePawnWithMap _vehicle, GraphicOverlay _overlay, Color _overlayColor, SimpleCurve _colorOverlayAlphaCurve)
+  public virtual void SetParameters(Texture _texture, Quaternion _texRotation, Vector3 _texDrawSize, (int, int) _texSize,
+    VehiclePawnWithMap _vehicle, Rot4 _rot, GraphicOverlay _overlay, Color _overlayColor, SimpleCurve _colorOverlayAlphaCurve)
   {
     texture = _texture;
     texRotation = _texRotation;
     texDrawSize = _texDrawSize;
     texSize = _texSize;
+    rot = _rot;
     vehicle = _vehicle;
     overlay = _overlay;
     overlayColor = _overlayColor;
@@ -96,7 +97,7 @@ public class MoteThrownSinker : MoteThrown
   {
     if (vehicle is null || overlay is null) return;
 
-    texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(vehicle, overlay, Rot4.North, texSize,
+    texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(vehicle, overlay, rot, texSize,
       CellRect.Empty);
   }
 }

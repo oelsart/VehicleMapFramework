@@ -85,10 +85,12 @@ public class Reactor_Sink : Reactor, ITweakFields
       var overlay = overlays[i];
       if (overlay.data.identifier == overlayId)
       {
+        const int PixelPerCell = 64;
         var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
         var drawSize = overlay.Graphic.drawSize;
         var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
-        var textureSize = (Mathf.CeilToInt(drawSizeRotated.x * 256), Mathf.CeilToInt(drawSizeRotated.y * 256));
+        var textureSize =
+          (Mathf.CeilToInt(drawSizeRotated.x * PixelPerCell), Mathf.CeilToInt(drawSizeRotated.y * PixelPerCell));
         var texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(
           vehiclePawnWithMap,
           overlay,
@@ -101,6 +103,7 @@ public class Reactor_Sink : Reactor, ITweakFields
           drawSizeRotated.ToVector3().WithY(1f),
           textureSize,
           vehiclePawnWithMap,
+          rot,
           overlay,
           overlayColor,
           colorOverlayAlphaCurve);
@@ -108,6 +111,8 @@ public class Reactor_Sink : Reactor, ITweakFields
         mote.exactPosition = drawPos +
                              overlay.Graphic.DrawOffset(rot).RotatedBy(vehicle.ExtraAngle);
         GenSpawn.Spawn(mote, mote.exactPosition.ToIntVec3(), vehicle.Map);
+        VehicleMapUIRenderer.SetDirty(vehiclePawnWithMap, type: VehicleMapUIRenderer.DurationType.Time);
+        VehicleMapUIRenderer.SetDirty(vehiclePawnWithMap, type: VehicleMapUIRenderer.DurationType.Ticks);
       }
     }
   }

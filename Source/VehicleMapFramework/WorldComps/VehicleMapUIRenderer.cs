@@ -10,6 +10,7 @@ using Verse;
 using Waylith.Rendering;
 using FilterMode = UnityEngine.FilterMode;
 using Graphics = UnityEngine.Graphics;
+using Material = UnityEngine.Material;
 using Object = UnityEngine.Object;
 using RenderTexture = UnityEngine.RenderTexture;
 using TexSize = (int width, int height);
@@ -38,11 +39,31 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
   private Camera camera;
   private readonly List<MeshDrawCommand> commandList = [];
 
+  private Material textureBlitMaterial;
+  private Mesh textureQuadMesh;
+
   public override void FinalizeInit()
   {
     CreateCamera();
+    CreateTextureBlitResources();
     GameEvent.OnGameDisposing -= Clear;
     GameEvent.OnGameDisposing += Clear;
+  }
+
+  private void CreateTextureBlitResources()
+  {
+    textureBlitMaterial = new Material(ShaderDatabase.Transparent)
+    {
+      name = "VehicleMapTextureBlitMaterial"
+    };
+    Object.DontDestroyOnLoad(textureBlitMaterial);
+
+    textureQuadMesh = new Mesh
+    {
+      name = "VehicleMapTextureBlitQuad"
+    };
+    Object.DontDestroyOnLoad(textureQuadMesh);
+    textureQuadMesh.triangles = [0, 1, 2, 0, 2, 3];
   }
 
   public override void GameComponentUpdate()
@@ -131,17 +152,14 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
       return cache.RenderTexture;
     }
 
-    var camera = component.camera;
-    camera.enabled = true;
-
     var drawSize = overlay.Graphic.drawSize;
     var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
-    camera.targetTexture = cache.RenderTexture;
+    var camera = component.camera;
     camera.orthographicSize = drawSizeRotated.y / 2f;
     camera.aspect = (float)texSize.width / texSize.height;
 
     var overlayPos = VehicleMapUtility.OffsetFor(vehicle, rot) +
-                     vehicle.VehicleGraphic.DrawOffset(rot) +
+                     vehicle.VehicleGraphic.DrawOffset(rot) -
                      overlay.Graphic.DrawOffset(rot);
     var mapOrigin = new Vector3(-vehicle.MapSize.x / 2f, 0f, -vehicle.MapSize.z / 2f).RotatedBy(rot) +
                     overlayPos;
@@ -168,15 +186,17 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         using (MeshDrawSubmission.BeginCapture(component.commandList))
         {
           var graphic = overlay.Graphic;
-          Graphics.DrawMesh(graphic.MeshAt(rot), Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
-            graphic.MatAt(rot, vehicle), VehicleMapLayer);
-          Graphics.DrawTexture(clipRect, mapRenderTexture,
-            ToNormalizedSourceRect(clipRect, texSize.width, texSize.height), 0, 0, 0, 0);
+          Graphics.DrawMesh(graphic.MeshAt(rot), Matrix4x4.identity, graphic.MatAt(rot, vehicle), VehicleMapLayer);
+
+          var sourceRect = ToNormalizedSourceRect(clipRect, texSize.width, texSize.height);
+          var worldSize = new Vector2(drawSizeRotated.y * camera.aspect, drawSizeRotated.y);
+          component.DrawTextureQuad(mapRenderTexture, clipRect, sourceRect, texSize, worldSize);
         }
         var cameraView = CameraViewFactory.GetView(camera);
         CameraTextureRenderer.Current?.Render(
           cache.RenderTexture, component.commandList, cameraView, new Rect(0f, 0f, 1f, 1f), Color.clear);
         component.commandList.Clear();
+        WriteRenderTextureToFile(cache.RenderTexture, "Test.png");
       }
       finally
       {
@@ -185,28 +205,47 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     }
     component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, GenTicks.TicksGame);
     return cache.RenderTexture;
+    
+    static Rect ClampPixelRect(Rect rect, int width, int height)
+    {
+      var xMin = Mathf.Clamp(rect.xMin, 0f, width);
+      var yMin = Mathf.Clamp(rect.yMin, 0f, height);
+      var xMax = Mathf.Clamp(rect.xMax, 0f, width);
+      var yMax = Mathf.Clamp(rect.yMax, 0f, height);
+      return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
+    }
+
+    static Rect ToNormalizedSourceRect(Rect pixelRect, int width, int height)
+    {
+      return new Rect(pixelRect.xMin / width, pixelRect.yMin / height, pixelRect.width / width, pixelRect.height / height);
+    }
   }
 
-  private static Rect ClampPixelRect(Rect rect, int width, int height)
+  private void DrawTextureQuad(Texture texture, Rect pixelRect, Rect sourceRect, TexSize texSize, Vector2 worldSize)
   {
-    var xMin = Mathf.Clamp(rect.xMin, 0f, width);
-    var yMin = Mathf.Clamp(rect.yMin, 0f, height);
-    var xMax = Mathf.Clamp(rect.xMax, 0f, width);
-    var yMax = Mathf.Clamp(rect.yMax, 0f, height);
+    if (!textureQuadMesh || !textureBlitMaterial)
+      return;
 
-    if (xMax <= xMin || yMax <= yMin)
-      return Rect.zero;
+    var xMin = pixelRect.xMin / texSize.width * worldSize.x - worldSize.x / 2f;
+    var xMax = pixelRect.xMax / texSize.width * worldSize.x - worldSize.x / 2f;
+    var zMin = pixelRect.yMin / texSize.height * worldSize.y - worldSize.y / 2f;
+    var zMax = pixelRect.yMax / texSize.height * worldSize.y - worldSize.y / 2f;
+    
+    textureQuadMesh.vertices =
+    [
+      new Vector3(xMin, 0f, zMin), new Vector3(xMin, 0f, zMax), new Vector3(xMax, 0f, zMax), new Vector3(xMax, 0f, zMin)
+    ];
 
-    return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
-  }
+    textureQuadMesh.uv =
+    [
+      new Vector2(sourceRect.xMin, sourceRect.yMin), new Vector2(sourceRect.xMin, sourceRect.yMax),
+      new Vector2(sourceRect.xMax, sourceRect.yMax), new Vector2(sourceRect.xMax, sourceRect.yMin)
+    ];
+    textureQuadMesh.RecalculateBounds();
+    textureBlitMaterial.mainTexture = texture;
 
-  private static Rect ToNormalizedSourceRect(Rect pixelRect, int width, int height)
-  {
-    return new Rect(
-      pixelRect.xMin / width,
-      pixelRect.yMin / height,
-      pixelRect.width / width,
-      pixelRect.height / height);
+    Graphics.DrawMesh(textureQuadMesh, Matrix4x4.TRS(Vector3.up, Quaternion.identity, Vector3.one),
+      textureBlitMaterial, VehicleMapLayer);
   }
 
   private void RenderVehicleMap(Map map, Vector3 drawPos, Rot4 rot, RenderTexture targetTexture)
@@ -265,6 +304,18 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     renderTexturesPool.Clear();
     toRemove.Clear();
     toSetDirty.Clear();
+
+    if (textureBlitMaterial)
+    {
+      Object.Destroy(textureBlitMaterial);
+      textureBlitMaterial = null;
+    }
+
+    if (textureQuadMesh)
+    {
+      Object.Destroy(textureQuadMesh);
+      textureQuadMesh = null;
+    }
 
     if (camera != null)
     {
@@ -364,27 +415,31 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
   private static void WriteRenderTexturesToFile()
   {
     var component = Current.Game.GetComponent<VehicleMapUIRenderer>();
-    var active = RenderTexture.active;
     var fileNameBuilder = new StringBuilder();
     foreach (var (key, cachedMapTexture) in component.cachedTextures)
     {
-      var renderTexture = cachedMapTexture.RenderTexture;
-      var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
-
-      RenderTexture.active = renderTexture;
-      texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-      texture.Apply();
-
-      var bytes = texture.EncodeToPNG();
       fileNameBuilder.Append(key.vehicle.ThingID);
       if (key.overlay is not null) fileNameBuilder.Append($"_{key.overlay.Name}");
       fileNameBuilder.Append($"_{key.rot.ToStringHuman()}.png");
-      var fullPath = Path.Combine(Application.persistentDataPath, fileNameBuilder.ToString());
-      File.WriteAllBytes(fullPath, bytes);
-      Messages.Message($"Saved render texture to {fullPath}", MessageTypeDefOf.NeutralEvent, false);
+      WriteRenderTextureToFile(cachedMapTexture.RenderTexture, fileNameBuilder.ToString());
       fileNameBuilder.Clear();
-      Object.Destroy(texture);
     }
+  }
+  
+  private static void WriteRenderTextureToFile(RenderTexture renderTexture, string fileName)
+  {
+    var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
+
+    var active = RenderTexture.active;
+    RenderTexture.active = renderTexture;
+    texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+    texture.Apply();
+
+    var bytes = texture.EncodeToPNG();
+    var fullPath = Path.Combine(Application.persistentDataPath, fileName);
+    File.WriteAllBytes(fullPath, bytes);
+    Messages.Message($"Saved render texture to {fullPath}", MessageTypeDefOf.NeutralEvent, false);
+    Object.Destroy(texture);
     RenderTexture.active = active;
   }
 }
