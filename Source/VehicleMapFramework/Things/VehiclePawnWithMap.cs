@@ -90,7 +90,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   }
   
   // AsAboveSoBelowで生成されるBandを無視したマップサイズ
-  public IntVec3 MapSize{ get; private set; }
+  public IntVec3 MapSize { get; private set; }
 
   public CellRect MapRect => [with(0, 0, MapSize.x, MapSize.z)];
 

@@ -63,6 +63,10 @@ public class VehicleSectionLayerManager(Map map) : MapComponent(map)
           else
           {
             layersByRot[section][type] = [layer, layer, layer, layer];
+            if (type == typeof(SectionLayer_EdgeShadows))
+            {
+              FinalizeVerts(layer);
+            }
           }
         }
 
