@@ -512,6 +512,7 @@ public static class Patch_JobGiver_Work_GiverTryGiveJobPrioritized
     Patch_JobGiver_Work_Validator.Transpiler(instructions);
 }
 
+[HarmonyBefore(AsAboveSoBelow.HarmonyId)]
 [HarmonyPatch(typeof(Pawn_PathFollower), nameof(Pawn_PathFollower.StartPath))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Pawn_PathFollower_StartPath
