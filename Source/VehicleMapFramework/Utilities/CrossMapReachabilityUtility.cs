@@ -1221,18 +1221,10 @@ public static class CrossMapReachabilityUtility
     DebugTools.curTool = new DebugTool($"{p}: Destination...", () =>
     {
       var mousePos = UI.MouseMapPosition();
-      IntVec3 dest;
-      Map destMap;
-      if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
-      {
-        dest = UI.MouseCell().ToVehicleMapCoord(vehicle);
-        destMap = vehicle.VehicleMap;
-      }
-      else
-      {
-        dest = UI.MouseCell();
-        destMap = p.Map;
-      }
+      var dest = UI.MouseCell();
+      var destMap = mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None)
+        ? vehicle.CurrentLevel
+        : Find.CurrentMap;
 
       if (p.CanReach(dest, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap,
             out var exitSpot, out var enterSpot, out var spotsQueue))
@@ -1263,8 +1255,8 @@ public static class CrossMapReachabilityUtility
   [DebugAction(VehicleMapFramework.CategoryName, "Toggle A* Debug")]
   private static void ToggleDebugTraverser()
   {
-    aStar.debug = !aStar.debug;
-    Messages.Message($"{(aStar.debug ? "Enabled" : "Disabled")} the CrossMapReachability's A* debug draw/profile.",
+    aStar_new.debug = !aStar_new.debug;
+    Messages.Message($"{(aStar_new.debug ? "Enabled" : "Disabled")} the CrossMapReachability's A* debug draw/profile.",
       MessageTypeDefOf.TaskCompletion, false);
   }
 }

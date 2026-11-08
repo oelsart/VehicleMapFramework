@@ -1,7 +1,6 @@
-﻿using System.Reflection;
-using HarmonyLib;
+﻿using HarmonyLib;
+using JetBrains.Annotations;
 using LudeonTK;
-using RimWorld;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -9,62 +8,38 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_DebugTools
 {
-    static Patches_DebugTools()
+  static Patches_DebugTools()
+  {
+    if (VehicleMapFramework.Settings.debugToolPatches)
     {
-        if (VehicleMapFramework.Settings.debugToolPatches)
-        {
-            ApplyPatches();
-        }
+      ApplyPatches();
     }
+  }
 
-    public static void ApplyPatches(bool unpatch = false)
+  public static void ApplyPatches(bool unpatch = false)
+  {
+    var m_DebugToolOnGUI = AccessTools.Method(typeof(DebugTool), nameof(DebugTool.DebugToolOnGUI));
+    var m_Prefix = ((Delegate)Prefix).Method;
+    var m_Finalizer = ((Delegate)Finalizer).Method;
+    if (unpatch)
     {
-        var transpiler = ((Delegate)Transpiler).Method;
-
-        Patch(AccessTools.FindIncludingInnerTypes(typeof(DebugActionNode), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Enter>"))));
-        foreach (var method in typeof(DebugToolsSpawning).GetDeclaredMethods())
-        {
-            Patch(method);
-        }
-        foreach (var type in AccessTools.InnerTypes(typeof(DebugToolsSpawning)))
-        {
-            foreach (var method in type.GetDeclaredMethods())
-            {
-                Patch(method);
-            }
-        }
-        foreach (var method in typeof(DebugToolsGeneral).GetDeclaredMethods())
-        {
-            Patch(method);
-        }
-        foreach (var method in typeof(DebugToolsPawns).GetDeclaredMethods())
-        {
-            Patch(method);
-        }
-        foreach (var method in AccessTools.InnerTypes(typeof(PrefabUtility)).Concat(typeof(PrefabUtility))
-                     .SelectMany(t => t.GetDeclaredMethods()))
-        {
-            Patch(method);
-        }
-
-        return;
-
-        void Patch(MethodInfo method)
-        {
-            if (method.IsGenericMethod || method.ContainsGenericParameters) return;
-            if (unpatch)
-            {
-                VMF_Harmony.Instance.Unpatch(method, transpiler);
-            }
-            else
-            {
-                VMF_Harmony.Instance.Patch(method, transpiler: transpiler);
-            }
-        }
+      VMF_Harmony.Instance.Unpatch(m_DebugToolOnGUI, m_Prefix);
+      VMF_Harmony.Instance.Unpatch(m_DebugToolOnGUI, m_Finalizer);
     }
-
-    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    else
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+      VMF_Harmony.Instance.Patch(m_DebugToolOnGUI, prefix: m_Prefix, finalizer: m_Finalizer);
     }
+  }
+
+  private static void Prefix([MustDisposeResource] ref FocusMapScope __state)
+  {
+    if (Find.CurrentMap is null ||
+        !UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+      return;
+
+    __state = FocusMapScope.FocusMapUnsafe(vehicle.CurrentLevel);
+  }
+  
+  private static void Finalizer(FocusMapScope __state) => __state.Dispose();
 }
