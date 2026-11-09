@@ -34,8 +34,8 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
   IEnumerable<RenderData> IBlitTarget.GetRenderData(Rect rect, BlitRequest request)
   {
     var renderRect = GetRenderRect(rect, request);
-    var width = Mathf.NextPowerOfTwo(Mathf.CeilToInt(renderRect.width)) * 16;
-    var height = Mathf.NextPowerOfTwo(Mathf.CeilToInt(renderRect.height)) * 16;
+    var width = Mathf.NextPowerOfTwo(Mathf.CeilToInt(renderRect.width));
+    var height = Mathf.NextPowerOfTwo(Mathf.CeilToInt(renderRect.height));
     var texture = VehicleMapUIRenderer.GetVehicleMapTexture(vehicle, request.rot.RotForVehicleDraw(), (width, height));
     defaultMat.mainTexture = texture;
     
