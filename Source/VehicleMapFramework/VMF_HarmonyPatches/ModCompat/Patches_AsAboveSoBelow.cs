@@ -203,7 +203,8 @@ public static class Patch_ABCombatGeometry_TryLocalize
 {
   public static bool Prefix(Thing shooter)
   {
-    return shooter is not Pawn { stances.curStance: Stance_Busy { focusTarg.Thing.IsOnVehicleMap: true } };
+    return shooter is not Pawn { stances.curStance: Stance_Busy { focusTarg.Thing.IsOnVehicleMap: true } }
+      and { IsOnVehicleMap: false };
   }
 }
 
