@@ -141,18 +141,25 @@ public class CompMapExpander : ThingComp
       if (comp.parent.IsOnVehicleMapOf(out var vehicle))
       {
         var map = comp.parent.Map;
-        MapComponent mapComp = null;
-        var banded = AsAboveSoBelow.Active &&
-                     (mapComp = AsAboveSoBelow.CompOf(map)) is not null &&
-                     AsAboveSoBelow.Banded(mapComp);
-        foreach (var c in comp.parent.OccupiedRect())
+        if (!respawningAfterLoad)
         {
-          map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
-          if (banded)
+          MapComponent mapComp = null;
+          var banded = AsAboveSoBelow.Active &&
+                       (mapComp = AsAboveSoBelow.CompOf(map)) is not null &&
+                       AsAboveSoBelow.Banded(mapComp);
+          foreach (var c in comp.parent.OccupiedRect())
           {
-            for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
+            map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
+            if (banded)
             {
-              map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c, i), VMF_DefOf.VMF_VehicleFloor);
+              var prev = c;
+              for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
+              {
+                var c2 = AsAboveSoBelow.Translate(mapComp, c, i);
+                var terrain = prev.Roofed(map) ? AsAboveSoBelow.AB_RoofSurface : AsAboveSoBelow.AB_OpenAir;
+                map.terrainGrid.SetTerrain(c2, terrain);
+                prev = c2;
+              }
             }
           }
         }
@@ -188,33 +195,45 @@ public class CompMapExpander : ThingComp
       vehicle.MapExpanderComps.Remove(this);
       if (IsBridge)
       {
-        vehicle.MapExpanderComps.ForEach(c => c.cachedIsOnlyBridge = null);
+        vehicle.MapExpanderComps.ForEach(static c => c.cachedIsOnlyBridge = null);
       }
       DirtySelfAndAdjacentComps(map);
       vehicle.impassableCellsDirty = true;
       vehicle.resizeRequest = true;
       CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
-    }
-    
-    foreach (var intVec in occupiedRect)
-    {
-      var thingList = map.thingGrid.ThingsListAtFast(intVec);
-      for (var i = thingList.Count - 1; i >= 0; i--)
+      
+      foreach (var c in occupiedRect)
       {
-        var thing = thingList[i];
-        if (thing is Pawn) continue;
-
-        if (thing.def.Minifiable)
+        RemoveThings(c, map);
+        if (banded)
         {
-          thing.Uninstall();
+          for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
+          {
+            RemoveThings(AsAboveSoBelow.Translate(mapComp, c, i), map);
+          }
         }
-        else
+        continue;
+
+        static void RemoveThings(IntVec3 c, Map map)
         {
-          thing.Destroy(DestroyMode.Deconstruct);
+          var thingList = map.thingGrid.ThingsListAtFast(c);
+          for (var i = thingList.Count - 1; i >= 0; i--)
+          {
+            var thing = thingList[i];
+            if (thing is Pawn) return;
+            
+            if (thing.def.Minifiable)
+            {
+              thing.Uninstall();
+            }
+            else
+            {
+              thing.Destroy(DestroyMode.Deconstruct);
+            }
+          }
         }
       }
     }
-
   }
 
   private void DirtySelfAndAdjacentComps(Map map)
