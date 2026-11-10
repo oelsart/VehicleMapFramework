@@ -193,7 +193,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         {
           field[c.ToIntVec3] = true;
         }
-        AsAboveSoBelow.CopyBoolGrid(this, field);
       }
 
       return field;
@@ -683,6 +682,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     foreach (var c in props.ExpandableCells)
     {
+      if (c.ToIntVec3.GetFirstThingWithComp<CompMapExpander>(interiorMap) is not null)
+        continue;
       interiorMap.terrainGrid.SetTerrain(origin + c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
     }
 

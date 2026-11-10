@@ -622,6 +622,8 @@ public static class ModCompat
     public static GetBandRect TryBandRectOf;
     public static FastInvokeHandler TryResolveVisibleBelow;
     private static Type SectionLayer_ABBelowV2;
+    public static TerrainDef AB_OpenAir;
+    public static TerrainDef AB_RoofSurface;
     
     static AsAboveSoBelow()
     {
@@ -648,6 +650,8 @@ public static class ModCompat
         TryResolveVisibleBelow = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBands:TryResolveVisibleBelow"));
         SectionLayer_ABBelowV2 = GenTypes.GetTypeInAnyAssembly("AsAboveSoBelow.SectionLayer_ABBelowV2", "AsAboveSoBelow");
         VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ABBelowV2);
+        AB_OpenAir = DefDatabase<TerrainDef>.GetNamed("AB_OpenAir");
+        AB_RoofSurface = DefDatabase<TerrainDef>.GetNamed("AB_RoofSurface");
       });
     }
 
