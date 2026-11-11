@@ -8,11 +8,11 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class CeleTech
+public class Patches_CE_CeleTechCompat
 {
-  static CeleTech()
+  static Patches_CE_CeleTechCompat()
   {
-    if (ModCompat.CeleTech)
+    if (CeleTech)
     {
       VMF_Harmony.PatchCategory(PatchCategories.CeleTechArsenalCECompat);
       Patch_BlockerRegistry_CheckForCollisionBetweenCallback.Prefixes.Add(
