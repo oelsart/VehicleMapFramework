@@ -24,11 +24,6 @@ public static class Patch_UI_MouseCell
     codes.Insert(pos, CachedMethodInfo.m_ToVehicleMapCoord.CallInstruction);
     return codes;
   }
-
-  public static IntVec3 MouseCell()
-  {
-    return UI.UIToMapPosition(UI.MousePositionOnUI).ToIntVec3();
-  }
 }
 
 [HarmonyPatch(typeof(GenThing), nameof(GenThing.TrueCenter))]
