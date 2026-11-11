@@ -97,6 +97,12 @@
 - Name: ManipulatorBeamEmitter
 - Name: TextTool
 - Name: AsAboveSoBelow
+- Name: AsAboveSoBelow + CE
+  Mods:
+    - AsAboveSoBelow
+    - CombatExtended
+  Categories:
+    - VMF_Patches_AsAboveSoBelowCECompat
 - Name: SRALib
 - Name: HaulersDream
 - Name: AvoidFriendlyFire

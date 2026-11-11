@@ -497,35 +497,3 @@ public static class Patch_JumpUtility_DoJump
     return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_PawnTargetMapOrMap);
   }
 }
-
-[HarmonyPatch(typeof(Targeter), nameof(Targeter.TargeterUpdate))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Targeter_TargeterUpdate
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-  {
-    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Targeter), "CurrentTargetUnderMouse")))
-      .Advance()
-      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
-      .DeclareLocal(typeof(Thing), out var caster)
-      .CreateLabel(out var label)
-      .InsertAndAdvance(
-        CodeInstruction.LoadArgument(0),
-        CodeInstruction.LoadField(typeof(Targeter), nameof(Targeter.targetingSource)),
-        AccessTools.PropertyGetter(typeof(ITargetingSource), nameof(ITargetingSource.Caster)).CallvirtInstruction,
-        new CodeInstruction(OpCodes.Stloc_S, caster),
-        new CodeInstruction(OpCodes.Ldloc_S, caster),
-        new CodeInstruction(OpCodes.Brfalse_S, label),
-        new CodeInstruction(OpCodes.Ldloc_S, caster),
-        ((Delegate)TargetMapUtility.get_TargetMap).Method.CallInstruction,
-        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-        CachedMethodInfo.m_IsNonFocusedVehicleMapOf.CallInstruction,
-        new CodeInstruction(OpCodes.Pop))
-      .FocusVehicleAroundMethod(vehicle,
-        AccessTools.Method(typeof(ITargetingSource), nameof(ITargetingSource.DrawHighlight)))
-      .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Targeter), "highlightAction")))
-      .FocusVehicleAroundMethod(vehicle, AccessTools.Method(typeof(Action<LocalTargetInfo>), nameof(Action.Invoke)))
-      .InstructionEnumeration();
-  }
-}

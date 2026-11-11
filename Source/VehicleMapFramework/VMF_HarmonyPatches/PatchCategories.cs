@@ -53,6 +53,8 @@ internal static class PatchCategories
   public const string Aquariums = "VMF_Patches_Aquariums";
 
   public const string AsAboveSoBelow = "VMF_Patches_AsAboveSoBelow";
+  
+  public const string AsAboveSoBelowCECompat = "VMF_Patches_AsAboveSoBelowCECompat";
 
   public const string AttackTargetFinderAngle = "VMF_Patches_AttackTargetFinderAngle";
 
@@ -67,8 +69,6 @@ internal static class PatchCategories
   public const string CeleTechArsenalCECompat = "VMF_Patches_CeleTechArsenalCECompat";
 
   public const string ColonyGroups = "VMF_Patches_ColonyGroups";
-
-  public const string CutPlantsBeforeBuilding = "VMF_Patches_CutPlantsBeforeBuilding";
   
   public const string DefensiveNetwork = "VMF_Patches_DefensiveNetwork";
 

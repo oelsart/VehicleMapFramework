@@ -207,7 +207,10 @@ public static class Patch_Verb_TryFindShootLineFromTo
 }
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
-[HarmonyPatch(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo", [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine), typeof(Vector3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out])]
+[HarmonyBefore(AsAboveSoBelow.HarmonyId)]
+[HarmonyPatch(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo",
+  [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine), typeof(Vector3)],
+  [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out])]
 [PatchLevel(Level.Safe)]
 public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
 {
