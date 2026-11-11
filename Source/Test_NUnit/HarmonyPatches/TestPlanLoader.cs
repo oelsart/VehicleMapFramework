@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using HarmonyLib;
 using ModAssemblyLoader;
@@ -28,9 +29,18 @@ public static class TestPlanLoader
     var deserializer = new DeserializerBuilder().Build();
     var workshopIdsYaml = File.ReadAllText(Path.Combine(Configurations.TestProjectRoot, Configurations.WorkshopIdsFileName));
     WorkshopIds = deserializer.Deserialize<Dictionary<string, string>>(workshopIdsYaml);
-    if (!Configurations.IsRemote)
+    if (Configurations.IsRemote)
     {
-      WorkshopIds["VehicleFramework"] = "Vehicle-Framework";
+      foreach (var (key, value) in WorkshopIds)
+      {
+        const string RemotePrefix = "_Remote";
+        if (key.EndsWith(RemotePrefix))
+        {
+          ref var valueRef = ref CollectionsMarshal.GetValueRefOrNullRef(WorkshopIds, key[..^RemotePrefix.Length]);
+          if (!Unsafe.IsNullRef(ref valueRef))
+            valueRef = value;
+        }
+      }
     }
     var testPlansYaml = File.ReadAllText(Path.Combine(Configurations.TestProjectRoot, Configurations.TestPlansFileName));
     testPlans = deserializer.Deserialize<List<TestPlan>>(testPlansYaml);
@@ -53,9 +63,9 @@ public static class TestPlanLoader
     {
       plan.Mods ??= [plan.Name];
       plan.Categories ??= [$"VMF_Patches_{plan.Name}"];
-
+      
       if (plan.Name == "VehicleFramework")
-        Loader.LoadModFolder(Configurations.IsRemote ? WorkshopIds[plan.Name] : "Vehicle-Framework");
+        Loader.LoadModFolder(WorkshopIds[plan.Name]);
     }
 
     // VMFロードと型キャッシュ
