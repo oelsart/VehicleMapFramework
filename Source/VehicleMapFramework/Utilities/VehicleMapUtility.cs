@@ -88,9 +88,17 @@ public static class VehicleMapUtility
         var currentViewRect = driver.CurrentViewRect;
         if (FocusedOnVehicleMap(out var vehicle))
         {
-          return CellRect.FromLimits(
-            currentViewRect.Min.ToVehicleMapCoord(vehicle),
-            currentViewRect.Max.ToVehicleMapCoord(vehicle));
+          var min = currentViewRect.Min.ToVehicleMapCoord(vehicle);
+          var max = currentViewRect.Max.ToVehicleMapCoord(vehicle);
+          if (AsAboveSoBelow.Active &&
+              AsAboveSoBelow.CompOf(vehicle.VehicleMap) is { } mapComp &&
+              AsAboveSoBelow.Banded(mapComp))
+          {
+            var current = AsAboveSoBelow.CurrentBand(vehicle.VehicleMap);
+            min = AsAboveSoBelow.Translate(mapComp, min, current);
+            max = AsAboveSoBelow.Translate(mapComp, max, current);
+          }
+          return CellRect.FromLimits(min, max);
         }
         return currentViewRect;
       }
