@@ -196,7 +196,6 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         CameraTextureRenderer.Current?.Render(
           cache.RenderTexture, component.commandList, cameraView, new Rect(0f, 0f, 1f, 1f), Color.clear);
         component.commandList.Clear();
-        WriteRenderTextureToFile(cache.RenderTexture, "Test.png");
       }
       finally
       {
