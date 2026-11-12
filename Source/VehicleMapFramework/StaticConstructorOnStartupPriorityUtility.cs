@@ -11,7 +11,7 @@ public static class StaticConstructorOnStartupPriorityUtility
   static StaticConstructorOnStartupPriorityUtility()
   {
     var types = GenTypes.AllTypesWithAttribute<StaticConstructorOnStartupPriorityAttribute>();
-    types.SortByDescending(t => t.GetCustomAttribute<StaticConstructorOnStartupPriorityAttribute>().priority);
+    types.SortByDescending(t => t.GetCustomAttribute<StaticConstructorOnStartupPriorityAttribute>()!.priority);
 
     foreach (var type in types)
     {

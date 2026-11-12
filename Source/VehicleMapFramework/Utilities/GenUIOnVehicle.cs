@@ -2,7 +2,6 @@
 using UnityEngine;
 using Vehicles;
 using Verse;
-using Debug = System.Diagnostics.Debug;
 
 namespace VehicleMapFramework;
 
@@ -95,9 +94,6 @@ public static class GenUIOnVehicle
 
     int CompareThingsByDistanceToMousePointer(Thing a, Thing b)
     {
-      Debug.Assert(a.DrawPosHeld != null, "a.DrawPosHeld != null");
-      Debug.Assert(b.DrawPosHeld != null, "b.DrawPosHeld != null");
-
       var num = (a.DrawPosHeld!.Value - mouseMapPosition).MagnitudeHorizontalSquared();
       var num2 = (b.DrawPosHeld!.Value - mouseMapPosition).MagnitudeHorizontalSquared();
       if (num < num2)
