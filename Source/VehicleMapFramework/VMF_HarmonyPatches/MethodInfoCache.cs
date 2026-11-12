@@ -7,26 +7,23 @@ using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
-// ReSharper disable InvokeAsExtensionMember
 
 namespace VehicleMapFramework;
 
 public class MethodInfoCache
 {
-    private static readonly System.WeakReference<MethodInfoCache> cacheInt = new(null);
-
     public static MethodInfoCache CachedMethodInfo
     {
       get
       {
-        if (!cacheInt.TryGetTarget(out var target))
+        if (field is null)
         {
-          cacheInt.SetTarget(target = new MethodInfoCache());
+          field = new MethodInfoCache();
           // List.AnyはGenCollectionによって解決されるためCIランで失敗する
           foreach (var f in AccessTools.GetDeclaredFields(typeof(MethodInfoCache)))
           {
             if (f.IsStatic) continue;
-            if (f.GetValue(target) is null)
+            if (f.GetValue(field) is null)
             {
               VMF_Log.Error(
                 $"MethodInfoCache failed to cache MethodInfo: {f}. This may cause errors in some Harmony patches.");
@@ -34,7 +31,7 @@ public class MethodInfoCache
           }
         }
         
-        return target;
+        return field;
       }
     }
 
