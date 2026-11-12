@@ -27,7 +27,7 @@ namespace SmashTools
         // loader to be able to find the content.
         private const string ShaderFolderName = "Materials";
 
-        private const string OutputPath = "../../1.6/AssetBundles";
+        private const string OutputPath = "../../2022.3/AssetBundles";
         private const string OutputPathDev = "../../Dev/AssetBundles";
 
         private const string DefaultBundleName = "AssetBundles";

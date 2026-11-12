@@ -21,7 +21,6 @@
   </v1.5>
   <v1.6>
     <li>1.6</li>
-	<li>2022.3</li>
     <li>Common</li>
     <li IfModActive="CETeam.CombatExtended">1.6/_CombatExtended</li>
     <li IfModActive="brrainz.achtung">1.6/_Achtung</li>
@@ -43,7 +42,6 @@
   </v1.6>
   <v1.7>
     <li>1.7</li>
-	<li>2022.3</li>
     <li>Common</li>
 	<li>Test</li>
     <li IfModActive="CETeam.CombatExtended">1.7/_CombatExtended</li>
