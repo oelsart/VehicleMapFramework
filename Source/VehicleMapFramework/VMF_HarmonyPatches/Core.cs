@@ -238,7 +238,7 @@ public static class VMF_Harmony
       {
         patchApi.UnpatchCategory(Instance, category, ManualPatchOptions.Default with
         {
-          ShouldPatch = ShouldPatch,
+          ShouldUnpatch = ShouldPatch,
           Logger = ex => VMF_Log.Error($"Error while apply unpatching.\n{ex}")
         });
       }
@@ -302,7 +302,7 @@ public static class VMF_Harmony
       {
         patchApi.UnpatchUncategorized(Instance, ManualPatchOptions.Default with
         {
-          ShouldPatch = ShouldPatch,
+          ShouldUnpatch = ShouldPatch,
           Logger = ex => VMF_Log.Error($"Error while apply unpatching.\n{ex}")
         });
       }
