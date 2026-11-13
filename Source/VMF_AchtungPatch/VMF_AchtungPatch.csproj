@@ -41,4 +41,20 @@
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" />
   </ItemGroup>
+
+  <!-- Manual Patches -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\ManualHarmony\ManualHarmony.Runtime\ManualHarmony.Runtime.csproj" />
+    <ProjectReference
+      Include="..\..\ManualHarmony\ManualHarmony\ManualHarmony.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false" />
+    <CompilerVisibleProperty Include="ManualHarmony_GeneratedNamespace" />
+    <CompilerVisibleProperty Include="ManualHarmony_GeneratedClassName" />
+  </ItemGroup>
+  <PropertyGroup>
+    <ManualHarmony_GeneratedNamespace>VehicleMapFramework.VMF_HarmonyPatches</ManualHarmony_GeneratedNamespace>
+    <ManualHarmony_GeneratedClassName>ManualPatches_Achtung</ManualHarmony_GeneratedClassName>
+    <CompilerGeneratedFilesOutputPath>$(IntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
 </Project>

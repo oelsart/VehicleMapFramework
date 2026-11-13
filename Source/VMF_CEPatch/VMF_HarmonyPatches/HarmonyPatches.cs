@@ -14,6 +14,16 @@ using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
+[StaticConstructorOnStartupPriority(Priority.Normal)]
+public static class CEPatchCore
+{
+  static CEPatchCore()
+  {
+    if (VMF_Harmony.ManualPatchEnabled)
+      VMF_Harmony.ManualPatchApis.Add(new ManualPatches_CE());
+  }
+}
+
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_CE
 {
@@ -22,7 +32,6 @@ public static class Patches_CE
     var method = AccessTools.Method(typeof(AttackTargetFinderOnVehicle), "GetShootingTargetScore");
     var patch = AccessTools.Method("CombatExtended.HarmonyCE.Harmony_AttackTargetFinder+Harmony_AttackTargetFinder_GetShootingTargetScore:Postfix");
     VMF_Harmony.Instance.Patch(method, postfix: patch);
-
     VMF_Harmony.PatchCategory(PatchCategories.CombatExtended);
   }
 }
@@ -30,7 +39,7 @@ public static class Patches_CE
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(GenSpawn), nameof(GenSpawn.Spawn), typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool), typeof(bool))]
 [PatchLevel(Level.Safe)]
-public static class Patch_GenSpawn_Spawn
+public static class Patch_GenSpawn_Spawn_CE
 {
   public static void Prefix(Thing newThing, ref Map map)
   {
@@ -190,7 +199,7 @@ public static class Patch_Verb_LaunchProjectileCE_TryCastShot
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb), nameof(Verb.TryFindShootLineFromTo))]
 [PatchLevel(Level.Safe)]
-public static class Patch_Verb_TryFindShootLineFromTo
+public static class Patch_Verb_TryFindShootLineFromTo_CE
 {
   public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)
   {

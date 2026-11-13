@@ -40,6 +40,8 @@ public class VehicleMapSettings : ModSettings
 
   public Level dynamicPatchLevel = Default.dynamicPatchLevel;
 
+  public bool manualPatchEnabled = Default.manualPatchEnabled;
+
   public override void ExposeData()
   {
     Scribe_Values.Look(ref drawPlanet, nameof(drawPlanet), Default.drawPlanet);
@@ -59,6 +61,7 @@ public class VehicleMapSettings : ModSettings
     Scribe_Values.Look(ref dynamicPatchEnabled, nameof(dynamicPatchEnabled), Default.dynamicPatchEnabled);
     Scribe_Values.Look(ref dynamicUnpatchEnabled, nameof(dynamicUnpatchEnabled), Default.dynamicUnpatchEnabled);
     Scribe_Values.Look(ref dynamicPatchLevel, nameof(dynamicPatchLevel), Default.dynamicPatchLevel);
+    Scribe_Values.Look(ref manualPatchEnabled, nameof(manualPatchEnabled), Default.manualPatchEnabled);
   }
 
   internal static class Default
@@ -96,6 +99,8 @@ public class VehicleMapSettings : ModSettings
     public const bool dynamicUnpatchEnabled = false;
 
     public const Level dynamicPatchLevel = Level.Safe;
+
+    public const bool manualPatchEnabled = false;
   }
 
   public enum ShowVehiclesOnColonistBar

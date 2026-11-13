@@ -2,6 +2,7 @@
 global using static VehicleMapFramework.ModCompat;
 using System.Reflection;
 using HarmonyLib;
+using ManualHarmony.Runtime;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -25,7 +26,9 @@ public static class VMF_Harmony
 {
   internal static readonly Harmony Instance = new("OELS.VehicleMapFramework");
 
-  internal static readonly List<string> Categories = [];
+  internal static readonly List<IManualPatches> ManualPatchApis = [new ManualPatches_VMF()];
+
+  private static readonly List<string> Categories = [];
 
   internal static Dictionary<string, List<Type>> PatchesInCategories
   {
@@ -56,7 +59,7 @@ public static class VMF_Harmony
                                       attr.Available).ToList();
             }
 
-            return group.ToList();
+            return [.. group];
           });
       }
       
@@ -70,6 +73,8 @@ public static class VMF_Harmony
       : Level.All;
 
   internal static Level PrevPatchLevel { get; set; } = Level.Mandatory;
+  
+  internal static bool ManualPatchEnabled => VehicleMapFramework.Settings.manualPatchEnabled;
 
   private static readonly AccessTools.FieldRef<PatchClassProcessor, object> patchMethodsRef =
     AccessTools.FieldRefAccess<PatchClassProcessor, object>("patchMethods");
@@ -80,7 +85,7 @@ public static class VMF_Harmony
   private static readonly MethodInfo m_RemoveAll = AccessTools.Method(
     typeof(List<>).MakeGenericType(AccessTools.TypeByName("HarmonyLib.AttributePatch")), nameof(List<>.RemoveAll));
 
-  internal static bool OutOfRange(Level level)
+  private static bool OutOfRange(Level level)
   {
     if ((level < PrevPatchLevel && level < CurrentPatchLevel) ||
         (level > PrevPatchLevel && level > CurrentPatchLevel))
@@ -90,22 +95,34 @@ public static class VMF_Harmony
     return level == max;
   }
 
-  internal static void AdjustPatchLevel(PatchClassProcessor patchClassProcessor)
+  private static void AdjustPatchLevel(PatchClassProcessor patchClassProcessor)
   {
     m_RemoveAll.Invoke(patchMethodsRef(patchClassProcessor), SingleParam.Get((Predicate<object>)Predicate));
     return;
 
     static bool Predicate(object attributePatch)
     {
-      var method = infoRef(attributePatch).method;
-      var attribute = method.GetCustomAttribute<PatchLevelAttribute>();
-      var level = attribute?.level ??
-                  method.DeclaringType?.GetCustomAttribute<PatchLevelAttribute>()?.level ?? Level.Mandatory;
-      return OutOfRange(level);
+      return !CheckMethodPatchLevel(infoRef(attributePatch).method);
     }
   }
 
-  internal static bool CheckClassPatchLevel(Type type)
+  private static bool ShouldPatch(ManualPatchContext context)
+  {
+    if (context.Category == PatchCategories.VehicleFramework &&
+        context.PatchType.GetCustomAttribute<VFVersionalPatchAttribute>() is { Available: false })
+      return false;
+    return CheckMethodPatchLevel(context.PatchMethod);
+  }
+  
+  private static bool CheckMethodPatchLevel(MethodInfo method)
+  {
+    var attribute = method.GetCustomAttribute<PatchLevelAttribute>();
+    var level = attribute?.level ??
+                method.DeclaringType?.GetCustomAttribute<PatchLevelAttribute>()?.level ?? Level.Mandatory;
+    return !OutOfRange(level);
+  }
+
+  private static bool CheckClassPatchLevel(Type type)
   {
     var attribute = type.GetCustomAttribute<PatchLevelAttribute>();
     if (attribute is null) return true;
@@ -162,7 +179,7 @@ public static class VMF_Harmony
     }
   }
 
-  internal static List<Type> PatchClassesInCategory(string category)
+  private static List<Type> PatchClassesInCategory(string category)
   {
     if (!PatchesInCategories.TryGetValue(category, out var list))
     {
@@ -171,12 +188,23 @@ public static class VMF_Harmony
     }
     return list;
   }
-
+  
   internal static void PatchCategory(string category)
   {
     if (!Categories.Contains(category))
-    {
       Categories.Add(category);
+    
+    if (ManualPatchEnabled)
+    {
+      foreach (var patchApi in ManualPatchApis)
+      {
+        patchApi.PatchCategory(Instance, category, ManualPatchOptions.Default with
+        {
+          ShouldPatch = ShouldPatch,
+          Logger = ex => VMF_Log.Error($"Error while apply patching.\n{ex}")
+        });
+      }
+      return;
     }
     
     var patches = PatchClassesInCategory(category)
@@ -202,8 +230,21 @@ public static class VMF_Harmony
       });
   }
 
-  internal static void UnpatchCategory(string category)
+  private static void UnpatchCategory(string category)
   {
+    if (ManualPatchEnabled)
+    {
+      foreach (var patchApi in ManualPatchApis)
+      {
+        patchApi.UnpatchCategory(Instance, category, ManualPatchOptions.Default with
+        {
+          ShouldPatch = ShouldPatch,
+          Logger = ex => VMF_Log.Error($"Error while apply unpatching.\n{ex}")
+        });
+      }
+      return;
+    }
+    
     PatchClassesInCategory(category)
       .Where(CheckClassPatchLevel)
       .Select(t => Instance.CreateClassProcessor(t))
@@ -223,6 +264,19 @@ public static class VMF_Harmony
 
   internal static void PatchAllUncategorized()
   {
+    if (ManualPatchEnabled)
+    {
+      foreach (var patchApi in ManualPatchApis)
+      {
+        patchApi.PatchUncategorized(Instance, ManualPatchOptions.Default with
+        {
+          ShouldPatch = ShouldPatch,
+          Logger = ex => VMF_Log.Error($"Error while apply patching.\n{ex}")
+        });
+      }
+      return;
+    }
+    
     PatchClassesInCategory("")
       .Where(CheckClassPatchLevel)
       .Select(t => Instance.CreateClassProcessor(t))
@@ -242,6 +296,19 @@ public static class VMF_Harmony
 
   internal static void UnpatchAllUncategorized()
   {
+    if (ManualPatchEnabled)
+    {
+      foreach (var patchApi in ManualPatchApis)
+      {
+        patchApi.UnpatchUncategorized(Instance, ManualPatchOptions.Default with
+        {
+          ShouldPatch = ShouldPatch,
+          Logger = ex => VMF_Log.Error($"Error while apply unpatching.\n{ex}")
+        });
+      }
+      return;
+    }
+    
     PatchClassesInCategory("")
       .Where(CheckClassPatchLevel)
       .Select(t => Instance.CreateClassProcessor(t))

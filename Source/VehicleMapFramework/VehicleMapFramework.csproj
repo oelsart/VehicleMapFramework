@@ -9,15 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" />
-    <PackageReference Include="Lib.Harmony" />
-    <PackageReference Include="Nerdbank.GitVersioning">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  
-  <ItemGroup>
     <InternalsVisibleTo Include="VMF_AchtungPatch" />
     <InternalsVisibleTo Include="VMF_CEPatch" />
     <InternalsVisibleTo Include="VMF_DBHCompat" />
@@ -27,6 +18,15 @@
     <InternalsVisibleTo Include="MapVehiclesOcean" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Krafs.Rimworld.Ref" />
+    <PackageReference Include="Lib.Harmony" />
+    <PackageReference Include="Nerdbank.GitVersioning">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  
   <ItemGroup Condition="'$(Configuration)'=='Dev'or'$(Configuration)'=='DevRelease'">
     <Reference Include="AnimationKit">
       <HintPath>$(VFUnstableFolder)\1.7\Assemblies\AnimationKit.dll</HintPath>
@@ -56,9 +56,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\Directory.Build.targets">
-      <Link>Directory.Build.targets</Link>
-    </Content>
     <Content Include="..\Directory.Build.props">
       <Link>Directory.Build.props</Link>
     </Content>
@@ -71,4 +68,21 @@
   <Target Name="UpdateVersion" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
     <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;"/>
   </Target>
+
+  <!-- Manual Patches -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\ManualHarmony\ManualHarmony.Runtime\ManualHarmony.Runtime.csproj" />
+    <ProjectReference
+      Include="..\..\ManualHarmony\ManualHarmony\ManualHarmony.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false" />
+    <CompilerVisibleProperty Include="ManualHarmony_GeneratedNamespace" />
+    <CompilerVisibleProperty Include="ManualHarmony_GeneratedClassName" />
+  </ItemGroup>
+  <PropertyGroup>
+    <ManualHarmony_GeneratedNamespace>VehicleMapFramework.VMF_HarmonyPatches</ManualHarmony_GeneratedNamespace>
+    <ManualHarmony_GeneratedClassName>ManualPatches_VMF</ManualHarmony_GeneratedClassName>
+    <CompilerGeneratedFilesOutputPath>$(IntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
 </Project>

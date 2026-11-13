@@ -1,7 +1,7 @@
 <Project>
   
   <PropertyGroup>
-    <RimWorldDirectory>$(MSBuildThisFileDirectory)\..\..\</RimWorldDirectory>
+    <RimWorldDirectory>$(MSBuildThisFileDirectory)\..\..\..\</RimWorldDirectory>
     <UseStrictRimWorldVersionComparison>false</UseStrictRimWorldVersionComparison>
     <EnableLocalRimWorldReferences>true</EnableLocalRimWorldReferences>
   </PropertyGroup>

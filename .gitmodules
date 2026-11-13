@@ -1,3 +1,6 @@
 [submodule "Source/Test_CompatPatches/ModAssemblyLoader"]
 	path = Source/Test_CompatPatches/ModAssemblyLoader
 	url = https://github.com/oelsart/ModAssemblyLoader
+[submodule "ManualHarmony"]
+	path = ManualHarmony
+	url = https://github.com/oelsart/ManualHarmony

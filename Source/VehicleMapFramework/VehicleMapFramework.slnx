@@ -8,6 +8,15 @@
     <Platform Name="ARM64" />
     <Platform Name="x64" />
   </Configurations>
+  <Project Path="../../ManualHarmony/ManualHarmony.Runtime/ManualHarmony.Runtime.csproj">
+    <BuildType Solution="DevRelease|Any CPU" Project="false" />
+  </Project>
+  <Project Path="../../ManualHarmony/ManualHarmony.Test/ManualHarmony.Test.csproj">
+    <BuildType Solution="DevRelease|*" Project="Debug" />
+  </Project>
+  <Project Path="../../ManualHarmony/ManualHarmony/ManualHarmony.csproj">
+    <BuildType Solution="DevRelease|Any CPU" Project="false" />
+  </Project>
   <Project Path="../Test_NUnit/Test_NUnit.csproj">
     <Build Solution="DevRelease|Any CPU" Project="false" />
   </Project>

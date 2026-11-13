@@ -10,11 +10,12 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_DBH
 {
-
   public static readonly CompProperties_Pipe dummy = new();
 
   static Patches_DBH()
   {
+    if (VMF_Harmony.ManualPatchEnabled)
+      VMF_Harmony.ManualPatchApis.Add(new ManualPatches_DBH());
     VMF_Harmony.PatchCategory(PatchCategories.DubsBadHygiene);
     if (DubsBadHygiene.Settings.LiteMode)
     {

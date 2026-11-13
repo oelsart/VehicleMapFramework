@@ -3,19 +3,19 @@ using AchtungMod;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
-using VehicleMapFramework;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
 
-namespace VMF_AchtungPatch;
+namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_Achtung
 {
   static Patches_Achtung()
   {
+    if (VMF_Harmony.ManualPatchEnabled)
+      VMF_Harmony.ManualPatchApis.Add(new ManualPatches_Achtung());
     VMF_Harmony.PatchCategory(PatchCategories.Achtung);
   }
 }
