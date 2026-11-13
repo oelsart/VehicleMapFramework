@@ -19,8 +19,7 @@ public static class CEPatchCore
 {
   static CEPatchCore()
   {
-    if (VMF_Harmony.ManualPatchEnabled)
-      VMF_Harmony.ManualPatchApis.Add(new ManualPatches_CE());
+    VMF_Harmony.ManualPatchApis.Add(new ManualPatches_CE());
   }
 }
 

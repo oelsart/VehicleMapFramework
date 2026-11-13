@@ -14,8 +14,7 @@ public static class Patches_Achtung
 {
   static Patches_Achtung()
   {
-    if (VMF_Harmony.ManualPatchEnabled)
-      VMF_Harmony.ManualPatchApis.Add(new ManualPatches_Achtung());
+    VMF_Harmony.ManualPatchApis.Add(new ManualPatches_Achtung());
     VMF_Harmony.PatchCategory(PatchCategories.Achtung);
   }
 }

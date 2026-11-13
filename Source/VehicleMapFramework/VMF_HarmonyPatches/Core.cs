@@ -74,7 +74,7 @@ public static class VMF_Harmony
 
   internal static Level PrevPatchLevel { get; set; } = Level.Mandatory;
   
-  internal static bool ManualPatchEnabled => VehicleMapFramework.Settings.manualPatchEnabled;
+  private static bool ManualPatchEnabled => VehicleMapFramework.Settings.manualPatchEnabled;
 
   private static readonly AccessTools.FieldRef<PatchClassProcessor, object> patchMethodsRef =
     AccessTools.FieldRefAccess<PatchClassProcessor, object>("patchMethods");
@@ -165,6 +165,7 @@ public static class VMF_Harmony
   {
     if (CurrentPatchLevel < patchLevel)
     {
+      Log.Message("DynamicPatchQueued");
       LongEventHandler.QueueLongEvent(() =>
       {
         DynamicPatchAllNow(patchLevel);
@@ -172,6 +173,7 @@ public static class VMF_Harmony
     }
     else if (VehicleMapFramework.Settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
     {
+      Log.Message("DynamicUnpatchQueued");
       LongEventHandler.QueueLongEvent(() =>
       {
         DynamicPatchAllNow(patchLevel);

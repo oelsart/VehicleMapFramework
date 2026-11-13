@@ -14,8 +14,7 @@ public static class Patches_DBH
 
   static Patches_DBH()
   {
-    if (VMF_Harmony.ManualPatchEnabled)
-      VMF_Harmony.ManualPatchApis.Add(new ManualPatches_DBH());
+    VMF_Harmony.ManualPatchApis.Add(new ManualPatches_DBH());
     VMF_Harmony.PatchCategory(PatchCategories.DubsBadHygiene);
     if (DubsBadHygiene.Settings.LiteMode)
     {

@@ -17,8 +17,7 @@ public static class Patches_VEF
 
   static Patches_VEF()
   {
-    if (VMF_Harmony.ManualPatchEnabled)
-      VMF_Harmony.ManualPatchApis.Add(new ManualPatches_VEF());
+    VMF_Harmony.ManualPatchApis.Add(new ManualPatches_VEF());
     if (pipeNetsCount != null)
     {
       VMF_Harmony.PatchCategory(PatchCategories.VEFCore);
