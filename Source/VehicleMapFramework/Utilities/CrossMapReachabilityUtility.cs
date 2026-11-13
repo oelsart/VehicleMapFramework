@@ -40,11 +40,29 @@ public static class CrossMapReachabilityUtility
 
   extension(Pawn pawn)
   {
-    public extern ref Map DestMap { [InjectedField] get; }
+    private extern ref Map DestMapField { [InjectedField] get; }
 
-    public extern ref Map DepartMap { [InjectedField] get; }
+    public Map DestMap
+    {
+      get => pawn?.DestMapField;
+      set => pawn?.DestMapField = value;
+    }
     
-    public extern ref IntVec3? DepartPosition { [InjectedField] get; }
+    private extern ref Map DepartMapField { [InjectedField] get; }
+
+    public Map DepartMap
+    {
+      get => pawn?.DepartMapField;
+      set => pawn?.DepartMapField = value;
+    }
+    
+    private extern ref IntVec3? DepartPositionField { [InjectedField] get; }
+
+    public IntVec3? DepartPosition
+    {
+      get => pawn?.DepartPositionField;
+      set => pawn?.DepartPositionField = value;
+    }
 
     public Map DepartMapOrPawnMap => pawn.DepartMap ?? pawn.Map;
 
