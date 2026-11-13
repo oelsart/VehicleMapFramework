@@ -16,21 +16,21 @@ public static class TargetMapUtility
     
     public TargetInfo TargetInfo
     {
-      get => thing.TargetInfoField;
+      get => thing?.TargetInfoField ?? TargetInfo.Invalid;
       set
       {
         if (logging) VMF_Log.Message($"Set TargetInfo ({value}) to {thing}");
-        thing.TargetInfoField = value;
+        thing?.TargetInfoField = value;
       }
     }
 
     public Map TargetMap
     {
-      get => thing.TargetInfoField.Map;
+      get => thing?.TargetInfoField.Map;
       set
       {
         if (logging) VMF_Log.Message($"Set TargetMap ({value}) to {thing}");
-        thing.TargetInfoField = new TargetInfo(IntVec3.Invalid, value);
+        thing?.TargetInfoField = new TargetInfo(IntVec3.Invalid, value);
       }
     }
 
@@ -43,7 +43,7 @@ public static class TargetMapUtility
 
     public bool TryGetTargetInfo(out TargetInfo target)
     {
-      target = thing.TargetInfoField;
+      target = thing?.TargetInfoField ?? TargetInfo.Invalid;
       return target.IsValid;
     }
 
