@@ -6,6 +6,8 @@ namespace VehicleMapFramework;
 
 public static class DynamicDrawManagerOnVehicle
 {
+  public static bool DrawPawns { private get; set; } = true;
+
   public static void DrawDynamicThings(Map map)
   {
     if (!DebugViewSettings.drawThingsDynamic || map.Disposed)
@@ -53,8 +55,13 @@ public static class DynamicDrawManagerOnVehicle
                     (map, comp, AsAboveSoBelow.Translate(comp, position, currentBand), IntVec3.Zero, 0))))
                 continue;
             }
+
+            var pawn = drawThings[j] as Pawn;
+            if (pawn is not null && !DrawPawns)
+              continue;
+            
             drawThings[j].DynamicDrawPhase(DrawPhase.Draw);
-            if (flag && drawThings[j] is Pawn pawn)
+            if (flag && pawn is not null)
             {
               SilhouetteUtility.DrawGraphicSilhouette(pawn, pawn.Drawer.renderer.SilhouettePos);
             }

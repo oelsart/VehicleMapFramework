@@ -23,42 +23,17 @@ public class MoteThrownSinker : MoteThrown
       MaterialPropertyBlock = new MaterialPropertyBlock();
     });
   }
-
-  private Texture texture;
-  private Quaternion texRotation;
-  private Vector3 texDrawSize;
-  private (int, int) texSize;
-  private VehiclePawnWithMap vehicle;
-  private Rot4 rot;
-  private GraphicOverlay overlay;
-  private Color overlayColor;
-  private SimpleCurve colorOverlayAlphaCurve;
-  private bool disposeOnDespawn;
   
-  public void SetParameters(RenderTexture _texture, Quaternion _texRotation, Vector3 _texDrawSize,
-    Color _overlayColor, SimpleCurve _colorOverlayAlphaCurve)
-  {
-    texture = _texture;
-    texRotation = _texRotation;
-    texDrawSize = _texDrawSize;
-    overlayColor = _overlayColor;
-    colorOverlayAlphaCurve = _colorOverlayAlphaCurve;
-    disposeOnDespawn = true;
-  }
-  
-  public virtual void SetParameters(Texture _texture, Quaternion _texRotation, Vector3 _texDrawSize, (int, int) _texSize,
-    VehiclePawnWithMap _vehicle, Rot4 _rot, GraphicOverlay _overlay, Color _overlayColor, SimpleCurve _colorOverlayAlphaCurve)
-  {
-    texture = _texture;
-    texRotation = _texRotation;
-    texDrawSize = _texDrawSize;
-    texSize = _texSize;
-    rot = _rot;
-    vehicle = _vehicle;
-    overlay = _overlay;
-    overlayColor = _overlayColor;
-    colorOverlayAlphaCurve = _colorOverlayAlphaCurve;
-  }
+  public Texture Texture { private get; set; }
+  public Quaternion TexRotation { private get; set; }
+  public Vector3 TexDrawSize { private get; set; }
+  public (int, int) TexSize { private get; set; }
+  public VehiclePawn Vehicle { private get; set; }
+  public Rot4 Rot { private get; set; }
+  public GraphicOverlay Overlay { private get; set; }
+  public Color OverlayColor { private get; set; }
+  public SimpleCurve ColorOverlayAlphaCurve { private get; set; }
+  public bool DisposeOnDespawn { private get; set; }
   
   protected override void TickInterval(int delta)
   {
@@ -69,7 +44,7 @@ public class MoteThrownSinker : MoteThrown
   public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
   {
     base.DeSpawn(mode);
-    if (disposeOnDespawn && texture is RenderTexture renderTex)
+    if (DisposeOnDespawn && Texture is RenderTexture renderTex)
     {
       renderTex.ReleaseAndDestroy();
     }
@@ -77,27 +52,28 @@ public class MoteThrownSinker : MoteThrown
 
   protected override void DrawAt(Vector3 drawLoc, bool flip = false)
   {
-    if (texture is null)
+    if (Texture is null)
       return;
 
     var properties = MaterialPropertyBlock;
     properties.Clear();
-    properties.SetTexture(AdditionalShaderPropertyIDs.MainTex, texture);
+    properties.SetTexture(AdditionalShaderPropertyIDs.MainTex, Texture);
     var pos = exactPosition.WithY(def.altitudeLayer.AltitudeFor() + yOffset);
-    var matrix = Matrix4x4.TRS(pos, texRotation, texDrawSize);
+    var matrix = Matrix4x4.TRS(pos, TexRotation, TexDrawSize);
     properties.SetColor(ShaderPropertyIDs.Color, Color.white.WithAlpha(Alpha));
     Graphics.DrawMesh(MeshPool.plane10, matrix, TransparentMaterial, 0, null, 0, MaterialPropertyBlock);
 
     properties.SetColor(ShaderPropertyIDs.Color,
-      overlayColor.WithAlpha(colorOverlayAlphaCurve.Evaluate(AgeSecs / def.mote.Lifespan)));
+      OverlayColor.WithAlpha(ColorOverlayAlphaCurve.Evaluate(AgeSecs / def.mote.Lifespan)));
     Graphics.DrawMesh(MeshPool.plane10, matrix, SilhouetteMaterial, 0, null, 0, MaterialPropertyBlock);
   }
 
   private void MaintainTexture()
   {
-    if (vehicle is null || overlay is null) return;
+    if (Vehicle is null) return;
 
-    texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(vehicle, overlay, rot, texSize,
-      CellRect.Empty);
+    Texture = Vehicle is VehiclePawnWithMap vehiclePawnWithMap && Overlay is not null
+      ? VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(vehiclePawnWithMap, Overlay, Rot, TexSize, CellRect.Empty)
+      : VehicleMapUIRenderer.CaptureVehicle(Vehicle, Rot, TexSize);
   }
 }

@@ -102,14 +102,53 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     camera.nearClipPlane = 0f;
     camera.farClipPlane = 5.5f;
   }
+  
+  public static Texture CaptureVehicle(VehiclePawn vehicle, Rot4 rot, TexSize texSize)
+  {
+    var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
+    if (component?.camera is not { } camera)
+      return BaseContent.BadTex;
+    var key = new CacheKey(texSize, vehicle, rot);
+    var cache = component.GetOrCreateCachedMapTexture(key);
+    if (!cache.Dirty)
+    {
+      component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, GenTicks.TicksGame);
+      return cache.RenderTexture;
+    }
+    
+    var drawSize = vehicle.DrawSize;
+    var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
+    camera.orthographicSize = drawSizeRotated.y / 2f;
+    camera.aspect = (float)texSize.width / texSize.height;
+    using (MeshDrawSubmission.BeginCapture(component.commandList))
+    {
+      DynamicDrawManagerOnVehicle.DrawPawns = false;
+      try
+      {
+        var zero = Vector3.zero;
+        vehicle.DrawAt(in zero, rot, 0f);
+      }
+      finally
+      {
+        DynamicDrawManagerOnVehicle.DrawPawns = true;
+      }
+    }
+
+    var cameraView = CameraViewFactory.GetView(camera);
+    CameraTextureRenderer.Current?.Render(
+      cache.RenderTexture, component.commandList, cameraView, new Rect(0f, 0f, 1f, 1f), Color.clear);
+    component.commandList.Clear();
+    
+    component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, GenTicks.TicksGame);
+    return cache.RenderTexture;
+  }
 
   public static Texture GetVehicleMapTexture(VehiclePawnWithMap vehicle, Rot4 rot, TexSize texSize,
     Vector2? drawSize = null, Vector3? drawOffset = null)
   {
     var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
-    if (component?.camera is null)
+    if (component?.camera is not { } camera)
       return BaseContent.BadTex;
-    var camera = component.camera;
     var key = new CacheKey(texSize, vehicle, rot);
     var cache = component.GetOrCreateCachedMapTexture(key);
     if (!cache.Dirty)
@@ -141,7 +180,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     TexSize texSize, CellRect mapLimit)
   {
     var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
-    if (component?.camera is null)
+    if (component?.camera is not { } camera)
       return BaseContent.BadTex;
 
     var key = new CacheKey(texSize, vehicle, rot, overlay);
@@ -154,7 +193,6 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
     var drawSize = overlay.Graphic.drawSize;
     var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
-    var camera = component.camera;
     camera.orthographicSize = drawSizeRotated.y / 2f;
     camera.aspect = (float)texSize.width / texSize.height;
 
@@ -375,7 +413,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     };
   }
 
-  private readonly record struct CacheKey(TexSize size, VehiclePawnWithMap vehicle, Rot4 rot, [UsedImplicitly] GraphicOverlay overlay = null);
+  private readonly record struct CacheKey(TexSize size, VehiclePawn vehicle, Rot4 rot, [UsedImplicitly] GraphicOverlay overlay = null);
 
   public readonly struct CachedMapTexture(RenderTexture renderTexture, bool dirty)
   {

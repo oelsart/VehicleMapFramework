@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using Vehicles;
-using Vehicles.Rendering;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -24,22 +23,25 @@ public class SubEffector_SpawnSinkerMote(SubEffecterDef subDef, Effecter parent)
     if (vehicle.Map is null)
       return;
     const int PixelPerCell = 64;
-    var request = BlitRequest.For(vehicle);
-    request.rot = vehicle.FullRotation;
-    var drawSize = vehicle.DrawSize / vehicle.VehicleDef.uiIconScale;
-    var max = Mathf.Max(drawSize.x, drawSize.y);
-    var drawSizeMax = new Vector2(max, max);
-    var rect = new Rect(Vector2.zero, drawSizeMax * PixelPerCell);
-    var renderTex = VehicleGui.CreateRenderTexture(rect, in request);
-    VehicleGui.Blit(renderTex, rect, in request);
-      
+    var rot = vehicle.FullRotation.RotForVehicleDraw();
     var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
-    mote.SetParameters(
-      renderTex,
-      Quaternion.AngleAxis(-vehicle.ExtraAngle, Vector3.up),
-      drawSizeMax.ToVector3().SetToAltitude(AltitudeLayer.MoteLow),
-      subDef.color,
-      ColorOverlayAlphaCurve);
+    var drawSize = vehicle.DrawSize;
+    var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
+    var texDrawSize = drawSizeRotated with
+    {
+      x = Mathf.NextPowerOfTwo(Mathf.CeilToInt(drawSizeRotated.x)),
+      y = Mathf.NextPowerOfTwo(Mathf.CeilToInt(drawSizeRotated.y))
+    };
+    var textureSize = ((int)texDrawSize.x * PixelPerCell, (int)texDrawSize.y * PixelPerCell);
+    
+    mote.Texture = VehicleMapUIRenderer.CaptureVehicle(vehicle, rot, textureSize);
+    mote.TexRotation = Quaternion.AngleAxis(-vehicle.ExtraAngle, Vector3.up);
+    mote.TexDrawSize = texDrawSize.ToVector3().WithY(1f);
+    mote.TexSize = textureSize;
+    mote.Vehicle = vehicle;
+    mote.Rot = rot;
+    mote.OverlayColor = subDef.color;
+    mote.ColorOverlayAlphaCurve = ColorOverlayAlphaCurve;
     mote.SetVelocity(subDef.angle.RandomInRange, subDef.speed.RandomInRange);
     mote.exactPosition = vehicle.DrawPos;
     GenSpawn.Spawn(mote, mote.exactPosition.ToIntVec3(), vehicle.Map);

@@ -972,7 +972,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                   vehicle.RemovePawn(pawn2);
                   FrameDelay.DelayOne(PlaceToBaseMap, ((Thing)pawn2, cell, map));
                 }
-                return;
+                continue;
               }
               case Pawn pawn when
                 (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
@@ -982,7 +982,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 continue;
               default:
                 FrameDelay.DelayOne(PlaceToBaseMap, (thing, cell, map));
-                break;
+                continue;
             }
           }
         }

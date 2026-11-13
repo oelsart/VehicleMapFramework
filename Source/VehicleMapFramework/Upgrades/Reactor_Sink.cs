@@ -89,27 +89,26 @@ public class Reactor_Sink : Reactor, ITweakFields
         var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
         var drawSize = overlay.Graphic.drawSize;
         var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
-        var textureSize =
-          (Mathf.CeilToInt(drawSizeRotated.x * PixelPerCell), Mathf.CeilToInt(drawSizeRotated.y * PixelPerCell));
-        var texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(
-          vehiclePawnWithMap,
-          overlay,
-          rot,
-          textureSize,
-          mapLimit.Value);
-        mote.SetParameters(
-          texture,
-          Quaternion.AngleAxis(-vehicle.ExtraAngle, Vector3.up),
-          drawSizeRotated.ToVector3().WithY(1f),
-          textureSize,
-          vehiclePawnWithMap,
-          rot,
-          overlay,
-          overlayColor,
-          colorOverlayAlphaCurve);
+        var texDrawSize = drawSizeRotated with
+        {
+          x = Mathf.NextPowerOfTwo(Mathf.CeilToInt(drawSizeRotated.x)),
+          y = Mathf.NextPowerOfTwo(Mathf.CeilToInt(drawSizeRotated.y))
+        };
+        var textureSize = ((int)texDrawSize.x * PixelPerCell, (int)texDrawSize.y * PixelPerCell);
+        var texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(vehiclePawnWithMap, overlay, rot,
+          textureSize, mapLimit.Value);
+        
+        mote.Texture = texture;
+        mote.TexRotation = Quaternion.AngleAxis(-vehicle.ExtraAngle, Vector3.up);
+        mote.TexDrawSize = texDrawSize.ToVector3().WithY(1f);
+        mote.TexSize = textureSize;
+        mote.Vehicle = vehiclePawnWithMap;
+        mote.Rot = rot;
+        mote.Overlay = overlay;
+        mote.OverlayColor = overlayColor;
+        mote.ColorOverlayAlphaCurve = colorOverlayAlphaCurve;
         mote.SetVelocity(angle.RandomInRange, speed);
-        mote.exactPosition = drawPos +
-                             overlay.Graphic.DrawOffset(rot).RotatedBy(vehicle.ExtraAngle);
+        mote.exactPosition = drawPos + overlay.Graphic.DrawOffset(rot).RotatedBy(vehicle.ExtraAngle);
         GenSpawn.Spawn(mote, mote.exactPosition.ToIntVec3(), vehicle.Map);
         VehicleMapUIRenderer.SetDirty(vehiclePawnWithMap, type: VehicleMapUIRenderer.DurationType.Time);
         VehicleMapUIRenderer.SetDirty(vehiclePawnWithMap, type: VehicleMapUIRenderer.DurationType.Ticks);
