@@ -122,7 +122,7 @@ public static class Patch_StoreUtility_IsGoodStoreCell
     var targetMap = carrier.TargetMap;
     if (departMap is not null || targetMap is not null)
     {
-      carrier.RemoveDepartMap();
+      carrier.DepartMap = null;
       __result = StoreAcrossMapsUtility.IsGoodStoreCell(c, targetMap ?? map, t, carrier, faction);
       carrier.DepartMap = departMap;
       return false;

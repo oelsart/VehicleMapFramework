@@ -48,6 +48,9 @@
     <Reference Include="$(RimWorldDirectory)Waylith.dll">
       <Private>false</Private>
     </Reference>
+    <Reference Include="$(RimWorldDirectory)Waylith.Injection.dll">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -283,7 +283,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
       finally
       {
         pawn.VirtualMapTransfer(map, pos);
-        pawn.RemoveDepartMap();
+        pawn.DepartMap = null;
       }
     }
 
@@ -404,7 +404,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
       finally
       {
         pawn.VirtualMapTransfer(map);
-        pawn.RemoveDepartMap();
+        pawn.DepartMap = null;
       }
     }
   }

@@ -765,7 +765,7 @@ public static class Patch_CaravanFormation_TryFindExitSpot
   {
     foreach (var pawn in pawns)
     {
-      pawn.RemoveDestMap();
+      pawn.DestMap = null;
     }
   }
 }

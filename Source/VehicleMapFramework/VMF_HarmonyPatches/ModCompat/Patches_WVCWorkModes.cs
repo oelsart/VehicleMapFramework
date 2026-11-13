@@ -68,7 +68,8 @@ public static class Patch_JobGiver_GoToShutdownZone_TryGiveJob
           break;
         }
       }
-      pawn.RemoveDepartMap();
+
+      pawn.DepartMap = null;
     }
     finally
     {

@@ -68,7 +68,7 @@ public static class Patch_AttackTargetFinderAngle_BestAttackTarget
       {
         working = false;
         searcher.Thing.VirtualMapTransfer(map, pos);
-        pawn?.RemoveDepartMap();
+        pawn.DepartMap = null;
         __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
       }
     }

@@ -135,7 +135,7 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOptio
 
   internal static void Dispose(Pawn pawn, VirtualTeleporter? __state)
   {
-    pawn?.RemoveDepartMap();
+    pawn.DepartMap = null;
     __state?.Dispose();
   }
 }

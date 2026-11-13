@@ -59,6 +59,9 @@
     <Content Include="..\Directory.Build.props">
       <Link>Directory.Build.props</Link>
     </Content>
+    <Content Include="..\Directory.Build.targets">
+      <Link>Directory.Build.targets</Link>
+    </Content>
   </ItemGroup>
 
   <PropertyGroup>

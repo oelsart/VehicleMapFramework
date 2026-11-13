@@ -36,6 +36,16 @@ public static class Patch_Thing_Rotation
   }
 }
 
+[HarmonyPatch(typeof(Thing), nameof(Thing.ExposeData))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Thing_ExposeData
+{
+  public static void Postfix(Thing __instance)
+  {
+    Scribe_TargetInfo.Look(ref __instance.TargetInfoField, "targetInfo_VMF");
+  }
+}
+
 [HarmonyPatch(typeof(Building_Door), "StuckOpen", MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_Building_Door_StuckOpen

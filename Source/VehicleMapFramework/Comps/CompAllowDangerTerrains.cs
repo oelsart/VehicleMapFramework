@@ -1,33 +1,33 @@
-﻿using System.Runtime.CompilerServices;
-using SmashTools;
-using Verse;
+﻿using Verse;
+using Waylith.Injection;
 
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
 public class CompAllowDangerTerrains : ThingComp
 {
-  public static readonly ConditionalWeakTable<Pawn, List<TerrainDef>> AllowedTerrains = [];
-
-  static CompAllowDangerTerrains()
-  {
-    GameEvent.OnGameDisposed += AllowedTerrains.Clear;
-  }
-  
   public CompProperties_AllowDangerTerrains Props => (CompProperties_AllowDangerTerrains)props;
 
   public override void Notify_Equipped(Pawn pawn)
   {
     if (!Props.allowedDangerTerrains.NullOrEmpty())
     {
-      AllowedTerrains.AddOrUpdate(pawn, Props.allowedDangerTerrains);
+      pawn.AllowedDangerTerrains = Props.allowedDangerTerrains;
       CrossMapReachabilityCache.ClearCacheFor(pawn);
     }
   }
 
   public override void Notify_Unequipped(Pawn pawn)
   {
-    AllowedTerrains.Remove(pawn);
+    pawn.AllowedDangerTerrains = null;
     CrossMapReachabilityCache.ClearCacheFor(pawn);
+  }
+}
+
+public static class DangerTerrainHelper
+{
+  extension(Pawn pawn)
+  {
+    public extern ref List<TerrainDef> AllowedDangerTerrains { [InjectedField] get; }
   }
 }

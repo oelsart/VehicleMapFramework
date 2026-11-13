@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Text;
 using JetBrains.Annotations;
 using LudeonTK;
 using RimWorld;
@@ -8,18 +7,13 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
+using Waylith.Injection;
 
 namespace VehicleMapFramework;
 
 public static class CrossMapReachabilityUtility
 {
   public static bool working;
-
-  private static ConditionalWeakTable<Pawn, Map> DestMaps { get; } = [];
-
-  private static ConditionalWeakTable<Pawn, Map> DepartMaps { get; } = [];
-
-  private static Dictionary<Pawn, IntVec3?> DepartPositions { get; } = [];
 
   public static Map DepartMapGlobal;
 
@@ -46,77 +40,15 @@ public static class CrossMapReachabilityUtility
 
   extension(Pawn pawn)
   {
-    public Map DestMap
-    {
-      get
-      {
-        if (pawn is null) return null;
-        return DestMaps.TryGetValue(pawn, out var map) ? map : null;
-      }
-      set
-      {
-        if (pawn is null) return;
-        if (value is null)
-        {
-          pawn.RemoveDestMap();
-          return;
-        }
+    public extern ref Map DestMap { [InjectedField] get; }
 
-        DestMaps.AddOrUpdate(pawn, value);
-      }
-    }
-
-    public void RemoveDestMap()
-    {
-      if (pawn is null) return;
-      DestMaps.Remove(pawn);
-    }
-
-    public Map DepartMap
-    {
-      get
-      {
-        if (pawn is null) return null;
-        return DepartMaps.TryGetValue(pawn, out var map) ? map : null;
-      }
-      set
-      {
-        if (pawn is null) return;
-        if (value is null)
-        {
-          pawn.RemoveDepartMap();
-          return;
-        }
-
-        DepartMaps.AddOrUpdate(pawn, value);
-      }
-    }
-
-    public void RemoveDepartMap()
-    {
-      if (pawn is null) return;
-      DepartMaps.Remove(pawn);
-    }
+    public extern ref Map DepartMap { [InjectedField] get; }
+    
+    public extern ref IntVec3? DepartPosition { [InjectedField] get; }
 
     public Map DepartMapOrPawnMap => pawn.DepartMap ?? pawn.Map;
 
     public Map DepartMapOrPawnMapHeld => pawn.DepartMap ?? pawn.MapHeld;
-
-    internal IntVec3? DepartPosition
-    {
-      get => pawn is null ? null : DepartPositions.GetValueOrDefault(pawn);
-      set
-      {
-        if (pawn is null) return;
-        if (value is null)
-        {
-          DepartPositions.Remove(pawn);
-          return;
-        }
-
-        DepartPositions[pawn] = value;
-      }
-    }
 
     public bool CanReach(LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors,
       bool canBashFences, TraverseMode mode, Map destMap)
@@ -339,7 +271,7 @@ public static class CrossMapReachabilityUtility
       if (terrain is { dangerous: false })
         return true;
 
-      return CompAllowDangerTerrains.AllowedTerrains.TryGetValue(pawn, out var allowedTerrains) &&
+      return pawn.AllowedDangerTerrains is { } allowedTerrains &&
              allowedTerrains!.Contains(terrain);
     }
     

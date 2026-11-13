@@ -1,54 +1,50 @@
 ﻿using LudeonTK;
 using Verse;
+using Waylith.Injection;
 
 namespace VehicleMapFramework;
 
 public static class TargetMapUtility
 {
-  public static TargetMapManager manager;
-
   internal static bool logging;
 
   extension(Thing thing)
   {
+    internal extern ref TargetInfo TargetInfoField { [InjectedField(Initializer = nameof(get_InvalidTargetInfo))] get; }
+    
+    private static TargetInfo InvalidTargetInfo => TargetInfo.Invalid;
+    
     public TargetInfo TargetInfo
     {
-      get => manager?.TargetInfoTable.TryGetValue(thing, out var box) is true ? box.Value : TargetInfo.Invalid;
+      get => thing.TargetInfoField;
       set
       {
         if (logging) VMF_Log.Message($"Set TargetInfo ({value}) to {thing}");
-        manager?.GetOrCreateTargetInfo(thing)?.Value = value;
+        thing.TargetInfoField = value;
       }
     }
 
     public Map TargetMap
     {
-      get => manager?.TargetInfoTable.TryGetValue(thing, out var box) is true ? box.Value.Map : null;
+      get => thing.TargetInfoField.Map;
       set
       {
         if (logging) VMF_Log.Message($"Set TargetMap ({value}) to {thing}");
-        manager?.GetOrCreateTargetInfo(thing)?.Value = new TargetInfo(IntVec3.Invalid, value);
+        thing.TargetInfoField = new TargetInfo(IntVec3.Invalid, value);
       }
     }
 
     public void RemoveTargetInfo()
     {
-      if (thing is null || manager is null) return;
-      if (manager.TargetInfoTable.TryGetValue(thing, out var box))
-      {
-        if (logging) VMF_Log.Message($"Remove TargetInfo ({box.Value}) from {thing}");
-        box.Value = TargetInfo.Invalid;
-      }
+      if (thing is null) return;
+      if (logging) VMF_Log.Message($"Remove TargetInfo ({thing.TargetInfoField}) from {thing}");
+      thing.TargetInfoField = TargetInfo.Invalid;
     }
 
     public bool TryGetTargetInfo(out TargetInfo target)
     {
-      target = TargetInfo.Invalid;
-      if (thing is null || manager is null) return false;
-      var result = manager.TargetInfoTable.TryGetValue(thing, out var box);
-      if (result)
-        target = box.Value;
-      return result && target.IsValid;
+      target = thing.TargetInfoField;
+      return target.IsValid;
     }
 
     public bool IsTargeting(LocalTargetInfo localTarget, out TargetInfo target)
@@ -62,11 +58,8 @@ public static class TargetMapUtility
     {
       map = null;
       if (thing is null) return false;
-      if (manager?.TargetInfoTable is not { } table) return false;
-      var result = table.TryGetValue(thing, out var box);
-      if (result)
-        map = box.Value.Map;
-      return result && map != null;
+      map = thing.TargetInfoField.Map;
+      return map is not null;
     }
 
     public Map TargetMapOrMap => thing.TargetMap ?? thing.Map;
