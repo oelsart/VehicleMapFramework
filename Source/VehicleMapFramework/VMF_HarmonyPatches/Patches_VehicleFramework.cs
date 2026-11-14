@@ -17,7 +17,7 @@ using Verse.Sound;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(RGBMaterialPool), nameof(RGBMaterialPool.SetProperties), typeof(IMaterialCacheTarget), typeof(PatternData), typeof(Func<Rot8, Texture2D>), typeof(Func<Rot8, Texture2D>))]
+[HarmonyPatch(typeof(RGBMaterialPool), nameof(RGBMaterialPool.SetProperties))]
 [PatchLevel(Level.Mandatory)]
 public static class Patch_RGBMaterialPool_SetProperties
 {
