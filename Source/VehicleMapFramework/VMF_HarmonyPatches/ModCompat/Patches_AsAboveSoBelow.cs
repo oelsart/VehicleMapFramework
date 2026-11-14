@@ -281,3 +281,14 @@ public static class Patch_ABStairAnim_ArtOff
     return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
   }
 }
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.ABBandSafety", "SweepVoid")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_ABBandSafety_SweepVoid
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_AllPawnsSpawned, CachedMethodInfo.m_AllPawnsSpawned_Reverse);
+  }
+}
