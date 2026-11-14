@@ -247,7 +247,7 @@ public static class VehicleMapUtility
       vehicle = null;
       return false;
     }
-    vehicle = MapComponentCache<VehicleMapGrid>.GetComponent(map).VehicleAt(c);
+    vehicle = MapComponentCache<VehicleMapGrid>.GetComponent(map)?.VehicleAt(c);
     return vehicle is not null;
   }
 
