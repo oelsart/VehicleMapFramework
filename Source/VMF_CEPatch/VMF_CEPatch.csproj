@@ -40,7 +40,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="CombatExtended">
-      <HintPath>$(SteamWorkshopRoot)\2890901044\Assemblies\CombatExtended.dll</HintPath>
+      <HintPath>$(CEDevFolder)\Assemblies\CombatExtended.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

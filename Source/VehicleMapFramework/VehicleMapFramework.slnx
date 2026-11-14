@@ -25,7 +25,9 @@
     <Build Solution="DevRelease|Any CPU" Project="false" />
     <Build Solution="Release|Any CPU" Project="false" />
   </Project>
-  <Project Path="../VMF_AchtungPatch/VMF_AchtungPatch.csproj" />
+  <Project Path="../VMF_AchtungPatch/VMF_AchtungPatch.csproj">
+    <Platform Solution="*|Any CPU" Project="AMD64" />
+  </Project>
   <Project Path="../VMF_CEPatch/VMF_CEPatch.csproj" />
   <Project Path="../VMF_DBHCompat/VMF_DBHCompat.csproj" />
   <Project Path="../VMF_RimefellerCompat/VMF_RimefellerCompat.csproj" />

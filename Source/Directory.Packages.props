@@ -6,7 +6,6 @@
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="JetBrains.Annotations" Version="2026.2.0" />
     <PackageVersion Include="Krafs.Rimworld.Ref" Version="1.7.5000-unstable" />
     <PackageVersion Include="Lib.Harmony" Version="3.0.0-rc.5" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
