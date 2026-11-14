@@ -109,7 +109,7 @@ jobs:
 
     - name: Build DLL
       run: |
-        dotnet build Source/VehicleMapFramework/VehicleMapFramework.slnx --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.slnx --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
