@@ -5,6 +5,7 @@
     <exclude>Analyzer.xml</exclude>
     <exclude>CheckList.txt</exclude>
     <exclude>Dev</exclude>
+    <exclude>ManualHarmony</exclude>
     <exclude>Source</exclude>
   </Excluded>
 </Configuration>
