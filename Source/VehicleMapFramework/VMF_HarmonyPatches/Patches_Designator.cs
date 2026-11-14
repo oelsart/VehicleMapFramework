@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
+using UnityEngine;
 using Vehicles;
 using Verse;
 
@@ -47,7 +48,7 @@ public static class Patch_Designator_SelectedUpdate
     }
     if (Command_FocusVehicleMap.FocusedVehicle is { } focused)
     {
-      __state = Command_FocusVehicleMap.FocusMapUnsafe(focused.CurrentLevel);
+      __state = FocusMapScope.FocusMapUnsafe(focused.CurrentLevel);
     }
   }
   

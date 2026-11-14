@@ -136,7 +136,7 @@ public class CompMapExpander : ThingComp
     Process(this);
     return;
 
-    static void Process(CompMapExpander comp)
+    void Process(CompMapExpander comp)
     {
       if (comp.parent.IsOnVehicleMapOf(out var vehicle))
       {

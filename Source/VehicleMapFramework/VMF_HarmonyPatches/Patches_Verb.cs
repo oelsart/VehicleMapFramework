@@ -514,23 +514,3 @@ public static class Patch_VerbProperties_DrawRadiusRing
   
   internal static void Finalizer(FocusMapScope __state) => __state.Dispose();
 }
-
-[HarmonyPatch(typeof(Targeter), nameof(Targeter.TargeterUpdate))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Targeter_TargeterUpdate
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-  {
-    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
-      .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Targeter), "CurrentTargetUnderMouse")))
-      .NonFocusedMapVehicle(out var vehicle,
-        CodeInstruction.LoadArgument(0),
-        CodeInstruction.LoadField(typeof(Targeter), nameof(Targeter.targetingSource)),
-        AccessTools.PropertyGetter(typeof(ITargetingSource), nameof(ITargetingSource.Caster)).CallvirtInstruction)
-      .FocusVehicleAroundMethod(vehicle,
-        AccessTools.Method(typeof(ITargetingSource), nameof(ITargetingSource.DrawHighlight)))
-      .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Targeter), "highlightAction")))
-      .FocusVehicleAroundMethod(vehicle, AccessTools.Method(typeof(Action<LocalTargetInfo>), nameof(Action.Invoke)))
-      .InstructionEnumeration();
-  }
-}
