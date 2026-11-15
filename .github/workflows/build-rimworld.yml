@@ -1,6 +1,7 @@
-﻿name: Build RimWorld Game Image
+﻿name: Build RimWorld Image
 on:
   workflow_dispatch:
+  push:
   schedule:
     - cron: '0 18 * * 1'
 
