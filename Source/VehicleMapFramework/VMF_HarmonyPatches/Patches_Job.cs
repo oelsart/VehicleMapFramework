@@ -1071,11 +1071,13 @@ public static class Patch_ToilFailConditions_SelfAndParentsDespawnedOrNull
 [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden))]
 public static class Patch_ForbidUtility_IsForbidden
 {
+  [ThreadStatic] private static bool working;
+  
   [HarmonyPatch([typeof(IntVec3), typeof(Pawn)])]
   [PatchLevel(Level.Safe)]
   public static bool Prefix(IntVec3 c, Pawn pawn, ref bool __result)
   {
-    if (pawn.CurJob is not { } curJob)
+    if (working || pawn.CurJob is not { } curJob)
       return true;
 
     var targetMap = curJob.targetA.IsValid && c == curJob.targetA.Cell ? curJob.targetA.Thing?.MapHeld : null;
@@ -1100,6 +1102,12 @@ public static class Patch_ForbidUtility_IsForbidden
       .InsertAndAdvance(CodeInstruction.LoadArgument(0))
       .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden1)
       .InstructionEnumeration();
+  }
+
+  public readonly struct PrefixDisabler : IDisposable
+  {
+    public PrefixDisabler() => working = true;
+    void IDisposable.Dispose() => working = false;
   }
 }
 
