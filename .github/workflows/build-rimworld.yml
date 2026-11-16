@@ -1,7 +1,6 @@
 ﻿name: Build RimWorld Image
 on:
   workflow_dispatch:
-  push:
   schedule:
     - cron: '0 18 * * 1'
 
@@ -12,6 +11,7 @@ permissions:
 jobs:
   build-image:
     runs-on: ubuntu-latest
+    environment: Steam
     steps:
       - name: Build and push RimWorld image
         uses: RimWorks/steam-game-image-action@v4
