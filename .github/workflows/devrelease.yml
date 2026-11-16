@@ -7,32 +7,8 @@ on:
       - 'dev-v*'
 
 jobs:
-  report_local_tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Test Results
-        run: |
-          curl -L -o ./TestResults.xml "https://gist.githubusercontent.com/oelsart/3bb8183cedc9869f566440ca1553c633/raw/TestResults.xml"
-
-      - name: Upload local test results artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: LocalTestResults
-          path: |
-            ./TestResults.xml
-      
-      - name: Test Report
-        uses: dorny/test-reporter@v3
-        with:
-          artifact: LocalTestResults
-          name: Local Tests
-          path: '*.xml'
-          reporter: dotnet-trx
-          fail-on-error: 'true'
-        
   build:
     runs-on: windows-latest
-    needs: report_local_tests
     
     env:
       Solution_Name: VehicleMapFramework
@@ -128,10 +104,88 @@ jobs:
           VehicleMapFrameworkDev/LICENSE
           VehicleMapFrameworkDev/LICENSE.VehicleFramework
           VehicleMapFrameworkDev/LoadFolders.xml
+  
+  
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/rimworld-game:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --user root
+    env:
+      RW_DIR: /game # コンテナ内のRimWorldインストールパスに合わせる
+      WorkshopMods: |
+        3522907382  # Vehicle Framework (Unstable)
+        2023507013  # Vanilla Expanded Framework
+        730936602   # Achtung!
+        3495749827  # Combat Extended (Dev)
+        836308268   # Dubs Bad Hygiene
+        1321849735  # Rimefeller
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Install .NET 10 & Xvfb
+        run: |
+          apt-get update && apt-get install -y xvfb curl
+        # ※イメージ側に.NET 10 SDKが無い場合は actions/setup-dotnet@v6 を併用
+
+      - name: Download Packaged Mod Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: VehicleMapFrameworkDev
+          path: ${{ env.RW_DIR }}/Mods/VehicleMapFrameworkDev
+
+      # 既存のSteamCMDキャッシュ＆WorkshopModsダウンロード処理をここに配置し、
+      # ダウンロード先を ${{ env.RW_DIR }}/Mods/ へシンボリックリンクまたはコピー[cite: 1, 2]
+
+      - name: Build Test Runner Mod (DevTools + Test_NUnit)
+        run: |
+          dotnet build Source/Test_NUnit --configuration Release \
+            /p:RimWorldDirectory=${{ env.RW_DIR }} \
+            /p:SteamWorkshopRoot=${{ env.RW_DIR }}/Mods
+
+      - name: Generate ModsConfig.xml
+        run: |
+          mkdir -p /tmp/rw_userdata/Config
+          cat << 'EOF' > /tmp/rw_userdata/Config/ModsConfig.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <ModsConfigData>
+            <version>1.7.0</version>
+            <activeMods>
+              <li>ludeon.rimworld</li>
+              <li>smashphil.devtools</li>
+              <li>smashphil.vehicleframework</li>
+              <li>oels.vehiclemapframework</li>
+              <li>oels.vehiclemapframework.tests</li>
+            </activeMods>
+          </ModsConfigData>
+          EOF
+
+      - name: Run Real-Runtime Tests via DevTools
+        run: |
+          xvfb-run -a dotnet test Source/Test_NUnit --configuration Release --no-build \
+            --logger "trx;LogFileName=integration_results.trx" \
+            /p:RimWorldDirectory=${{ env.RW_DIR }} \
+            /p:SaveDataFolder=/tmp/rw_userdata
+
+      - name: Upload & Report Test Results
+        uses: dorny/test-reporter@v3
+        if: always()
+        with:
+          name: Real Runtime Integration Tests
+          path: "**/integration_results.trx"
+          reporter: dotnet-trx
+          fail-on-error: 'true'
     
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: test
     environment: Steam
     steps:
     - name: Download build artifacts

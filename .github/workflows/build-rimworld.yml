@@ -19,4 +19,5 @@ jobs:
           steam-username: ${{ secrets.STEAM_USERNAME }}
           steam-config-vdf: ${{ secrets.STEAM_CONFIG_VDF_B64 }}
           image: ghcr.io/${{ github.repository_owner }}/rimworld-game
+          branch: unstable
           registry-password: ${{ secrets.GITHUB_TOKEN }}
