@@ -121,7 +121,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         field ??= new BoolGrid(interiorMap);
         field.Clear();
         
-        if (UnityData.IsInMainThread)
+        if (!UnityData.IsInMainThread)
         {
           // マップ読み込み中に初期化された場合
           LongEventHandler.ExecuteWhenFinished(SetUp);
@@ -241,7 +241,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         enterPositionsDirty = true;
         field.Clear();
         var mapSize = MapSize;
-        var cellRect = new CellRect(1, 1, mapSize.x - 1, mapSize.z - 1);
+        var cellRect = new CellRect(1, 1, mapSize.x - 2, mapSize.z - 2);
         var impassableGrid = ImpassableCellGrid;
         for (var i = 0; i < 4; i++)
         {
