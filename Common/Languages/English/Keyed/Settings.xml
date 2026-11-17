@@ -4,7 +4,7 @@
 	<VMF_Settings.Tab.Main>Main</VMF_Settings.Tab.Main>
 	
 	<VMF_Settings.DrawPlanet>Draw the world map during caravan.</VMF_Settings.DrawPlanet>
-  <VMF_Settings.MapSizePerTile>Scale of world rendering in the vehicle map view. (map cell size / tile size)</VMF_Settings.MapSizePerTile>
+	<VMF_Settings.MapSizePerTile>Scale of world rendering in the vehicle map view. (map cell size / tile size)</VMF_Settings.MapSizePerTile>
 	<VMF_Settings.ForceRotated>Force vehicle rotation in the caravan.</VMF_Settings.ForceRotated>
 	<VMF_Settings.WeightFactor>Weight factor of things on the vehicle map.</VMF_Settings.WeightFactor>
 	<VMF_Settings.AutoGetOffPlayer>Player pawns automatically exit vehicle map.</VMF_Settings.AutoGetOffPlayer>
@@ -17,7 +17,11 @@
 	<VMF_Settings.AsyncClosestThing>Multi-threading of calculations to get closest reachable thing.</VMF_Settings.AsyncClosestThing>
 	<VMF_Settings.MinSearchSetCount>Minimum search set count calculated in multi-threading.</VMF_Settings.MinSearchSetCount>
 	<VMF_Settings.ColonistBarMode>Display map vehicle icons below the colonist bar.</VMF_Settings.ColonistBarMode>
-  <VMF_Settings.LegacyCanReach>Use legacy can reach checks.</VMF_Settings.LegacyCanReach>
+	<VMF_Settings.LegacyCanReach>Use legacy can reach checks.</VMF_Settings.LegacyCanReach>
+	<VMF_Settings.CrossMapJoySearch>Cross-map joy search.</VMF_Settings.CrossMapJoySearch>
+	<VMF_Settings.CrossMapJoySearch.Tooltip>Search for recreation across maps.</VMF_Settings.CrossMapJoySearch.Tooltip>
+	<VMF_Settings.TreatAsPlayerHome>Treat vehicle maps as player home maps.</VMF_Settings.TreatAsPlayerHome>
+	<VMF_Settings.TreatAsPlayerHome.Tooltip>This mainly relates to the triggering of quests.</VMF_Settings.TreatAsPlayerHome.Tooltip>
 	<VMF_ColonistBarMode.DontShow>Don't show</VMF_ColonistBarMode.DontShow>
 	<VMF_ColonistBarMode.MouseIsOver>Mouse is over</VMF_ColonistBarMode.MouseIsOver>
 	<VMF_ColonistBarMode.Always>Always</VMF_ColonistBarMode.Always>

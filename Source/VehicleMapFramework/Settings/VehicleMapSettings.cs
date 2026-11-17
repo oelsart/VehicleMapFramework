@@ -84,9 +84,9 @@ public class VehicleMapSettings : ModSettings
 
     public const bool includeMapThings = true;
 
-    public const bool joyPatches = false;
+    public const bool joyPatches = true;
 
-    public const bool treatAsPlayerHome = false;
+    public const bool treatAsPlayerHome = true;
 
     public const ShowVehiclesOnColonistBar colonistBarMode = ShowVehiclesOnColonistBar.MouseIsOver;
 

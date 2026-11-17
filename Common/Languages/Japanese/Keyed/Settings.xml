@@ -17,6 +17,10 @@
 	<VMF_Settings.MinSearchSetCount>マルチスレッドで計算されるサーチセットの最小数.</VMF_Settings.MinSearchSetCount>
 	<VMF_Settings.ColonistBarMode>入植者バーの下にマップ車両のアイコンを表示する.</VMF_Settings.ColonistBarMode>
   <VMF_Settings.LegacyCanReach>旧版の到達可能性チェックを使用する.</VMF_Settings.LegacyCanReach>
+	<VMF_Settings.CrossMapJoySearch>クロスマップ娯楽サーチ.</VMF_Settings.CrossMapJoySearch>
+	<VMF_Settings.CrossMapJoySearch.Tooltip>マップをまたいで娯楽を探索します.</VMF_Settings.CrossMapJoySearch.Tooltip>
+	<VMF_Settings.TreatAsPlayerHome>車両マップをプレイヤーホームマップとして扱う.</VMF_Settings.TreatAsPlayerHome>
+	<VMF_Settings.TreatAsPlayerHome.Tooltip>主にクエストの発生に関連します.</VMF_Settings.TreatAsPlayerHome.Tooltip>
   <VMF_ColonistBarMode.DontShow>表示しない</VMF_ColonistBarMode.DontShow>
 	<VMF_ColonistBarMode.MouseIsOver>マウスオーバー時</VMF_ColonistBarMode.MouseIsOver>
 	<VMF_ColonistBarMode.Always>常に表示</VMF_ColonistBarMode.Always>

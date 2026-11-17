@@ -52,8 +52,10 @@ internal class SettingsTab_Main : SettingsTabDrawer
     listingStandard.CheckboxLabeled("VMF_Settings.CrossMapJobProtect".Translate(), ref settings.crossMapJobProtect,
       "VMF_Settings.CrossMapJobProtect.Tooltip".Translate());
     listingStandard.CheckboxLabeled("VMF_Settings.TreatAsCaravanInventory".Translate(), ref settings.includeMapThings);
-    listingStandard.CheckboxLabeled("(Experimental) Cross map joy search.", ref settings.joyPatches);
-    listingStandard.CheckboxLabeled("(Experimental) Treat vehicle map as player home.", ref settings.treatAsPlayerHome);
+    listingStandard.CheckboxLabeled("VMF_Settings.CrossMapJoySearch".Translate(), ref settings.joyPatches,
+      "VMF_Settings.CrossMapJoySearch.Tooltip".Translate());
+    listingStandard.CheckboxLabeled("VMF_Settings.TreatAsPlayerHome".Translate(), ref settings.treatAsPlayerHome,
+      "VMF_Settings.TreatAsPlayerHome.Tooltip".Translate());
     {
       var label = "VMF_Settings.ColonistBarMode".Translate();
       const float widthPct = 0.5f;
