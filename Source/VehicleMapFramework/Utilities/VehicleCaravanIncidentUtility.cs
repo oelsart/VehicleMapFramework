@@ -50,7 +50,7 @@ public static class VehicleCaravanIncidentUtility
   }
 
   public static Map SetupCaravanAttackMap(VehicleCaravan caravan, List<VehiclePawnWithMap> vehicles, List<Pawn> enemies,
-    bool sendLetterIfRelatedPawns, WorldObjectDef mapParent, CaravanEnterMode enterMode = CaravanEnterMode.Edge)
+    bool sendLetterIfRelatedPawns, WorldObjectDef mapParent, CaravanEnterMode enterMode = CaravanEnterMode.Center)
   {
     try
     {
@@ -120,8 +120,6 @@ public static class VehicleCaravanIncidentUtility
         vehicle.Resize();
       }
 
-      if (!SpawnVehicle(vehicle)) continue;
-
       // UpgradeBuildableをExecuteWhenFinishedで呼んでいるため
       LongEventHandler.ExecuteWhenFinished(() =>
       {
@@ -152,10 +150,11 @@ public static class VehicleCaravanIncidentUtility
             }
           }
 
-          var pos = CellFinderExtended.RandomSpawnCellForPawnNear(vehicleMap.Center, vehicleMap, pawn,
-            _ => true);
+          var pos = CellFinderExtended.RandomSpawnCellForPawnNear(vehicleMap.Center, vehicleMap, pawn, _ => true);
           GenSpawn.Spawn(pawn, pos, vehicleMap, Rot4.South);
         }
+
+        SpawnVehicle(vehicle);
       });
     }
 
@@ -183,7 +182,7 @@ public static class VehicleCaravanIncidentUtility
       return counts;
     }
 
-    bool SpawnVehicle(VehiclePawnWithMap vehicle)
+    void SpawnVehicle(VehiclePawnWithMap vehicle)
     {
       var rot = edge ?? Rot4.Random;
       vehicle.Rotation = rot;
@@ -195,11 +194,10 @@ public static class VehicleCaravanIncidentUtility
       {
         VMF_Log.Error($"Unable to find spawn position for vehicle {vehicle}");
         vehicle.Destroy();
-        return false;
+        return;
       }
 
-      var result = GenSpawn.Spawn(vehicle, cell, map, rot) is not null;
-      return result;
+      GenSpawn.Spawn(vehicle, cell, map, rot);
     }
   }
   
