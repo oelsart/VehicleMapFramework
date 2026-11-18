@@ -120,7 +120,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         field ??= new BoolGrid(interiorMap);
         field.Clear();
         
-        if (!UnityData.IsInMainThread)
+        if (MapGenerator.mapBeingGenerated is not null)
         {
           // マップ読み込み中に初期化された場合
           LongEventHandler.ExecuteWhenFinished(SetUp);
