@@ -23,9 +23,8 @@ public class VehicleFormationComp : WorldObjectComp
     }, this);
   }
 
-  public void RecalculateVehiclePositions()
+  private void RecalculateVehiclePositions()
   {
-    drawPositions.Clear();
     if (parent is not IVehicleWorldObject vehicleWorldObject)
       return;
     

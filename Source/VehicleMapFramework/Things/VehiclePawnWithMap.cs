@@ -15,13 +15,14 @@ using Verse;
 using Verse.AI;
 using Verse.AI.Group;
 using Vehicles.Rendering;
+using Verse.Sound;
 
 namespace VehicleMapFramework;
 
 public class MapVehicleEventDef : Def;
 
 [StaticConstructorOnStartup]
-public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>, IAttackTarget
+public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 {
   private bool generatingVehicleMap;
   private Map interiorMap;
@@ -60,17 +61,15 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   private static readonly FastInvokeHandler DirtyCellDesignationsCache =
     MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
+  
+  private static readonly Action<Sustainer> UpdateRootObjectPosition =
+    AccessTools.MethodDelegate<Action<Sustainer>>(AccessTools.Method(typeof(Sustainer), "UpdateRootObjectPosition"));
 
   private static readonly List<DesignationDef> cellDesignations =
     [.. DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell)];
 
   internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections =
     AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
-
-  EventManager<MapVehicleEventDef> IEventManager<MapVehicleEventDef>.EventRegistry { get; set; }
-
-  public EventManager<MapVehicleEventDef> MapVehicleEventManager =>
-    ((IEventManager<MapVehicleEventDef>)this).EventRegistry;
 
   public static event Action<VehiclePawnWithMap> ModCompatEvents;
   
@@ -121,7 +120,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         field ??= new BoolGrid(interiorMap);
         field.Clear();
         
-        if (UnityData.IsInMainThread)
+        if (MapGenerator.mapBeingGenerated is not null)
         {
           // マップ読み込み中に初期化された場合
           LongEventHandler.ExecuteWhenFinished(SetUp);
@@ -241,7 +240,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         enterPositionsDirty = true;
         field.Clear();
         var mapSize = MapSize;
-        var cellRect = new CellRect(1, 1, mapSize.x - 1, mapSize.z - 1);
+        var cellRect = new CellRect(1, 1, mapSize.x - 2, mapSize.z - 2);
         var impassableGrid = ImpassableCellGrid;
         for (var i = 0; i < 4; i++)
         {
@@ -764,7 +763,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     base.SpawnSetup(map, respawningAfterLoad);
     RegisterEvents();
-    RecacheDrawPos(DrawPos);
+    if (generatingVehicleMap)
+      FrameDelay.DelayOne(vehicle => vehicle.RecacheDrawPos(vehicle.DrawPos), this);
+    else RecacheDrawPos(DrawPos);
     VehiclePawnWithMapCache.RegisterVehicle(this);
     mapFollower = new VehicleMapFollower(this);
     LongEventHandler.ExecuteWhenFinished(mapFollower.RegisterVehicle);
@@ -1389,11 +1390,18 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public new void RegisterEvents()
   {
-    var manager = MapVehicleEventManager;
-    if (manager is not null && manager.Initialized()) return;
-    this.FillEventsDef<MapVehicleEventDef>();
     this.AddEvent(VehicleEventDefOf.PositionChanged, ClearReachabilityCache);
     this.AddEvent(VehicleEventDefOf.RotationChanged, ClearReachabilityCache);
+    this.AddEvent(VehicleEventDefOf.PositionChanged, () =>
+    {
+      foreach (var sustainer in Find.SoundRoot.sustainerManager.AllSustainers)
+      {
+        if (sustainer.info.Maker.Map != interiorMap)
+          continue;
+
+        UpdateRootObjectPosition(sustainer);
+      }
+    });
     ModCompatEvents?.Invoke(this);
     return;
 

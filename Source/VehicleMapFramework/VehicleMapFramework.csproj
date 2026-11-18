@@ -74,11 +74,12 @@
 
   <!-- Manual Patches -->
   <ItemGroup>
-    <ProjectReference Include="..\..\ManualHarmony\ManualHarmony.Runtime\ManualHarmony.Runtime.csproj" />
+    <ProjectReference Include="..\..\ManualHarmony\ManualHarmony.Runtime\ManualHarmony.Runtime.csproj" PrivateAssets="all" />
     <ProjectReference
       Include="..\..\ManualHarmony\ManualHarmony\ManualHarmony.csproj"
       OutputItemType="Analyzer"
-      ReferenceOutputAssembly="false" />
+      ReferenceOutputAssembly="false"
+      PrivateAssets="all" />
     <CompilerVisibleProperty Include="ManualHarmony_GeneratedNamespace" />
     <CompilerVisibleProperty Include="ManualHarmony_GeneratedClassName" />
   </ItemGroup>

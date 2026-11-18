@@ -435,19 +435,6 @@ public static class Patch_DesignationManager_DesignationOn
   }
 }
 
-[HarmonyPatch(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot))]
-[PatchLevel(Level.Safe)]
-public static class Patch_SoundStarter_PlayOneShot
-{
-  public static void Prefix(ref SoundInfo info)
-  {
-    if (info.Maker.IsValid && info.Maker.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-    {
-      info = SoundInfo.InMap(new TargetInfo(info.Maker.Cell.ToBaseMapCoord(vehicle), vehicle.Map), info.Maintenance);
-    }
-  }
-}
-
 [HarmonyPatch(typeof(Room), nameof(Room.DrawFieldEdges))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Room_DrawFieldEdges

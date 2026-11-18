@@ -6,8 +6,8 @@
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Krafs.Rimworld.Ref" Version="1.7.5000-unstable" />
-    <PackageVersion Include="Lib.Harmony" Version="3.0.0-rc.5" />
+    <PackageVersion Include="Krafs.Rimworld.Ref" Version="1.7.5013-unstable" />
+    <PackageVersion Include="Lib.Harmony" Version="3.0.0-rc.7" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="11.0.100" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />

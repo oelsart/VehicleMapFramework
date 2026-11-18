@@ -28,18 +28,34 @@
       <steamWorkshopUrl>steam://url/CommunityFilePage/3014915404</steamWorkshopUrl>
     </li>
   </modDependencies>
-  <loadAfter>
-    <li>SmashPhil.VehicleFramework</li>
-    <li>brrainz.achtung</li>
-    <li>CETeam.CombatExtended</li>
-    <li>OskarPotocki.VanillaFactionsExpanded.Core</li>
-    <li>Dubwise.DubsBadHygiene</li>
-    <li>Dubwise.DubsBadHygiene.Lite</li>
-    <li>Dubwise.Rimefeller</li>
-  </loadAfter>
   <loadAfterByVersion>
     <v1.5>
+      <li>SmashPhil.VehicleFramework</li>
+      <li>brrainz.achtung</li>
+      <li>CETeam.CombatExtended</li>
+      <li>OskarPotocki.VanillaFactionsExpanded.Core</li>
+      <li>Dubwise.DubsBadHygiene</li>
+      <li>Dubwise.DubsBadHygiene.Lite</li>
+      <li>Dubwise.Rimefeller</li>
       <li>Mehni.PickUpAndHaul</li>
     </v1.5>
+    <v1.6>
+      <li>SmashPhil.VehicleFramework</li>
+      <li>brrainz.achtung</li>
+      <li>CETeam.CombatExtended</li>
+      <li>OskarPotocki.VanillaFactionsExpanded.Core</li>
+      <li>Dubwise.DubsBadHygiene</li>
+      <li>Dubwise.DubsBadHygiene.Lite</li>
+      <li>Dubwise.Rimefeller</li>
+    </v1.6>
+    <v1.7>
+      <li>SmashPhil.VehicleFramework</li>
+      <li>brrainz.achtung</li>
+      <li>CETeam.CombatExtended</li>
+      <li>OskarPotocki.VanillaFactionsExpanded.Core</li>
+      <li>Dubwise.DubsBadHygiene</li>
+      <li>Dubwise.DubsBadHygiene.Lite</li>
+      <li>Dubwise.Rimefeller</li>
+    </v1.7>
   </loadAfterByVersion>
 </ModMetaData>
