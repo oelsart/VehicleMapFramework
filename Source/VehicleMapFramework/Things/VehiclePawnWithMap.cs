@@ -21,7 +21,7 @@ namespace VehicleMapFramework;
 public class MapVehicleEventDef : Def;
 
 [StaticConstructorOnStartup]
-public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>, IAttackTarget
+public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 {
   private bool generatingVehicleMap;
   private Map interiorMap;
