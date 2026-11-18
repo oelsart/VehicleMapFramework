@@ -48,5 +48,13 @@ public class SectionLayer_TerrainOnVehicle(Section section) : SectionLayer_Terra
 
     baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(vehicle.DrawColor, ShaderDatabase.TerrainHard);
     base.Regenerate();
+    
+    // ShadowMaskにより地上の影がマスクされるのを防ぐ
+    var index = subMeshes.FindIndex(static s => s.material == MatBases.ShadowMask);
+    if (index != -1)
+    {
+      subMeshes[index].Clear(MeshParts.All);
+      subMeshes.RemoveAt(index);
+    }
   }
 }
