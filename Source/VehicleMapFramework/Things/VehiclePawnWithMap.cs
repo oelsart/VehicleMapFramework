@@ -763,7 +763,9 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     base.SpawnSetup(map, respawningAfterLoad);
     RegisterEvents();
-    FrameDelay.DelayOne(vehicle => vehicle.RecacheDrawPos(vehicle.DrawPos), this);
+    if (generatingVehicleMap)
+      FrameDelay.DelayOne(vehicle => vehicle.RecacheDrawPos(vehicle.DrawPos), this);
+    else RecacheDrawPos(DrawPos);
     VehiclePawnWithMapCache.RegisterVehicle(this);
     mapFollower = new VehicleMapFollower(this);
     LongEventHandler.ExecuteWhenFinished(mapFollower.RegisterVehicle);
