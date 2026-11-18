@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using DevTools.Testing;
-using JetBrains.Annotations;
+﻿using DevTools.Testing;
 using RimWorld;
 using SmashTools;
 using UnityEngine.Assertions;
@@ -39,12 +37,6 @@ internal sealed class Test_CrossMapReachabilityVehicle
   private static Map Map => Find.CurrentMap;
 
   private VehiclePawn Vehicle => group.vehicle;
-
-  [UsedImplicitly]
-  public static IEnumerable AllTraverseModes()
-  {
-    return Enum.GetValues<TraverseMode>().Cast<object>();
-  }
 
   [OneTimeSetUp]
   private void OneTimeSetUp()
@@ -107,7 +99,7 @@ internal sealed class Test_CrossMapReachabilityVehicle
   }
 
   [Test]
-  private void GroundToVehicleMap_ThroughRamp([ParametersSource(nameof(AllTraverseModes))] TraverseMode mode)
+  private void GroundToVehicleMap_ThroughRamp()
   {
     var mapVehicle = SpawnMapVehicle(0, Map.Center);
     var ramp = AddRamp(mapVehicle);
@@ -115,16 +107,16 @@ internal sealed class Test_CrossMapReachabilityVehicle
     // ramp の内側のセル。CanReachVehicle が第2区間の起点にするセルと同じ。
     var dest = InnerRampCell(ramp);
 
-    var result = CanReach(dest, mapVehicle.VehicleMap, out var exitSpot, out var enterSpot, mode);
+    var result = CanReach(dest, mapVehicle.VehicleMap, out var exitSpot, out var enterSpot);
 
-    Expect.IsTrue(result, $"result (mode: {mode})");
+    Expect.IsTrue(result, "result");
     ExpectSpots(exitSpot, enterSpot, expectExit: false, expectEnter: true);
     Expect.ReferencesAreEqual(enterSpot.Map, mapVehicle.VehicleMap, "enterSpot should be on the vehicle map");
     Expect.IsNotNull(enterSpot.Thing?.TryGetComp<CompVehicleEnterSpot>(), "enterSpot should be a ramp");
   }
 
   [Test]
-  private void VehicleMapToGround_ThroughRamp([ParametersSource(nameof(AllTraverseModes))] TraverseMode mode)
+  private void VehicleMapToGround_ThroughRamp()
   {
     var mapVehicle = SpawnMapVehicle(0, Map.Center);
     var ramp = AddRamp(mapVehicle);
@@ -132,9 +124,9 @@ internal sealed class Test_CrossMapReachabilityVehicle
     // ramp の外側のセル(地上マップ座標)。
     var dest = OuterRampCell(ramp);
 
-    var result = CanReach(dest, Map, out var exitSpot, out var enterSpot, mode);
+    var result = CanReach(dest, Map, out var exitSpot, out var enterSpot);
 
-    Expect.IsTrue(result, $"result (mode: {mode})");
+    Expect.IsTrue(result, "result");
     ExpectSpots(exitSpot, enterSpot, expectExit: true, expectEnter: false);
     Expect.ReferencesAreEqual(exitSpot.Map, mapVehicle.VehicleMap, "exitSpot should be on the vehicle map");
     Expect.IsNotNull(exitSpot.Thing?.TryGetComp<CompVehicleEnterSpot>(), "exitSpot should be a ramp");
