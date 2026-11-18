@@ -15,6 +15,7 @@ using Verse;
 using Verse.AI;
 using Verse.AI.Group;
 using Vehicles.Rendering;
+using Verse.Sound;
 
 namespace VehicleMapFramework;
 
@@ -60,17 +61,15 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
   private static readonly FastInvokeHandler DirtyCellDesignationsCache =
     MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
+  
+  private static readonly Action<Sustainer> UpdateRootObjectPosition =
+    AccessTools.MethodDelegate<Action<Sustainer>>(AccessTools.Method(typeof(Sustainer), "UpdateRootObjectPosition"));
 
   private static readonly List<DesignationDef> cellDesignations =
     [.. DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell)];
 
   internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections =
     AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
-
-  EventManager<MapVehicleEventDef> IEventManager<MapVehicleEventDef>.EventRegistry { get; set; }
-
-  public EventManager<MapVehicleEventDef> MapVehicleEventManager =>
-    ((IEventManager<MapVehicleEventDef>)this).EventRegistry;
 
   public static event Action<VehiclePawnWithMap> ModCompatEvents;
   
@@ -1389,11 +1388,18 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
   public new void RegisterEvents()
   {
-    var manager = MapVehicleEventManager;
-    if (manager is not null && manager.Initialized()) return;
-    this.FillEventsDef<MapVehicleEventDef>();
     this.AddEvent(VehicleEventDefOf.PositionChanged, ClearReachabilityCache);
     this.AddEvent(VehicleEventDefOf.RotationChanged, ClearReachabilityCache);
+    this.AddEvent(VehicleEventDefOf.PositionChanged, () =>
+    {
+      foreach (var sustainer in Find.SoundRoot.sustainerManager.AllSustainers)
+      {
+        if (sustainer.info.Maker.Map != interiorMap)
+          continue;
+
+        UpdateRootObjectPosition(sustainer);
+      }
+    });
     ModCompatEvents?.Invoke(this);
     return;
 

@@ -193,7 +193,8 @@ public static class Patch_FleckManager_CreateFleck
 
   private static void OffsetSpawnPosition(FleckManager manager, ref FleckCreationData data)
   {
-    if (manager.parent.IsNonFocusedVehicleMapOf(out var vehicle))
+    if (manager.parent.IsNonFocusedVehicleMapOf(out var vehicle) &&
+        data.spawnPosition.InBounds(manager.parent))
     {
       data.spawnPosition = data.spawnPosition.ToBaseMapCoord(vehicle);
     }
@@ -440,54 +441,6 @@ public static class Patch_GenDraw_DrawRadiusRing
   }
   
   internal static void Finalizer(FocusVehicleScope? __state) => __state?.Dispose();
-}
-
-//CellがターゲットのMoteにオフセットをかける
-[HarmonyPatch(typeof(MoteAttachLink), nameof(MoteAttachLink.UpdateDrawPos))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_MoteAttachLink_UpdateDrawPos
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-    ILGenerator generator)
-  {
-    var codes = instructions.ToList();
-    var pos =
-      codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3Shifted)) + 1;
-    var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-    var label = generator.DefineLabel();
-
-    codes[pos].labels.Add(label);
-    codes.InsertRange(pos,
-    [
-      CodeInstruction.LoadArgument(0),
-      CodeInstruction.LoadField(typeof(MoteAttachLink), "targetInt", true),
-      new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Map))),
-      new CodeInstruction(OpCodes.Ldloca, vehicle),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsNonFocusedVehicleMapOf),
-      new CodeInstruction(OpCodes.Brfalse_S, label),
-      new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)
-    ]);
-    return codes;
-  }
-}
-
-[HarmonyPatch(typeof(SubEffecter_Sprayer), "MakeMote")]
-[PatchLevel(Level.Safe)]
-public static class Patch_SubEffecter_Sprayer_MakeMote
-{
-  public static void Prefix(SubEffecter_Sprayer __instance, TargetInfo A, TargetInfo B)
-  {
-    var locType = __instance.EffectiveSpawnLocType;
-    if (locType == MoteSpawnLocType.OnSource && A.HasThing || locType == MoteSpawnLocType.OnTarget && B.HasThing)
-      return;
-    VehiclePawnWithMapCache.CacheMode = true;
-  }
-
-  public static void Finalizer()
-  {
-    VehiclePawnWithMapCache.CacheMode = false;
-  }
 }
 
 [HarmonyPatch(typeof(PlaceWorker_SpectatorPreview), nameof(PlaceWorker_SpectatorPreview.DrawSpectatorPreview))]
