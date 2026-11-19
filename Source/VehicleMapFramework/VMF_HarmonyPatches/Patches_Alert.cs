@@ -8,20 +8,30 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Safe)]
 public static class Patch_Alert_NeedMealSource_NeedMealSource
 {
+  private static bool working;
+  
   private static readonly FastInvokeHandler NeedMealSource =
     MethodInvoker.GetHandler(AccessTools.Method(typeof(Alert_NeedMealSource), "NeedMealSource"));
 
   public static void Postfix(Alert_NeedMealSource __instance, Map map, ref bool __result)
   {
-    if (!__result) return;
+    if (!__result || working) return;
 
-    foreach (var map2 in map.BaseMapAndVehicleMaps(false))
+    working = true;
+    try
     {
-      if (!(bool)NeedMealSource(__instance, SingleParam.Get(map2)))
+      foreach (var map2 in map.BaseMapAndVehicleMaps(false))
       {
-        __result = false;
-        return;
+        if (!(bool)NeedMealSource(__instance, SingleParam.Get(map2)))
+        {
+          __result = false;
+          return;
+        }
       }
+    }
+    finally
+    {
+      working = false;
     }
   }
 }
