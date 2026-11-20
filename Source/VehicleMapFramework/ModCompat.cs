@@ -64,6 +64,7 @@ public static class ModCompat
   public static readonly bool AnimalCages = IsModActive("zal.animalcages");
   public static readonly bool DoNotHitMe = IsModActive("Og.do.not.hit.me");
   public static readonly bool AutoApparelPickup = IsModActive("Scorpio.AutoApparelPickup");
+  public static readonly bool JustLeaveAlready = IsModActive("Timuttie.JustLeaveAlready.fork.mitasamodel");
 
   static ModCompat()
   {
