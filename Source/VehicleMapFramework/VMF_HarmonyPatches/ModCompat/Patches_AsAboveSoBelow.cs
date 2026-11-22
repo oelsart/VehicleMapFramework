@@ -87,13 +87,17 @@ public static class Patch_SectionLayer_ABBelowV2_MaterialFor
 [PatchLevel(Level.Safe)]
 public static class Patch_ABBandView_TryStep
 {
-  public static void Prefix(ref Map map)
+  public static bool Prefix(ref Map map, int delta)
   {
     var selected = Find.Selector.SingleSelectedObject;
     if (selected is VehiclePawnWithMap vehicle ||
         selected is Thing thing && thing.IsOnVehicleMapOf(out vehicle) ||
         selected is Zone zone && zone.Map.IsVehicleMapOf(out vehicle))
       map = vehicle.CurrentLevel;
+
+    // 車両マップの場合オープンされていない上階にカメラが飛ぶとプレイヤーが混乱する
+    return !map.IsVehicleMap || CompOf(map) is not { } bandComp || !Banded(bandComp) ||
+           IsOpen(bandComp, CurrentBand(map) + delta);
   }
 }
 

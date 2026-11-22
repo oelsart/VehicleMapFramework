@@ -617,6 +617,7 @@ public static class ModCompat
     public static Func<MapComponent, bool> Banded;
     public static Func<MapComponent, IntVec3, int> BandOf;
     public static Func<MapComponent, IntVec3, int, IntVec3> Translate;
+    public static Func<MapComponent, int, bool> IsOpen;
     public static Func<Map, int> CurrentBand;
     public static Func<Map, int, CellRect> RectOfBand;
     public delegate bool GetBandRect(Map map, IntVec3 c, out CellRect band);
@@ -645,6 +646,8 @@ public static class ModCompat
         BandOf = (component, c) => (int)handler2(component, Params<ValueTuple<IntVec3>>.Get(new ValueTuple<IntVec3>(c)));
         var handler3 = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBandMap:Translate"));
         Translate = (component, c, toBand) => (IntVec3)handler3(component, Params<(IntVec3, int)>.Get((c, toBand)));
+        var handler4 = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBandMap:IsOpen"));
+        IsOpen = (component, delta) => (bool)handler4(component, Params<ValueTuple<int>>.Get(new ValueTuple<int>(delta)));
         CurrentBand = AccessTools.MethodDelegate<Func<Map, int>>("AsAboveSoBelow.ABBandView:CurrentBand");
         RectOfBand = AccessTools.MethodDelegate<Func<Map, int, CellRect>>("AsAboveSoBelow.ABBands:RectOfBand");
         TryBandRectOf = AccessTools.MethodDelegate<GetBandRect>("AsAboveSoBelow.ABBandSafety:TryBandRectOf");
