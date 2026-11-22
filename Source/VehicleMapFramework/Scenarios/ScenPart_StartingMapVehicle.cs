@@ -44,7 +44,7 @@ public class ScenPart_StartingMapVehicle : ScenPart_StartingVehicle
         _ = vehicle.VehicleMap;
         LongEventHandler.ExecuteWhenFinished(() =>
         {
-          PrefabUtility.SpawnPrefab(prefabDef, vehicle.VehicleMap, vehicle.VehicleMap.Center, Rot4.North, Faction.OfPlayer);
+          PrefabUtility.SpawnPrefab(prefabDef, vehicle.VehicleMap, vehicle.MapRect.CenterCell, Rot4.North, Faction.OfPlayer);
         });
       }
 
