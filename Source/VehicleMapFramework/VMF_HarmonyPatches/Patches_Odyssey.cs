@@ -2,6 +2,7 @@
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using RimWorld.QuestGen;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -89,5 +90,27 @@ public static class Patch_Gravship_DetermineLaunchDirection
   public static bool Prefix(IntVec3 ___launchDirection, Building ___pilotConsole)
   {
     return ___launchDirection != IntVec3.Zero || ___pilotConsole is not null;
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.Odyssey)]
+[HarmonyPatch(typeof(QuestPart_SpawnMonolith), nameof(QuestPart_SpawnMonolith.Notify_QuestSignalReceived))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_QuestPart_SpawnMonolith_Notify_QuestSignalReceived
+{
+  public static List<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return PatchHelper.CreateCodeMatcherFast(instructions, generator)
+      .MatchEndForward(
+        CodeMatch.Calls(
+          AccessTools.Method(typeof(GameComponent_Anomaly), nameof(GameComponent_Anomaly.TryGetCellForMonolithSpawn))),
+        new CodeMatch(OpCodes.Pop))
+      .CreateLabel(out var label)
+      .Insert(
+        new CodeInstruction(OpCodes.Dup),
+        new CodeInstruction(OpCodes.Brtrue_S, label),
+        new CodeInstruction(OpCodes.Pop),
+        new CodeInstruction(OpCodes.Ret))
+      .Instructions();
   }
 }
