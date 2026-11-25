@@ -55,6 +55,7 @@ public static class ModCompat
   public static readonly bool UFHeavyIndustries = IsModActive("KindSeal.LOL");
   public static readonly bool NightmareCore = IsModActive("Nightmare.Core");
   public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
+  public static readonly bool SmoothTerrain = IsModActive("ChaoticEnrico.SmoothTerrain");
   public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
   public static readonly bool RimWorldOfMagic = IsModActive("Torann.ARimworldOfMagic");
   public static readonly bool CeleTech = IsModActive("TOT.CeleTech.MKIII");
