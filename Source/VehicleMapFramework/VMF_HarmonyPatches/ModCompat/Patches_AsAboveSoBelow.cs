@@ -117,6 +117,18 @@ public static class Patch_ABBandView_SetBand
 }
 
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.ABBandView", "TryColonyAnchor")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_ABBandView_TryColonyAnchor
+{
+  // Immersive Opening有効化時車両マップからのスタートだとAnchorが見つからず地下に飛んでしまう問題の修正
+  public static List<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
 [HarmonyPatch("AsAboveSoBelow.Patch_JobTracker_ABLocalizeJobLines", "Prefix")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Patch_JobTracker_ABLocalizeJobLines_Prefix
