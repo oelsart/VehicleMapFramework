@@ -22,16 +22,17 @@ public class SubEffector_SpawnSinkerMote(SubEffecterDef subDef, Effecter parent)
     
     if (vehicle.Map is null)
       return;
-    const int PixelPerCell = 64;
     var rot = vehicle.FullRotation.RotForVehicleDraw();
     var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
     var drawSize = vehicle.DrawSize;
+    if (vehicle.VehicleDef.IsUniqueVehicle) drawSize += Vector2.one;
     var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
     var texDrawSize = drawSizeRotated with
     {
       x = Mathf.NextPowerOfTwo(Mathf.CeilToInt(drawSizeRotated.x)),
       y = Mathf.NextPowerOfTwo(Mathf.CeilToInt(drawSizeRotated.y))
     };
+    const int PixelPerCell = VehicleMapUIRenderer.PixelPerCell;
     var textureSize = ((int)texDrawSize.x * PixelPerCell, (int)texDrawSize.y * PixelPerCell);
     
     mote.Texture = VehicleMapUIRenderer.CaptureVehicle(vehicle, rot, textureSize);

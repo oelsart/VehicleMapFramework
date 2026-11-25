@@ -85,7 +85,6 @@ public class Reactor_Sink : Reactor, ITweakFields
       var overlay = overlays[i];
       if (overlay.data.identifier == overlayId)
       {
-        const int PixelPerCell = 64;
         var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
         var drawSize = overlay.Graphic.drawSize;
         var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
@@ -94,6 +93,7 @@ public class Reactor_Sink : Reactor, ITweakFields
           x = Mathf.NextPowerOfTwo(Mathf.CeilToInt(drawSizeRotated.x)),
           y = Mathf.NextPowerOfTwo(Mathf.CeilToInt(drawSizeRotated.y))
         };
+        const int PixelPerCell = VehicleMapUIRenderer.PixelPerCell;;
         var textureSize = ((int)texDrawSize.x * PixelPerCell, (int)texDrawSize.y * PixelPerCell);
         var texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(vehiclePawnWithMap, overlay, rot,
           textureSize, mapLimit.Value);

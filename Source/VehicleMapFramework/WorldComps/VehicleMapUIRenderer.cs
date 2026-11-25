@@ -27,6 +27,8 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     Ticks
   }
 
+  public const int PixelPerCell = 64;
+  
   private const int VehicleMapLayer = 28;
 
   private readonly Dictionary<CacheKey, CachedMapTexture> cachedTextures = [];
@@ -116,9 +118,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
       return cache.RenderTexture;
     }
     
-    var drawSize = vehicle.DrawSize;
-    var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
-    camera.orthographicSize = drawSizeRotated.y / 2f;
+    camera.orthographicSize = texSize.height / 2f/ PixelPerCell;
     camera.aspect = (float)texSize.width / texSize.height;
     using (MeshDrawSubmission.BeginCapture(component.commandList))
     {
